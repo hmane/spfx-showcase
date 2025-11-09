@@ -1,0 +1,11 @@
+# Local configuration
+*.local.*
+config.local.*
+
+# Temporary files
+temp-*
+*.tmp
+*.bak
+
+# Log files
+*.log

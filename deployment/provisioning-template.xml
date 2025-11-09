@@ -1,0 +1,106 @@
+<?xml version="1.0"?>
+<pnp:Provisioning xmlns:pnp="http://schemas.dev.office.com/PnP/2021/03/ProvisioningSchema">
+  <pnp:Preferences Generator="PnP.Framework, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null" />
+
+  <pnp:Templates ID="SPFX-SHOWCASE-TEMPLATES">
+    <pnp:ProvisioningTemplate
+      ID="SPFX-SHOWCASE-PROVISIONING"
+      Version="1.0"
+      BaseSiteTemplate="STS#3"
+      DisplayName="SPFx Showcase Provisioning Template"
+      Description="Deploys SPFx Showcase solution with Components Showcase and Developer Toolkit pages">
+
+      <!-- Client Side Pages -->
+      <pnp:ClientSidePages>
+
+        <!-- Components Showcase Page -->
+        <pnp:ClientSidePage
+          PageName="Showcase.aspx"
+          Title="Components Showcase"
+          Layout="Article"
+          PromoteAsNewsArticle="false"
+          Overwrite="true"
+          EnableComments="false">
+
+          <pnp:Header
+            Type="Default"
+            LayoutType="FullWidthImage"
+            ShowTopicHeader="false"
+            ShowPublishDate="false" />
+
+          <pnp:Sections>
+            <pnp:Section Order="1" Type="OneColumn">
+              <pnp:Controls>
+                <pnp:CanvasControl
+                  WebPartType="Custom"
+                  ControlId="1ce0529a-9764-40af-8e87-ec19659ab0d9"
+                  Order="1"
+                  Column="1">
+                  <pnp:CanvasControlProperties>
+                    <pnp:CanvasControlProperty Key="description" Value="Component Library Showcase - Interactive demos of UI components" />
+                  </pnp:CanvasControlProperties>
+                </pnp:CanvasControl>
+              </pnp:Controls>
+            </pnp:Section>
+          </pnp:Sections>
+        </pnp:ClientSidePage>
+
+        <!-- Developer Toolkit Page -->
+        <pnp:ClientSidePage
+          PageName="DevToolkit.aspx"
+          Title="Developer Toolkit"
+          Layout="Article"
+          PromoteAsNewsArticle="false"
+          Overwrite="true"
+          EnableComments="false">
+
+          <pnp:Header
+            Type="Default"
+            LayoutType="FullWidthImage"
+            ShowTopicHeader="false"
+            ShowPublishDate="false" />
+
+          <pnp:Sections>
+            <pnp:Section Order="1" Type="OneColumn">
+              <pnp:Controls>
+                <pnp:CanvasControl
+                  WebPartType="Custom"
+                  ControlId="2df1639b-8875-41bf-9f98-fc29770bc1e0"
+                  Order="1"
+                  Column="1">
+                  <pnp:CanvasControlProperties>
+                    <pnp:CanvasControlProperty Key="description" Value="Developer Toolkit - Comprehensive tools for SPFx development" />
+                  </pnp:CanvasControlProperties>
+                </pnp:CanvasControl>
+              </pnp:Controls>
+            </pnp:Section>
+          </pnp:Sections>
+        </pnp:ClientSidePage>
+
+      </pnp:ClientSidePages>
+
+      <!-- Navigation -->
+      <pnp:Navigation
+        AddNewPagesToNavigation="true"
+        CreateFriendlyUrlsForSitePagesPages="true">
+
+        <pnp:CurrentNavigation>
+          <pnp:NavigationNode
+            Title="Home"
+            Url="{site}/SitePages/Home.aspx"
+            IsExternal="false" />
+          <pnp:NavigationNode
+            Title="Components Showcase"
+            Url="{site}/SitePages/Showcase.aspx"
+            IsExternal="false" />
+          <pnp:NavigationNode
+            Title="Developer Toolkit"
+            Url="{site}/SitePages/DevToolkit.aspx"
+            IsExternal="false" />
+        </pnp:CurrentNavigation>
+
+      </pnp:Navigation>
+
+    </pnp:ProvisioningTemplate>
+  </pnp:Templates>
+</pnp:Provisioning>
