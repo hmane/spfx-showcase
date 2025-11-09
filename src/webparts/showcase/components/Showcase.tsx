@@ -31,8 +31,6 @@ interface ShowcaseItem {
   requiresContext?: boolean;
 }
 
-type ShowcaseStatus = NonNullable<ShowcaseItem['status']>;
-type StatusFilter = 'all' | ShowcaseStatus;
 
 // Enhanced showcase configuration with metadata organized by category
 const showcases: ShowcaseItem[] = [
@@ -167,8 +165,6 @@ interface ComponentStyles {
   pageLink: (isActive: boolean) => CSSProperties;
   title: CSSProperties;
   subtitle: CSSProperties;
-  stats: CSSProperties;
-  statsItem: CSSProperties;
   filters: CSSProperties;
   searchWrapper: CSSProperties;
   searchIcon: CSSProperties;
@@ -205,18 +201,7 @@ export const Showcase: React.FC<IShowcaseProps> = ({ context }) => {
   const [viewMode, setViewMode] = useState<ViewMode>('desktop');
   const [customWidth, setCustomWidth] = useState<number>(100);
   const [searchTerm, setSearchTerm] = useState<string>('');
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
-
-  const statusOptions = useMemo<ShowcaseStatus[]>(() => {
-    const uniqueStatuses = new Set<ShowcaseStatus>();
-    showcases.forEach(showcase => {
-      if (showcase.status) {
-        uniqueStatuses.add(showcase.status);
-      }
-    });
-    return Array.from(uniqueStatuses);
-  }, []);
 
   const categoryOptions = useMemo<string[]>(() => {
     const uniqueCategories = new Set<string>();
@@ -226,19 +211,6 @@ export const Showcase: React.FC<IShowcaseProps> = ({ context }) => {
       }
     });
     return Array.from(uniqueCategories).sort();
-  }, []);
-
-  const showcaseStats = useMemo(() => {
-    const counts: Record<ShowcaseStatus, number> = {} as Record<ShowcaseStatus, number>;
-    showcases.forEach(showcase => {
-      if (showcase.status) {
-        counts[showcase.status] = (counts[showcase.status] || 0) + 1;
-      }
-    });
-    return {
-      total: showcases.length,
-      counts,
-    };
   }, []);
 
   const injectDevExtremeCSS = (theme: string = 'dx.material.blue.light'): void => {
@@ -261,8 +233,6 @@ export const Showcase: React.FC<IShowcaseProps> = ({ context }) => {
   const filteredShowcases = useMemo(() => {
     const normalizedSearch = searchTerm.trim().toLowerCase();
     return showcases.filter(showcase => {
-      const matchesStatus =
-        statusFilter === 'all' || (showcase.status && showcase.status === statusFilter);
       const matchesCategory =
         categoryFilter === 'all' || (showcase.category && showcase.category === categoryFilter);
       const matchesSearch =
@@ -270,9 +240,9 @@ export const Showcase: React.FC<IShowcaseProps> = ({ context }) => {
         showcase.name.toLowerCase().includes(normalizedSearch) ||
         (showcase.description || '').toLowerCase().includes(normalizedSearch) ||
         (showcase.category || '').toLowerCase().includes(normalizedSearch);
-      return matchesStatus && matchesCategory && matchesSearch;
+      return matchesCategory && matchesSearch;
     });
-  }, [searchTerm, statusFilter, categoryFilter]);
+  }, [searchTerm, categoryFilter]);
 
   React.useEffect(() => {
     if (!filteredShowcases.length) {
@@ -395,20 +365,6 @@ export const Showcase: React.FC<IShowcaseProps> = ({ context }) => {
       color: '#6c757d',
       margin: '0 0 16px 0',
       fontWeight: 400,
-    },
-    stats: {
-      display: 'flex',
-      gap: '24px',
-      marginBottom: '24px',
-      fontSize: '0.9rem',
-      color: '#495057',
-      flexWrap: 'wrap',
-    },
-    statsItem: {
-      display: 'flex',
-      flexDirection: 'column',
-      gap: '2px',
-      minWidth: '90px',
     },
     filters: {
       display: 'flex',
@@ -616,23 +572,6 @@ export const Showcase: React.FC<IShowcaseProps> = ({ context }) => {
         <h1 style={styles.title}>Component Library Showcase</h1>
         <p style={styles.subtitle}>Interactive demos of your component library</p>
 
-        <div style={styles.stats}>
-          <div style={styles.statsItem}>
-            <span style={{ fontSize: '1.1rem', fontWeight: 600, color: '#1a1a1a' }}>
-              {showcaseStats.total}
-            </span>
-            <span style={{ fontSize: '0.8rem', color: '#6c757d' }}>Components</span>
-          </div>
-          {statusOptions.map(status => (
-            <div key={status} style={styles.statsItem}>
-              <span style={{ fontSize: '1.1rem', fontWeight: 600, color: '#1a1a1a' }}>
-                {showcaseStats.counts[status] || 0}
-              </span>
-              <span style={{ fontSize: '0.8rem', color: '#6c757d' }}>{status}</span>
-            </div>
-          ))}
-        </div>
-
         <div style={styles.filters}>
           <label style={styles.searchWrapper}>
             <Icon iconName='Search' style={styles.searchIcon} />
@@ -646,27 +585,7 @@ export const Showcase: React.FC<IShowcaseProps> = ({ context }) => {
             />
           </label>
 
-          <div style={styles.statusFilters} aria-label='Filter by status'>
-            <button
-              type='button'
-              style={styles.filterButton(statusFilter === 'all')}
-              onClick={() => setStatusFilter('all')}
-            >
-              All
-            </button>
-            {statusOptions.map(status => (
-              <button
-                key={status}
-                type='button'
-                style={styles.filterButton(statusFilter === status)}
-                onClick={() => setStatusFilter(status)}
-              >
-                {status}
-              </button>
-            ))}
-          </div>
-
-          <div style={{ ...styles.statusFilters, marginTop: '8px' }} aria-label='Filter by category'>
+          <div style={styles.statusFilters} aria-label='Filter by category'>
             <button
               type='button'
               style={styles.filterButton(categoryFilter === 'all')}

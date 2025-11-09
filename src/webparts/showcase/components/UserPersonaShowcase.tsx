@@ -5,7 +5,8 @@ import { ShowcaseKeyFeatures, ShowcaseFeature } from './ShowcaseKeyFeatures';
 import { ShowcaseCodeSample } from './ShowcaseCodeSample';
 import { UserPersona, UserPersonaSize, UserPersonaDisplayMode } from 'spfx-toolkit/lib/components/UserPersona';
 import { SPContext } from 'spfx-toolkit/lib/utilities/context';
-import { Dropdown, IDropdownOption, Toggle, TextField } from '@fluentui/react';
+import { Dropdown, IDropdownOption, Toggle } from '@fluentui/react';
+import { PeoplePicker, PrincipalType } from '@pnp/spfx-controls-react/lib/PeoplePicker';
 
 const FEATURES: ShowcaseFeature[] = [
   {
@@ -177,13 +178,35 @@ export const UserPersonaShowcase: React.FC = () => {
               gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
               gap: '16px'
             }}>
-              <TextField
-                label="User Identifier (Email or Login)"
-                value={userIdentifier}
-                onChange={(_, val) => setUserIdentifier(val || '')}
-                placeholder="user@contoso.com"
-                description="Enter a SharePoint user email or login name"
-              />
+              <div>
+                <label style={{
+                  display: 'block',
+                  marginBottom: '8px',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  color: '#323130'
+                }}>
+                  Select User
+                </label>
+                <PeoplePicker
+                  context={SPContext.peoplepickerContext}
+                  personSelectionLimit={1}
+                  groupName=""
+                  showtooltip={true}
+                  required={false}
+                  disabled={false}
+                  onChange={(items: any[]) => {
+                    if (items && items.length > 0) {
+                      setUserIdentifier(items[0].secondaryText || items[0].text);
+                    } else {
+                      setUserIdentifier('');
+                    }
+                  }}
+                  principalTypes={[PrincipalType.User]}
+                  resolveDelay={300}
+                  ensureUser={true}
+                />
+              </div>
 
               <Dropdown
                 label="Size"

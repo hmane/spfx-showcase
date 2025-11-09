@@ -1,25 +1,60 @@
 import { DefaultButton, PrimaryButton } from '@fluentui/react';
 import * as React from 'react';
 import { IVersionInfo, VersionHistory } from 'spfx-toolkit/lib/components/VersionHistory';
+import { SPContext } from 'spfx-toolkit/lib/utilities/context';
+import { ListPicker } from '@pnp/spfx-controls-react/lib/ListPicker';
+import { ListItemPicker } from '@pnp/spfx-controls-react/lib/ListItemPicker';
 import { ShowcaseCodeSample } from './ShowcaseCodeSample';
 import { ShowcaseHero } from './ShowcaseHero';
 import { ShowcaseFeature, ShowcaseKeyFeatures } from './ShowcaseKeyFeatures';
 
 const VERSION_HISTORY_SAMPLE = `import * as React from 'react';
+import { useState } from 'react';
 import { PrimaryButton } from '@fluentui/react';
 import { VersionHistory } from 'spfx-toolkit/lib/components/VersionHistory';
+import { ListPicker } from '@pnp/spfx-controls-react/lib/ListPicker';
+import { ListItemPicker } from '@pnp/spfx-controls-react/lib/ListItemPicker';
+import { SPContext } from 'spfx-toolkit/lib/utilities/context';
 
 export const VersionHistoryTrigger: React.FC = () => {
-  const [showHistory, setShowHistory] = React.useState(false);
+  const [showHistory, setShowHistory] = useState(false);
+  const [selectedListId, setSelectedListId] = useState<string>('');
+  const [selectedItemId, setSelectedItemId] = useState<number>();
 
   return (
     <>
-      <PrimaryButton onClick={() => setShowHistory(true)}>View version history</PrimaryButton>
+      <ListPicker
+        context={SPContext.context as any}
+        placeHolder="Select a list or library"
+        baseTemplate={100}
+        onSelectionChanged={(lists) => {
+          setSelectedListId(lists?.[0] || '');
+          setSelectedItemId(undefined);
+        }}
+      />
 
-      {showHistory && (
+      {selectedListId && (
+        <ListItemPicker
+          listId={selectedListId}
+          columnInternalName="Title"
+          itemLimit={1}
+          context={SPContext.context as any}
+          onSelectedItem={(items) => {
+            setSelectedItemId(items?.[0]?.id);
+          }}
+        />
+      )}
+
+      {selectedListId && selectedItemId && (
+        <PrimaryButton onClick={() => setShowHistory(true)}>
+          View version history
+        </PrimaryButton>
+      )}
+
+      {showHistory && selectedListId && selectedItemId && (
         <VersionHistory
-          listId="00000000-0000-0000-0000-000000000000"
-          itemId={42}
+          listId={selectedListId}
+          itemId={selectedItemId}
           onClose={() => setShowHistory(false)}
           onExport={versionCount => console.log('exported', versionCount)}
           onDownload={version => console.log('download', version.versionLabel)}
@@ -63,28 +98,9 @@ const VERSION_HISTORY_BADGES = ['DevExtreme popup', 'Inline change grid', 'Expor
  */
 export const VersionHistoryShowcase: React.FC = () => {
   const [showHistory, setShowHistory] = React.useState(false);
-  const [selectedDemo, setSelectedDemo] = React.useState<'document' | 'list' | 'custom'>(
-    'document'
-  );
-  const [customListId, setCustomListId] = React.useState('b52d80b2-d67c-4bd3-945b-671d3f2445f7');
-  const [customItemId, setCustomItemId] = React.useState('2');
+  const [selectedListId, setSelectedListId] = React.useState<string>('');
+  const [selectedItemId, setSelectedItemId] = React.useState<number | undefined>(undefined);
   const [activityLog, setActivityLog] = React.useState<string[]>([]);
-
-  // Demo data - Replace with your actual list/item IDs for testing
-  const demoData = {
-    document: {
-      listId: '07950eb9-7523-4e7e-9c78-19d719e06c7d',
-      itemId: 2,
-      title: 'Sample Document.docx',
-      description: 'Document library with file versions',
-    },
-    list: {
-      listId: 'b52d80b2-d67c-4bd3-945b-671d3f2445f7',
-      itemId: 1,
-      title: 'Task #1',
-      description: 'List item with metadata changes',
-    },
-  };
 
   const addLog = React.useCallback((message: string) => {
     const timestamp = new Date().toLocaleTimeString();
@@ -92,9 +108,13 @@ export const VersionHistoryShowcase: React.FC = () => {
   }, []);
 
   const handleOpenHistory = React.useCallback(() => {
+    if (!selectedListId || !selectedItemId) {
+      addLog('ERROR: Please select both a list and an item first');
+      return;
+    }
     setShowHistory(true);
-    addLog(`Opening version history for ${selectedDemo}`);
-  }, [selectedDemo, addLog]);
+    addLog(`Opening version history for List ID: ${selectedListId}, Item ID: ${selectedItemId}`);
+  }, [selectedListId, selectedItemId, addLog]);
 
   const handleClose = React.useCallback(() => {
     setShowHistory(false);
@@ -115,28 +135,9 @@ export const VersionHistoryShowcase: React.FC = () => {
     [addLog]
   );
 
-  const handleOpenCustom = React.useCallback(() => {
-    if (!customListId || !customItemId) {
-      alert('Please enter both List ID and Item ID');
-      return;
-    }
-    setShowHistory(true);
-    addLog(`Opening custom item: List ${customListId}, Item ${customItemId}`);
-  }, [customListId, customItemId, addLog]);
-
   const clearLog = React.useCallback(() => {
     setActivityLog([]);
   }, []);
-
-  const getCurrentConfig = (): { listId: string; itemId: number } => {
-    if (selectedDemo === 'custom') {
-      return {
-        listId: customListId,
-        itemId: parseInt(customItemId, 10) || 0,
-      };
-    }
-    return demoData[selectedDemo];
-  };
 
   return (
     <div
@@ -172,180 +173,98 @@ export const VersionHistoryShowcase: React.FC = () => {
           Interactive Demo
         </h2>
 
-        {/* Demo Type Selection */}
+        {/* List and Item Selection */}
         <div style={{ marginBottom: '20px' }}>
-          <label
-            style={{
-              display: 'block',
-              marginBottom: '8px',
-              fontSize: '14px',
-              fontWeight: '600',
-              color: '#323130',
-            }}
-          >
-            Select Demo Type:
-          </label>
-          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-            <button
-              onClick={() => setSelectedDemo('document')}
+          <div style={{ marginBottom: '16px' }}>
+            <label
               style={{
-                padding: '10px 20px',
-                border: selectedDemo === 'document' ? '2px solid #0078d4' : '1px solid #d2d0ce',
-                background: selectedDemo === 'document' ? '#eff6fc' : 'white',
-                color: selectedDemo === 'document' ? '#0078d4' : '#323130',
-                borderRadius: '4px',
-                cursor: 'pointer',
+                display: 'block',
+                marginBottom: '8px',
                 fontSize: '14px',
-                fontWeight: selectedDemo === 'document' ? '600' : '400',
+                fontWeight: '600',
+                color: '#323130',
               }}
             >
-              Document Library
-            </button>
-            <button
-              onClick={() => setSelectedDemo('list')}
-              style={{
-                padding: '10px 20px',
-                border: selectedDemo === 'list' ? '2px solid #0078d4' : '1px solid #d2d0ce',
-                background: selectedDemo === 'list' ? '#eff6fc' : 'white',
-                color: selectedDemo === 'list' ? '#0078d4' : '#323130',
-                borderRadius: '4px',
-                cursor: 'pointer',
-                fontSize: '14px',
-                fontWeight: selectedDemo === 'list' ? '600' : '400',
+              Choose a List or Document Library:
+            </label>
+            <ListPicker
+              context={SPContext.context.context}
+              label=''
+              placeHolder='Select a list or library'
+              includeHidden={false}
+              multiSelect={false}
+              onSelectionChanged={lists => {
+                const listId = typeof lists === 'string' ? lists : (Array.isArray(lists) && lists.length > 0 ? lists[0] : '');
+                setSelectedListId(listId);
+                setSelectedItemId(undefined); // Reset item when list changes
+                addLog(`List selected: ${listId}`);
               }}
-            >
-              List Item
-            </button>
-            <button
-              onClick={() => setSelectedDemo('custom')}
-              style={{
-                padding: '10px 20px',
-                border: selectedDemo === 'custom' ? '2px solid #0078d4' : '1px solid #d2d0ce',
-                background: selectedDemo === 'custom' ? '#eff6fc' : 'white',
-                color: selectedDemo === 'custom' ? '#0078d4' : '#323130',
-                borderRadius: '4px',
-                cursor: 'pointer',
-                fontSize: '14px',
-                fontWeight: selectedDemo === 'custom' ? '600' : '400',
-              }}
-            >
-              Custom Configuration
-            </button>
+            />
           </div>
+
+          {selectedListId && (
+            <div style={{ marginBottom: '16px' }}>
+              <label
+                style={{
+                  display: 'block',
+                  marginBottom: '8px',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  color: '#323130',
+                }}
+              >
+                Choose an Item:
+              </label>
+              <ListItemPicker
+                key={selectedListId}
+                listId={selectedListId}
+                columnInternalName='Title'
+                keyColumnInternalName='ID'
+                itemLimit={1}
+                context={SPContext.context.context}
+                placeholder='Select an item'
+                onSelectedItem={items => {
+                  if (items && items.length > 0) {
+                    const itemId = parseInt(items[0].key, 10);
+                    setSelectedItemId(itemId);
+                    addLog(`Item selected: ${items[0].name} (ID: ${itemId})`);
+                  } else {
+                    setSelectedItemId(undefined);
+                  }
+                }}
+              />
+            </div>
+          )}
+
+          {selectedListId && selectedItemId && (
+            <div
+              style={{
+                background: '#eff6fc',
+                padding: '16px',
+                borderRadius: '6px',
+                border: '1px solid #deecf9',
+                marginBottom: '16px',
+              }}
+            >
+              <h3 style={{ margin: '0 0 8px 0', fontSize: '15px', color: '#323130' }}>
+                Selected Item
+              </h3>
+              <div style={{ fontSize: '12px', color: '#605e5c', fontFamily: 'monospace' }}>
+                <div>List ID: {selectedListId}</div>
+                <div>Item ID: {selectedItemId}</div>
+              </div>
+            </div>
+          )}
         </div>
-
-        {/* Demo Description */}
-        {selectedDemo !== 'custom' && (
-          <div
-            style={{
-              background: '#eff6fc',
-              padding: '16px',
-              borderRadius: '6px',
-              border: '1px solid #deecf9',
-              marginBottom: '20px',
-            }}
-          >
-            <h3 style={{ margin: '0 0 8px 0', fontSize: '15px', color: '#323130' }}>
-              {demoData[selectedDemo].title}
-            </h3>
-            <p style={{ margin: '0 0 12px 0', fontSize: '13px', color: '#605e5c' }}>
-              {demoData[selectedDemo].description}
-            </p>
-            <div style={{ fontSize: '12px', color: '#605e5c', fontFamily: 'monospace' }}>
-              <div>List ID: {demoData[selectedDemo].listId}</div>
-              <div>Item ID: {demoData[selectedDemo].itemId}</div>
-            </div>
-          </div>
-        )}
-
-        {/* Custom Configuration */}
-        {selectedDemo === 'custom' && (
-          <div
-            style={{
-              background: '#fff4ce',
-              padding: '16px',
-              borderRadius: '6px',
-              border: '1px solid #ffe69c',
-              marginBottom: '20px',
-            }}
-          >
-            <h3 style={{ margin: '0 0 12px 0', fontSize: '15px', color: '#323130' }}>
-              Custom Configuration
-            </h3>
-            <div style={{ display: 'grid', gap: '12px' }}>
-              <div>
-                <label
-                  style={{
-                    display: 'block',
-                    marginBottom: '4px',
-                    fontSize: '13px',
-                    fontWeight: '600',
-                    color: '#323130',
-                  }}
-                >
-                  List ID (GUID):
-                </label>
-                <input
-                  type='text'
-                  value={customListId}
-                  onChange={e => setCustomListId(e.target.value)}
-                  placeholder='e.g., abc123-def456-ghi789'
-                  style={{
-                    width: '100%',
-                    padding: '8px 12px',
-                    border: '1px solid #d2d0ce',
-                    borderRadius: '4px',
-                    fontSize: '13px',
-                    fontFamily: 'monospace',
-                  }}
-                />
-              </div>
-              <div>
-                <label
-                  style={{
-                    display: 'block',
-                    marginBottom: '4px',
-                    fontSize: '13px',
-                    fontWeight: '600',
-                    color: '#323130',
-                  }}
-                >
-                  Item ID:
-                </label>
-                <input
-                  type='number'
-                  value={customItemId}
-                  onChange={e => setCustomItemId(e.target.value)}
-                  placeholder='e.g., 42'
-                  style={{
-                    width: '100%',
-                    padding: '8px 12px',
-                    border: '1px solid #d2d0ce',
-                    borderRadius: '4px',
-                    fontSize: '13px',
-                  }}
-                />
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* Action Buttons */}
         <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-          {selectedDemo === 'custom' ? (
-            <PrimaryButton
-              text='Open Custom Item'
-              iconProps={{ iconName: 'History' }}
-              onClick={handleOpenCustom}
-              disabled={!customListId || !customItemId}
-            />
-          ) : (
-            <PrimaryButton
-              text='Open Version History'
-              iconProps={{ iconName: 'History' }}
-              onClick={handleOpenHistory}
-            />
-          )}
+          <PrimaryButton
+            text='Open Version History'
+            iconProps={{ iconName: 'History' }}
+            onClick={handleOpenHistory}
+            disabled={!selectedListId || !selectedItemId}
+          />
           <DefaultButton
             text='Clear Activity Log'
             iconProps={{ iconName: 'Clear' }}
@@ -406,9 +325,10 @@ export const VersionHistoryShowcase: React.FC = () => {
       />
 
       {/* Version History Component */}
-      {showHistory && (
+      {showHistory && selectedListId && selectedItemId && (
         <VersionHistory
-          {...getCurrentConfig()}
+          listId={selectedListId}
+          itemId={selectedItemId}
           onClose={handleClose}
           onExport={handleExport}
           onDownload={handleDownload}

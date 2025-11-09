@@ -8,14 +8,21 @@ import { SPContext } from 'spfx-toolkit/lib/utilities/context';
 import { ShowcaseCodeSample } from './ShowcaseCodeSample';
 import { ShowcaseHero } from './ShowcaseHero';
 import { ShowcaseFeature, ShowcaseKeyFeatures } from './ShowcaseKeyFeatures';
+import { ListPicker } from '@pnp/spfx-controls-react/lib/ListPicker';
+import { ListItemPicker } from '@pnp/spfx-controls-react/lib/ListItemPicker';
 
 const MANAGE_ACCESS_SAMPLE = `import * as React from 'react';
+import { useState } from 'react';
 import { ManageAccessComponent } from 'spfx-toolkit/lib/components/ManageAccess/ManageAccessComponent';
 import { IPermissionPrincipal } from 'spfx-toolkit/lib/components/ManageAccess/types';
-
-const listId = '00000000-0000-0000-0000-000000000000';
+import { ListPicker } from '@pnp/spfx-controls-react/lib/ListPicker';
+import { ListItemPicker } from '@pnp/spfx-controls-react/lib/ListItemPicker';
+import { SPContext } from 'spfx-toolkit/lib/utilities/context';
 
 export const DocumentPermissions: React.FC = () => {
+  const [selectedListId, setSelectedListId] = useState<string>('');
+  const [selectedItemId, setSelectedItemId] = useState<number>();
+
   const handlePermissionChanged = async (
     operation: 'add' | 'remove',
     principals: IPermissionPrincipal[],
@@ -25,15 +32,41 @@ export const DocumentPermissions: React.FC = () => {
   };
 
   return (
-    <ManageAccessComponent
-      listId={listId}
-      itemId={42}
-      permissionTypes="both"
-      maxAvatars={4}
-      enabled={true}
-      onPermissionChanged={handlePermissionChanged}
-      onError={error => console.error(error)}
-    />
+    <div>
+      <ListPicker
+        context={SPContext.context as any}
+        placeHolder="Select a list or library"
+        baseTemplate={100}
+        onSelectionChanged={(lists) => {
+          setSelectedListId(lists?.[0] || '');
+          setSelectedItemId(undefined);
+        }}
+      />
+
+      {selectedListId && (
+        <ListItemPicker
+          listId={selectedListId}
+          columnInternalName="Title"
+          itemLimit={1}
+          context={SPContext.context as any}
+          onSelectedItem={(items) => {
+            setSelectedItemId(items?.[0]?.id);
+          }}
+        />
+      )}
+
+      {selectedListId && selectedItemId && (
+        <ManageAccessComponent
+          listId={selectedListId}
+          itemId={selectedItemId}
+          permissionTypes="both"
+          maxAvatars={4}
+          enabled={true}
+          onPermissionChanged={handlePermissionChanged}
+          onError={error => console.error(error)}
+        />
+      )}
+    </div>
   );
 };`;
 
@@ -71,9 +104,8 @@ export const PermissionShowcase: React.FC = () => {
   const [showDebug, setShowDebug] = useState(false);
   const [debugLogs, setDebugLogs] = useState<string[]>([]);
   const [isEditEnabled, setIsEditEnabled] = useState(true);
-
-  const demoListId = 'b52d80b2-d67c-4bd3-945b-671d3f2445f7';
-  const demoItemId = 2;
+  const [selectedListId, setSelectedListId] = useState<string>('');
+  const [selectedItemId, setSelectedItemId] = useState<number | undefined>(undefined);
 
   const addLog = useCallback((message: string) => {
     const timestamp = new Date().toLocaleTimeString();
@@ -250,49 +282,104 @@ export const PermissionShowcase: React.FC = () => {
               border: '1px solid #e9ecef',
             }}
           >
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '20px',
-                marginBottom: '24px',
-                flexWrap: 'wrap',
-              }}
-            >
-              <div
-                style={{
-                  width: '64px',
-                  height: '64px',
-                  borderRadius: '12px',
-                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '32px',
-                }}
-              >
-                📊
-              </div>
-              <div style={{ flex: 1, minWidth: '250px' }}>
-                <h3 style={{ margin: '0 0 8px 0', fontSize: '1.3rem', color: '#212529' }}>
-                  Quarterly Report.xlsx
-                </h3>
-                <p style={{ margin: '0', color: '#6c757d', fontSize: '14px' }}>
-                  Financial document • Excel Workbook • {isEditEnabled ? 'Editable' : 'Read-only'}
-                </p>
-              </div>
-              <div>
-                <ManageAccessComponent
-                  itemId={demoItemId}
-                  listId={demoListId}
-                  permissionTypes='both'
-                  maxAvatars={5}
-                  enabled={isEditEnabled}
-                  onPermissionChanged={handlePermissionChange}
-                  onError={handleError}
+            {/* List and Item Selection */}
+            <div style={{ marginBottom: '24px' }}>
+              <h4 style={{ margin: '0 0 16px 0', fontSize: '1.1rem', color: '#212529' }}>
+                Select List and Item
+              </h4>
+              <div style={{ marginBottom: '16px' }}>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#495057' }}>
+                  Choose a List or Document Library:
+                </label>
+                <ListPicker
+                  context={SPContext.context.context}
+                  label=''
+                  placeHolder='Select a list or library'
+                  includeHidden={false}
+                  multiSelect={false}
+                  onSelectionChanged={(lists) => {
+                    const listId = typeof lists === 'string' ? lists : (Array.isArray(lists) && lists.length > 0 ? lists[0] : '');
+                    setSelectedListId(listId);
+                    setSelectedItemId(undefined); // Reset item when list changes
+                    addLog(`List selected: ${listId}`);
+                  }}
                 />
               </div>
+
+              {selectedListId && (
+                <div style={{ marginBottom: '16px' }}>
+                  <label style={{ display: 'block', marginBottom: '8px', fontWeight: '500', color: '#495057' }}>
+                    Choose an Item:
+                  </label>
+                  <ListItemPicker
+                    key={selectedListId}
+                    listId={selectedListId}
+                    columnInternalName='Title'
+                    itemLimit={1}
+                    context={SPContext.context.context}
+                    placeholder='Select an item'
+                    onSelectedItem={(items) => {
+                      if (items && items.length > 0) {
+                        const itemId = parseInt(items[0].key, 10);
+                        setSelectedItemId(itemId);
+                        addLog(`Item selected: ${items[0].name} (ID: ${itemId})`);
+                      } else {
+                        setSelectedItemId(undefined);
+                      }
+                    }}
+                  />
+                </div>
+              )}
             </div>
+
+            {/* Show ManageAccess only when item is selected */}
+            {selectedListId && selectedItemId && (
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '20px',
+                  marginBottom: '24px',
+                  flexWrap: 'wrap',
+                  paddingTop: '24px',
+                  borderTop: '2px solid #e9ecef',
+                }}
+              >
+                <div
+                  style={{
+                    width: '64px',
+                    height: '64px',
+                    borderRadius: '12px',
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '32px',
+                  }}
+                >
+                  📊
+                </div>
+                <div style={{ flex: 1, minWidth: '250px' }}>
+                  <h3 style={{ margin: '0 0 8px 0', fontSize: '1.3rem', color: '#212529' }}>
+                    Selected Item (ID: {selectedItemId})
+                  </h3>
+                  <p style={{ margin: '0', color: '#6c757d', fontSize: '14px' }}>
+                    Manage permissions • {isEditEnabled ? 'Editable' : 'Read-only'}
+                  </p>
+                </div>
+                <div>
+                  <ManageAccessComponent
+                    itemId={selectedItemId}
+                    listId={selectedListId}
+                    permissionTypes='both'
+                    maxAvatars={5}
+                    enabled={isEditEnabled}
+                    onPermissionChanged={handlePermissionChange}
+                    onError={handleError}
+                  />
+                </div>
+              </div>
+            )}
 
             <div
               style={{
@@ -322,16 +409,19 @@ export const PermissionShowcase: React.FC = () => {
                 {isEditEnabled ? (
                   <>
                     <li>
+                      <strong>Select a list or library</strong> from your SharePoint site
+                    </li>
+                    <li>
+                      <strong>Choose an item</strong> from the selected list
+                    </li>
+                    <li>
                       <strong>Hover over avatars</strong> to see LivePersona cards
                     </li>
                     <li>
                       <strong>Click &quot;Manage access&quot;</strong> to open the permission panel
                     </li>
                     <li>
-                      <strong>Add or remove users</strong> and watch the workflow
-                    </li>
-                    <li>
-                      <strong>Check shared users</strong> with accurate permission levels
+                      <strong>Add or remove users</strong> and watch the debug console
                     </li>
                   </>
                 ) : (

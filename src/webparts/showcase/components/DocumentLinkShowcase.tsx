@@ -1,40 +1,80 @@
 import {
   ChoiceGroup,
-  Dropdown,
   IChoiceGroupOption,
-  IDropdownOption,
   IStackTokens,
   MessageBar,
   MessageBarType,
   PrimaryButton,
   Stack,
-  TextField,
   Toggle,
   useTheme,
 } from '@fluentui/react';
 import * as React from 'react';
 import { useCallback, useState, useMemo } from 'react';
 import { DocumentLink, IDocumentInfo, DocumentLinkLayout, SizePosition, ClickAction, PreviewMode, PreviewTarget, IDocumentLinkProps } from 'spfx-toolkit/lib/components/DocumentLink';
-import SPContext from 'spfx-toolkit/lib/utilities/context';
+import { SPContext } from 'spfx-toolkit/lib/utilities/context';
+import { ListPicker } from '@pnp/spfx-controls-react/lib/ListPicker';
+import { ListItemPicker } from '@pnp/spfx-controls-react/lib/ListItemPicker';
 import { ShowcaseCodeSample } from './ShowcaseCodeSample';
 import { ShowcaseHero } from './ShowcaseHero';
 import { ShowcaseFeature, ShowcaseKeyFeatures } from './ShowcaseKeyFeatures';
 
 const DOCUMENT_LINK_SAMPLE = `import * as React from 'react';
+import { useState } from 'react';
 import { DocumentLink } from 'spfx-toolkit/lib/components/DocumentLink';
+import { ListPicker } from '@pnp/spfx-controls-react/lib/ListPicker';
+import { ListItemPicker } from '@pnp/spfx-controls-react/lib/ListItemPicker';
+import { SPContext } from 'spfx-toolkit/lib/utilities/context';
 
-export const DocumentLinkExample: React.FC = () => (
-  <DocumentLink
-    layout="linkWithIconAndSize"
-    documentUrl="https://contoso.sharepoint.com/sites/Docs/QuarterlyReport.xlsx"
-    previewMode="view"
-    previewTarget="modal"
-    enableHoverCard={true}
-    onAfterPreview={doc => console.log('preview', doc.name)}
-    onAfterDownload={doc => console.log('download', doc.name)}
-    onError={error => console.error(error.message)}
-  />
-);`;
+export const DocumentLinkExample: React.FC = () => {
+  const [selectedLibraryId, setSelectedLibraryId] = useState<string>('');
+  const [selectedDocumentUrl, setSelectedDocumentUrl] = useState<string>('');
+  const currentSiteUrl = SPContext.pageContext.web.absoluteUrl;
+
+  return (
+    <>
+      <ListPicker
+        context={SPContext.context as any}
+        placeHolder="Select a document library"
+        baseTemplate={101} // Document Library only
+        onSelectionChanged={(lists) => {
+          const libraryId = lists?.[0] || '';
+          setSelectedLibraryId(libraryId);
+          setSelectedDocumentUrl('');
+        }}
+      />
+
+      {selectedLibraryId && (
+        <ListItemPicker
+          listId={selectedLibraryId}
+          columnInternalName="FileLeafRef"
+          itemLimit={1}
+          context={SPContext.context as any}
+          filter="FSObjType eq 0" // Files only (not folders)
+          onSelectedItem={(items) => {
+            if (items?.[0]) {
+              const docUrl = \`\${currentSiteUrl}/\${selectedLibraryId}/\${items[0].name}\`;
+              setSelectedDocumentUrl(docUrl);
+            }
+          }}
+        />
+      )}
+
+      {selectedDocumentUrl && (
+        <DocumentLink
+          layout="linkWithIconAndSize"
+          documentUrl={selectedDocumentUrl}
+          previewMode="view"
+          previewTarget="modal"
+          enableHoverCard={true}
+          onAfterPreview={doc => console.log('preview', doc.name)}
+          onAfterDownload={doc => console.log('download', doc.name)}
+          onError={error => console.error(error.message)}
+        />
+      )}
+    </>
+  );
+};`;
 
 const DOCUMENT_LINK_FEATURES: ShowcaseFeature[] = [
   {
@@ -107,14 +147,11 @@ export const DocumentLinkShowcase: React.FC = () => {
   }, []);
 
   // --- STATE MANAGEMENT ---
-  // Document Identification
-  const [identifierType, setIdentifierType] = useState('url');
-  const [documentUrl, setDocumentUrl] = useState(
-    currentSiteUrl ? `${currentSiteUrl}/RequestDocuments/oct.png` : ''
-  );
-  const [documentId, setDocumentId] = useState(1);
-  const [libraryName, setLibraryName] = useState('RequestDocuments');
-  const [documentUniqueId, setDocumentUniqueId] = useState('a1b2c3d4-e5f6-7890-abcd-ef1234567890');
+  // Document Library and Item Selection
+  const [selectedLibraryId, setSelectedLibraryId] = useState<string>('');
+  const [selectedLibraryUrl, setSelectedLibraryUrl] = useState<string>('');
+  const [selectedDocumentId, setSelectedDocumentId] = useState<number | undefined>(undefined);
+  const [selectedDocumentUrl, setSelectedDocumentUrl] = useState<string>('');
 
   // Layout
   const [layout, setLayout] = useState<DocumentLinkLayout>('linkWithIconAndSize');
@@ -156,11 +193,9 @@ export const DocumentLinkShowcase: React.FC = () => {
 
   // --- DEMO UTILITIES ---
   const resetDemo = (): void => {
-    setIdentifierType('url');
-    setDocumentUrl(currentSiteUrl ? `${currentSiteUrl}/Shared%20Documents/Sample.docx` : '');
-    setDocumentId(1);
-    setLibraryName('Shared Documents');
-    setDocumentUniqueId('a1b2c3d4-e5f6-7890-abcd-ef1234567890');
+    setSelectedLibraryId('');
+    setSelectedDocumentId(undefined);
+    setSelectedDocumentUrl('');
     setLayout('linkWithIconAndSize');
     setSizePosition('inline');
     setOnClickBehavior('preview');
@@ -174,7 +209,8 @@ export const DocumentLinkShowcase: React.FC = () => {
   };
 
   const getDocumentProps = (): Partial<IDocumentLinkProps> => {
-    const props: Partial<IDocumentLinkProps> = {
+    return {
+      documentUrl: selectedDocumentUrl,
       layout,
       sizePosition,
       onClick: onClickBehavior,
@@ -188,24 +224,6 @@ export const DocumentLinkShowcase: React.FC = () => {
       onAfterPreview,
       onError,
     };
-
-    switch (identifierType) {
-      case 'url':
-        props.documentUrl = documentUrl;
-        break;
-      case 'id':
-        props.documentId = documentId;
-        props.libraryName = libraryName;
-        break;
-      case 'uniqueId':
-        props.documentUniqueId = documentUniqueId;
-        break;
-      case 'invalid':
-        // Use an intentionally incorrect identifier to trigger the onError callback
-        props.documentUniqueId = '00000000-0000-0000-0000-000000000000';
-        break;
-    }
-    return props;
   };
 
   const dynamicProps = getDocumentProps();
@@ -225,13 +243,6 @@ export const DocumentLinkShowcase: React.FC = () => {
     borderRadius: '8px',
     border: `1px solid ${theme.palette.neutralLight}`,
   };
-
-  const identifierOptions: IDropdownOption[] = [
-    { key: 'url', text: 'By URL' },
-    { key: 'id', text: 'By ID & Library Name' },
-    { key: 'uniqueId', text: 'By UniqueId (GUID)' },
-    { key: 'invalid', text: 'Invalid Identifier (for error test)' },
-  ];
 
   const layoutOptions: IChoiceGroupOption[] = [
     { key: 'linkOnly', text: 'Link Only', iconProps: { iconName: 'Link' } },
@@ -266,9 +277,7 @@ export const DocumentLinkShowcase: React.FC = () => {
         isMultiline={true}
         style={{ marginBottom: '20px' }}
       >
-        <strong>Note:</strong> For the interactive demo to work, please replace the placeholder
-        values with a valid Document URL, ID, or UniqueId from your own SharePoint environment. The
-        component needs a live SharePoint context to fetch metadata.
+        <strong>Interactive Demo:</strong> Select a document library and then choose a document to see the DocumentLink component in action. The component will display the document with preview, download, and hover card features.
       </MessageBar>
 
       <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '24px' }}>
@@ -323,82 +332,132 @@ export const DocumentLinkShowcase: React.FC = () => {
           </div>
 
           {/* Pre-configured Examples */}
-          <div style={sectionContainerStyle}>
-            <h2 style={sectionHeaderStyle}>Layout & Feature Examples</h2>
-            <Stack tokens={{ childrenGap: 16 }}>
-              <ExampleWrapper title='Layout: linkOnly'>
-                <DocumentLink documentUrl={documentUrl} layout='linkOnly' />
-              </ExampleWrapper>
-              <ExampleWrapper title='Layout: linkWithIcon'>
-                <DocumentLink documentUrl={documentUrl} layout='linkWithIcon' />
-              </ExampleWrapper>
-              <ExampleWrapper title='Layout: linkWithIconAndSize (inline)'>
-                <DocumentLink
-                  documentUrl={documentUrl}
-                  layout='linkWithIconAndSize'
-                  sizePosition='inline'
-                />
-              </ExampleWrapper>
-              <ExampleWrapper title='Layout: linkWithIconAndSize (below)'>
-                <DocumentLink
-                  documentUrl={documentUrl}
-                  layout='linkWithIconAndSize'
-                  sizePosition='below'
-                />
-              </ExampleWrapper>
-              <ExampleWrapper title='Action: Download on Click'>
-                <DocumentLink
-                  documentUrl={documentUrl}
-                  onClick='download'
-                  onAfterDownload={onAfterDownload}
-                />
-              </ExampleWrapper>
-              <ExampleWrapper title='Error State (Invalid GUID)'>
-                <DocumentLink documentUniqueId='invalid-guid' onError={onError} />
-              </ExampleWrapper>
-            </Stack>
-          </div>
+          {selectedDocumentUrl && (
+            <div style={sectionContainerStyle}>
+              <h2 style={sectionHeaderStyle}>Layout & Feature Examples</h2>
+              <Stack tokens={{ childrenGap: 16 }}>
+                <ExampleWrapper title='Layout: linkOnly'>
+                  <DocumentLink documentUrl={selectedDocumentUrl} layout='linkOnly' />
+                </ExampleWrapper>
+                <ExampleWrapper title='Layout: linkWithIcon'>
+                  <DocumentLink documentUrl={selectedDocumentUrl} layout='linkWithIcon' />
+                </ExampleWrapper>
+                <ExampleWrapper title='Layout: linkWithIconAndSize (inline)'>
+                  <DocumentLink
+                    documentUrl={selectedDocumentUrl}
+                    layout='linkWithIconAndSize'
+                    sizePosition='inline'
+                  />
+                </ExampleWrapper>
+                <ExampleWrapper title='Layout: linkWithIconAndSize (below)'>
+                  <DocumentLink
+                    documentUrl={selectedDocumentUrl}
+                    layout='linkWithIconAndSize'
+                    sizePosition='below'
+                  />
+                </ExampleWrapper>
+                <ExampleWrapper title='Action: Download on Click'>
+                  <DocumentLink
+                    documentUrl={selectedDocumentUrl}
+                    onClick='download'
+                    onAfterDownload={onAfterDownload}
+                  />
+                </ExampleWrapper>
+              </Stack>
+            </div>
+          )}
         </Stack>
 
         {/* === RIGHT COLUMN: CONTROL PANEL === */}
         <div style={sectionContainerStyle}>
           <h2 style={sectionHeaderStyle}>Component Controls</h2>
           <Stack tokens={controlStackTokens}>
-            {/* Document Identifier */}
-            <Dropdown
-              label='Identifier Type'
-              selectedKey={identifierType}
-              options={identifierOptions}
-              onChange={(_, opt) => opt && setIdentifierType(opt.key as string)}
-            />
-            {identifierType === 'url' && (
-              <TextField
-                label='Document URL'
-                value={documentUrl}
-                onChange={(_, val) => setDocumentUrl(val || '')}
+            {/* Document Library and Document Selection */}
+            <div>
+              <label
+                style={{
+                  display: 'block',
+                  marginBottom: '8px',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  color: theme.palette.neutralPrimary,
+                }}
+              >
+                Choose a Document Library:
+              </label>
+              <ListPicker
+                context={SPContext.context.context}
+                label=''
+                placeHolder='Select a document library'
+                baseTemplate={101} // 101 = Document Library
+                includeHidden={false}
+                multiSelect={false}
+                onSelectionChanged={async (lists) => {
+                  const libraryId = typeof lists === 'string' ? lists : (Array.isArray(lists) && lists.length > 0 ? lists[0] : '');
+                  setSelectedLibraryId(libraryId);
+                  setSelectedDocumentId(undefined);
+                  setSelectedDocumentUrl('');
+
+                  // Fetch the library server relative URL
+                  if (libraryId) {
+                    try {
+                      const listInfo = await SPContext.sp.web.lists.getById(libraryId).select('RootFolder/ServerRelativeUrl').expand('RootFolder')();
+                      const libraryUrl = listInfo.RootFolder.ServerRelativeUrl;
+                      setSelectedLibraryUrl(libraryUrl);
+                      logMessage(`Document library selected: ${libraryId}`);
+                    } catch (error) {
+                      logMessage(`Error fetching library info: ${error.message}`);
+                    }
+                  }
+                }}
               />
-            )}
-            {identifierType === 'id' && (
-              <>
-                <TextField
-                  label='Document ID'
-                  type='number'
-                  value={String(documentId)}
-                  onChange={(_, val) => setDocumentId(Number(val) || 0)}
+            </div>
+
+            {selectedLibraryId && (
+              <div>
+                <label
+                  style={{
+                    display: 'block',
+                    marginBottom: '8px',
+                    fontSize: '14px',
+                    fontWeight: '600',
+                    color: theme.palette.neutralPrimary,
+                  }}
+                >
+                  Choose a Document:
+                </label>
+                <ListItemPicker
+                  key={selectedLibraryId}
+                  listId={selectedLibraryId}
+                  columnInternalName='FileLeafRef'
+                  itemLimit={1}
+                  context={SPContext.context.context}
+                  placeholder='Select a document'
+                  filter="FSObjType eq 0" // 0 = File (not folder)
+                  onSelectedItem={(items) => {
+                    if (items && items.length > 0) {
+                      const itemId = parseInt(items[0].key, 10);
+                      setSelectedDocumentId(itemId);
+                      // Construct document URL from site URL and library server relative URL
+                      const docUrl = `${currentSiteUrl}${selectedLibraryUrl}/${items[0].name}`;
+                      setSelectedDocumentUrl(docUrl);
+                      logMessage(`Document selected: ${items[0].name} (ID: ${itemId})`);
+                    } else {
+                      setSelectedDocumentId(undefined);
+                      setSelectedDocumentUrl('');
+                    }
+                  }}
                 />
-                <TextField
-                  label='Library Name'
-                  value={libraryName}
-                  onChange={(_, val) => setLibraryName(val || '')}
-                />
-              </>
+              </div>
             )}
-            {identifierType === 'uniqueId' && (
-              <TextField
-                label='Document UniqueId'
-                value={documentUniqueId}
-                onChange={(_, val) => setDocumentUniqueId(val || '')}
-              />
+
+            {selectedLibraryId && selectedDocumentId && selectedDocumentUrl && (
+              <MessageBar messageBarType={MessageBarType.success}>
+                <strong>Document selected:</strong>
+                <div style={{ fontFamily: 'monospace', fontSize: '11px', marginTop: '4px' }}>
+                  {selectedDocumentUrl}
+                </div>
+              </MessageBar>
             )}
 
             {/* Layout */}
