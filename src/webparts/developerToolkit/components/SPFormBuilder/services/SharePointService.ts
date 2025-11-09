@@ -1,34 +1,51 @@
+import { WebPartContext } from '@microsoft/sp-webpart-base';
+import { spfi, SPFI, SPFx } from '@pnp/sp';
 import { SPContext } from 'spfx-toolkit/lib/utilities/context';
 import { ISPField, ISPList } from '../types/SPFormBuilderTypes';
 
 /**
  * SharePoint service for SPFormBuilder
- * Uses SPContext for simplified operations
+ * Instance-based service that supports changing site URLs
  */
 export class SharePointService {
-  /**
-   * Get current site URL
-   */
-  public static getCurrentSiteUrl(): string {
-    return SPContext.webAbsoluteUrl || window.location.origin;
+  private sp: SPFI;
+  private context: WebPartContext;
+
+  constructor(context: WebPartContext, siteUrl?: string) {
+    this.context = context;
+
+    // Initialize with provided site URL or use current context
+    if (siteUrl && siteUrl !== context.pageContext.web.absoluteUrl) {
+      this.sp = spfi(siteUrl).using(SPFx(context));
+    } else {
+      this.sp = SPContext.sp;
+    }
   }
 
   /**
-   * Change site URL (not needed as SPContext is already initialized)
-   * Placeholder for compatibility
+   * Get current site URL
    */
-  public static changeSiteUrl(siteUrl: string): void {
-    // SPContext is already initialized at the app level
-    // This is a placeholder for future multi-site support
-    console.log('Site URL:', siteUrl);
+  public getCurrentSiteUrl(): string {
+    return this.context.pageContext.web.absoluteUrl;
+  }
+
+  /**
+   * Change site URL and reinitialize SP instance
+   */
+  public changeSiteUrl(siteUrl: string): void {
+    if (siteUrl !== this.context.pageContext.web.absoluteUrl) {
+      this.sp = spfi(siteUrl).using(SPFx(this.context));
+    } else {
+      this.sp = SPContext.sp;
+    }
   }
 
   /**
    * Get all non-hidden lists from the site
    */
-  public static async getLists(): Promise<ISPList[]> {
+  public async getLists(): Promise<ISPList[]> {
     try {
-      const lists = await SPContext.sp.web.lists
+      const lists = await this.sp.web.lists
         .filter('Hidden eq false and BaseTemplate ne 115')
         .select('Id', 'Title', 'ItemCount', 'BaseTemplate', 'BaseType')
         .orderBy('Title')();
@@ -49,9 +66,9 @@ export class SharePointService {
   /**
    * Get fields from a specific list
    */
-  public static async getListFields(listId: string): Promise<ISPField[]> {
+  public async getListFields(listId: string): Promise<ISPField[]> {
     try {
-      const fields = await SPContext.sp.web.lists
+      const fields = await this.sp.web.lists
         .getById(listId)
         .fields.filter('Hidden eq false and ReadOnlyField eq false and FromBaseType eq false')
         .select(
@@ -74,7 +91,7 @@ export class SharePointService {
         .orderBy('Title')();
 
       // Add common system fields that are useful
-      const systemFields = await SPContext.sp.web.lists
+      const systemFields = await this.sp.web.lists
         .getById(listId)
         .fields.filter(
           "(InternalName eq 'Created' or InternalName eq 'Modified' or InternalName eq 'Author' or InternalName eq 'Editor' or InternalName eq 'ID' or InternalName eq 'Title' or InternalName eq 'Attachments')"
@@ -122,7 +139,7 @@ export class SharePointService {
   /**
    * Normalize field type string
    */
-  private static normalizeFieldType(fieldType: string): string {
+  private normalizeFieldType(fieldType: string): string {
     // Map common variations
     const typeMap: Record<string, string> = {
       'Text': 'Text',

@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { useCallback, useMemo, useState } from 'react';
+import { WebPartContext } from '@microsoft/sp-webpart-base';
 import { CodeOutputPanel } from './components/CodeOutputPanel';
 import { FieldConfigurationPanel } from './components/FieldConfigurationPanel';
 import { SharePointSourcePanel } from './components/SharePointSourcePanel';
@@ -8,13 +9,21 @@ import { SPFormComponentGenerator } from './services/SPFormComponentGenerator';
 import { SPInterfaceGenerator } from './services/SPInterfaceGenerator';
 import { SPStoreGenerator } from './services/SPStoreGenerator';
 import { SPZodSchemaGenerator } from './services/SPZodSchemaGenerator';
+import { SharePointService } from './services/SharePointService';
 import { IConfiguredField, IGenerationResult, ISPField } from './types/SPFormBuilderTypes';
 import { getFieldTypeMapping, shouldExcludeField } from './utils/fieldTypeMapping';
 import { NameConverter } from './utils/nameConverter';
 
-export const SPFormBuilder: React.FC = () => {
+export interface ISPFormBuilderProps {
+  context: WebPartContext;
+}
+
+export const SPFormBuilder: React.FC<ISPFormBuilderProps> = ({ context }) => {
   const [listTitle, setListTitle] = useState<string>('');
   const [fields, setFields] = useState<IConfiguredField[]>([]);
+
+  // Create SharePoint service instance
+  const spService = useMemo(() => new SharePointService(context), [context]);
 
   /**
    * Generate complete package with all files
@@ -242,7 +251,10 @@ export const SPFormBuilder: React.FC = () => {
               padding: '16px'
             }}
           >
-            <SharePointSourcePanel onFieldsLoaded={handleFieldsLoaded} />
+            <SharePointSourcePanel
+              spService={spService}
+              onFieldsLoaded={handleFieldsLoaded}
+            />
           </div>
 
           {/* Right: Field Configuration */}

@@ -5,10 +5,12 @@ import { SharePointService } from '../services/SharePointService';
 import { ISPField, ISPList } from '../types/SPFormBuilderTypes';
 
 export interface ISharePointSourcePanelProps {
+  spService: SharePointService;
   onFieldsLoaded: (listTitle: string, fields: ISPField[]) => void;
 }
 
 export const SharePointSourcePanel: React.FC<ISharePointSourcePanelProps> = ({
+  spService,
   onFieldsLoaded
 }) => {
   const [siteUrl, setSiteUrl] = useState<string>('');
@@ -20,9 +22,9 @@ export const SharePointSourcePanel: React.FC<ISharePointSourcePanelProps> = ({
 
   // Initialize with current site URL
   useEffect(() => {
-    const currentSite = SharePointService.getCurrentSiteUrl();
+    const currentSite = spService.getCurrentSiteUrl();
     setSiteUrl(currentSite);
-  }, []);
+  }, [spService]);
 
   // Load lists
   const handleLoadLists = useCallback(async () => {
@@ -37,8 +39,8 @@ export const SharePointSourcePanel: React.FC<ISharePointSourcePanelProps> = ({
     setSelectedListId(undefined);
 
     try {
-      SharePointService.changeSiteUrl(siteUrl);
-      const loadedLists = await SharePointService.getLists();
+      spService.changeSiteUrl(siteUrl);
+      const loadedLists = await spService.getLists();
       setLists(loadedLists);
 
       if (loadedLists.length === 0) {
@@ -49,7 +51,7 @@ export const SharePointSourcePanel: React.FC<ISharePointSourcePanelProps> = ({
     } finally {
       setIsLoadingLists(false);
     }
-  }, [siteUrl]);
+  }, [siteUrl, spService]);
 
   // Load fields
   const handleLoadFields = useCallback(async () => {
@@ -62,7 +64,7 @@ export const SharePointSourcePanel: React.FC<ISharePointSourcePanelProps> = ({
     setError(undefined);
 
     try {
-      const fields = await SharePointService.getListFields(selectedListId);
+      const fields = await spService.getListFields(selectedListId);
       const selectedList = lists.find(l => l.Id === selectedListId);
 
       if (fields.length === 0) {
@@ -76,7 +78,7 @@ export const SharePointSourcePanel: React.FC<ISharePointSourcePanelProps> = ({
     } finally {
       setIsLoadingFields(false);
     }
-  }, [selectedListId, lists, onFieldsLoaded]);
+  }, [selectedListId, lists, onFieldsLoaded, spService]);
 
   // List dropdown options
   const listOptions: IDropdownOption[] = lists.map(list => ({
