@@ -144,6 +144,8 @@ export interface IQueryTemplate {
   query: IConditionGroup;
   orderBy?: IOrderByField[];
   rowLimit?: number;
+  listTypes?: number[]; // BaseTemplate IDs (100=GenericList, 101=DocumentLibrary, etc.)
+  requiredFields?: string[]; // Internal names of fields required for this template
 }
 
 export interface IOperatorInfo {

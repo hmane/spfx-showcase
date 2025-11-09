@@ -10,6 +10,7 @@ export const QUERY_TEMPLATES: IQueryTemplate[] = [
     name: 'Items Due This Week',
     description: 'Items with due date between today and 7 days from now',
     category: 'DateTime',
+    requiredFields: ['DueDate'],
     query: {
       id: generateId(),
       operator: 'AND',
@@ -91,6 +92,7 @@ export const QUERY_TEMPLATES: IQueryTemplate[] = [
     name: 'Overdue Items',
     description: 'Items with due date in the past',
     category: 'DateTime',
+    requiredFields: ['DueDate'],
     query: {
       id: generateId(),
       operator: 'AND',
@@ -117,6 +119,7 @@ export const QUERY_TEMPLATES: IQueryTemplate[] = [
     name: 'My Items (Assigned To Me)',
     description: 'Items assigned to current user',
     category: 'User',
+    requiredFields: ['AssignedTo'],
     query: {
       id: generateId(),
       operator: 'AND',
@@ -167,6 +170,7 @@ export const QUERY_TEMPLATES: IQueryTemplate[] = [
     name: 'My Pending Approvals',
     description: 'Items pending approval from current user',
     category: 'User',
+    requiredFields: ['Approver', 'Status'],
     query: {
       id: generateId(),
       operator: 'AND',
@@ -202,6 +206,7 @@ export const QUERY_TEMPLATES: IQueryTemplate[] = [
     name: 'Active Items',
     description: 'Items with Status = Active',
     category: 'Status',
+    requiredFields: ['Status'],
     query: {
       id: generateId(),
       operator: 'AND',
@@ -225,6 +230,7 @@ export const QUERY_TEMPLATES: IQueryTemplate[] = [
     name: 'Multiple Status Values',
     description: 'Items with Status = Active, Pending, or In Progress',
     category: 'Status',
+    requiredFields: ['Status'],
     query: {
       id: generateId(),
       operator: 'AND',
@@ -248,6 +254,7 @@ export const QUERY_TEMPLATES: IQueryTemplate[] = [
     name: 'Not Completed',
     description: 'Items where Status is not Completed',
     category: 'Status',
+    requiredFields: ['Status'],
     query: {
       id: generateId(),
       operator: 'AND',
@@ -273,6 +280,7 @@ export const QUERY_TEMPLATES: IQueryTemplate[] = [
     name: 'High Priority & Overdue',
     description: 'High priority items that are overdue',
     category: 'Complex',
+    requiredFields: ['Priority', 'DueDate'],
     query: {
       id: generateId(),
       operator: 'AND',
@@ -305,6 +313,7 @@ export const QUERY_TEMPLATES: IQueryTemplate[] = [
     name: 'Active, Assigned to Me, Due This Week',
     description: 'Complex query combining status, assignment, and due date',
     category: 'Complex',
+    requiredFields: ['Status', 'AssignedTo', 'DueDate'],
     query: {
       id: generateId(),
       operator: 'AND',
@@ -364,6 +373,7 @@ export const QUERY_TEMPLATES: IQueryTemplate[] = [
     name: 'Price Range (500-1000)',
     description: 'Items with price between 500 and 1000',
     category: 'Complex',
+    requiredFields: ['Price'],
     query: {
       id: generateId(),
       operator: 'AND',
@@ -420,6 +430,7 @@ export const QUERY_TEMPLATES: IQueryTemplate[] = [
     name: 'Items with Empty Description',
     description: 'Items where description field is empty',
     category: 'Other',
+    requiredFields: ['Description'],
     query: {
       id: generateId(),
       operator: 'AND',

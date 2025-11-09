@@ -2,7 +2,13 @@
 
 import { WebPartContext } from '@microsoft/sp-webpart-base';
 import { spfi, SPFI, SPFx } from '@pnp/sp';
-import { SPContext } from 'spfx-toolkit';
+import '@pnp/sp/webs';
+import '@pnp/sp/lists';
+import '@pnp/sp/items';
+import '@pnp/sp/fields';
+import '@pnp/sp/views';
+import '@pnp/sp/site-users';
+import SPContext from 'spfx-toolkit/lib/utilities/context';
 import { FieldType, IFieldInfo, IListInfo, IViewInfo } from '../types/CamlTypes';
 
 export class SharePointService {
@@ -11,7 +17,13 @@ export class SharePointService {
 
   constructor(context: WebPartContext, siteUrl?: string) {
     this.context = context;
-    this.sp = SPContext.sp;
+
+    // Initialize with provided site URL or use current context
+    if (siteUrl && siteUrl !== context.pageContext.web.absoluteUrl) {
+      this.sp = spfi(siteUrl).using(SPFx(context));
+    } else {
+      this.sp = SPContext.sp;
+    }
   }
 
   /**
@@ -104,7 +116,7 @@ export class SharePointService {
   public async executeQuery(
     listId: string,
     camlQuery: string
-  ): Promise<{ count: number; items: any[] }> {
+  ): Promise<{ count: number; items: Record<string, unknown>[] }> {
     try {
       const items = await this.sp.web.lists.getById(listId).getItemsByCAMLQuery({
         ViewXml: camlQuery,
@@ -116,7 +128,7 @@ export class SharePointService {
       };
     } catch (error) {
       console.error('Error executing query:', error);
-      throw new Error(`Failed to execute query: ${error.message}`);
+      throw new Error(`Failed to execute query: ${(error as Error).message}`);
     }
   }
 
@@ -173,7 +185,7 @@ export class SharePointService {
     if (siteUrl !== this.context.pageContext.web.absoluteUrl) {
       this.sp = spfi(siteUrl).using(SPFx(this.context));
     } else {
-      this.sp = spfi().using(SPFx(this.context));
+      this.sp = SPContext.sp;
     }
   }
 

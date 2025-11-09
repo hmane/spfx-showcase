@@ -18,7 +18,7 @@ import { SharePointService } from '../services/SharePointService';
 export interface ISiteListSelectorProps {
   initialSiteUrl: string;
   spService: SharePointService;
-  onListSelected: (listId: string, listTitle: string, fields: IFieldInfo[]) => void;
+  onListSelected: (listId: string, listTitle: string, fields: IFieldInfo[], baseTemplate?: number) => void;
   onSiteUrlChange: (siteUrl: string) => void;
 }
 
@@ -71,7 +71,8 @@ export const SiteListSelector: React.FC<ISiteListSelectorProps> = ({
 
         try {
           const fields = await spService.getListFields(option.key as string);
-          onListSelected(option.key as string, option.text, fields);
+          const listInfo = option.data as IListInfo;
+          onListSelected(option.key as string, option.text, fields, listInfo?.baseTemplate);
         } catch (err) {
           setError(`Failed to load fields: ${err.message}`);
         } finally {

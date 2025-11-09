@@ -40,6 +40,7 @@ export const CamlQueryBuilder: React.FC<ICamlQueryBuilderProps> = ({ context }) 
   const [siteUrl, setSiteUrl] = useState<string>(context.pageContext.web.absoluteUrl);
   const [selectedListId, setSelectedListId] = useState<string>('');
   const [selectedListTitle, setSelectedListTitle] = useState<string>('');
+  const [selectedListBaseTemplate, setSelectedListBaseTemplate] = useState<number | undefined>();
   const [fields, setFields] = useState<IFieldInfo[]>([]);
 
   // Query state
@@ -78,9 +79,10 @@ export const CamlQueryBuilder: React.FC<ICamlQueryBuilderProps> = ({ context }) 
 
   // Handle list selection
   const handleListSelected = useCallback(
-    (listId: string, listTitle: string, listFields: IFieldInfo[]): void => {
+    (listId: string, listTitle: string, listFields: IFieldInfo[], baseTemplate?: number): void => {
       setSelectedListId(listId);
       setSelectedListTitle(listTitle);
+      setSelectedListBaseTemplate(baseTemplate);
       setFields(listFields);
 
       // Reset query
@@ -348,6 +350,8 @@ export const CamlQueryBuilder: React.FC<ICamlQueryBuilderProps> = ({ context }) 
         <QueryTemplates
           onApplyTemplate={handleApplyTemplate}
           onClose={() => setShowTemplates(false)}
+          listBaseTemplate={selectedListBaseTemplate}
+          availableFields={fields.map(f => f.internalName)}
         />
       )}
     </div>

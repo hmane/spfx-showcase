@@ -18,15 +18,45 @@ export interface IQueryTemplatesProps {
     rowLimit: number
   ) => void;
   onClose: () => void;
+  listBaseTemplate?: number;
+  availableFields?: string[];
 }
 
-export const QueryTemplates: React.FC<IQueryTemplatesProps> = ({ onApplyTemplate, onClose }) => {
+export const QueryTemplates: React.FC<IQueryTemplatesProps> = ({
+  onApplyTemplate,
+  onClose,
+  listBaseTemplate,
+  availableFields = [],
+}) => {
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
 
   // Filter templates
   const filteredTemplates = useMemo(() => {
     let templates = QUERY_TEMPLATES;
+
+    // Filter by list type if specified
+    if (listBaseTemplate !== undefined) {
+      templates = templates.filter(
+        t =>
+          !t.listTypes || // Include templates that work with all list types
+          t.listTypes.length === 0 ||
+          t.listTypes.includes(listBaseTemplate)
+      );
+    }
+
+    // Filter by available fields
+    if (availableFields.length > 0) {
+      templates = templates.filter(t => {
+        if (!t.requiredFields || t.requiredFields.length === 0) {
+          return true; // Template doesn't require specific fields
+        }
+        // Check if all required fields are available
+        return t.requiredFields.every(reqField =>
+          availableFields.some(availField => availField.toLowerCase() === reqField.toLowerCase())
+        );
+      });
+    }
 
     // Filter by category
     if (selectedCategory !== 'all') {
@@ -45,7 +75,7 @@ export const QueryTemplates: React.FC<IQueryTemplatesProps> = ({ onApplyTemplate
     }
 
     return templates;
-  }, [searchTerm, selectedCategory]);
+  }, [searchTerm, selectedCategory, listBaseTemplate, availableFields]);
 
   // Group templates by category
   const categorizedTemplates = useMemo(() => {

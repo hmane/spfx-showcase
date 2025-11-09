@@ -13,8 +13,9 @@ import {
   useTheme,
 } from '@fluentui/react';
 import * as React from 'react';
-import { useCallback, useState } from 'react';
+import { useCallback, useState, useMemo } from 'react';
 import { DocumentLink, IDocumentInfo, DocumentLinkLayout, SizePosition, ClickAction, PreviewMode, PreviewTarget, IDocumentLinkProps } from 'spfx-toolkit/lib/components/DocumentLink';
+import SPContext from 'spfx-toolkit/lib/utilities/context';
 import { ShowcaseCodeSample } from './ShowcaseCodeSample';
 import { ShowcaseHero } from './ShowcaseHero';
 import { ShowcaseFeature, ShowcaseKeyFeatures } from './ShowcaseKeyFeatures';
@@ -96,11 +97,20 @@ const ExampleWrapper: React.FC<{ title: string; children: React.ReactNode }> = (
 export const DocumentLinkShowcase: React.FC = () => {
   const theme = useTheme();
 
+  // Get current site URL dynamically
+  const currentSiteUrl = useMemo(() => {
+    try {
+      return SPContext.pageContext.web.absoluteUrl;
+    } catch {
+      return '';
+    }
+  }, []);
+
   // --- STATE MANAGEMENT ---
   // Document Identification
   const [identifierType, setIdentifierType] = useState('url');
   const [documentUrl, setDocumentUrl] = useState(
-    'https://pixelboy.sharepoint.com/sites/pixelboy/RequestDocuments/oct.png'
+    currentSiteUrl ? `${currentSiteUrl}/RequestDocuments/oct.png` : ''
   );
   const [documentId, setDocumentId] = useState(1);
   const [libraryName, setLibraryName] = useState('RequestDocuments');
@@ -147,7 +157,7 @@ export const DocumentLinkShowcase: React.FC = () => {
   // --- DEMO UTILITIES ---
   const resetDemo = (): void => {
     setIdentifierType('url');
-    setDocumentUrl('https://[tenant].sharepoint.com/sites/YourSite/Shared%20Documents/Sample.docx');
+    setDocumentUrl(currentSiteUrl ? `${currentSiteUrl}/Shared%20Documents/Sample.docx` : '');
     setDocumentId(1);
     setLibraryName('Shared Documents');
     setDocumentUniqueId('a1b2c3d4-e5f6-7890-abcd-ef1234567890');
