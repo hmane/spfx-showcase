@@ -1,8 +1,8 @@
 import * as React from 'react';
 import { Card, Content, Header } from 'spfx-toolkit/lib/components/Card';
-import { ShowcaseHero } from './ShowcaseHero';
-import { ShowcaseKeyFeatures, ShowcaseFeature } from './ShowcaseKeyFeatures';
-import { ShowcaseCodeSample } from './ShowcaseCodeSample';
+import { ShowcaseHero } from '../shared/ShowcaseHero';
+import { ShowcaseKeyFeatures, ShowcaseFeature } from '../shared/ShowcaseKeyFeatures';
+import { ShowcaseCodeSample } from '../shared/ShowcaseCodeSample';
 import { useLocalStorage, useViewport } from 'spfx-toolkit/lib/hooks';
 import { TextField, DefaultButton, Toggle, MessageBar, MessageBarType } from '@fluentui/react';
 

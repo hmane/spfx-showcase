@@ -1,10 +1,6 @@
 import { WebPartContext } from '@microsoft/sp-webpart-base';
 import { spfi, SPFI, SPFx } from '@pnp/sp';
-import '@pnp/sp/webs';
-import '@pnp/sp/lists';
-import '@pnp/sp/items';
-import '@pnp/sp/fields';
-import { SPContext } from 'spfx-toolkit/lib/utilities/context';
+import SPContext from 'spfx-toolkit/lib/utilities/context';
 import { ISPField, ISPList } from '../types/SPFormBuilderTypes';
 
 /**
@@ -72,9 +68,11 @@ export class SharePointService {
    */
   public async getListFields(listId: string): Promise<ISPField[]> {
     try {
-      const fields = await this.sp.web.lists
-        .getById(listId)
-        .fields.filter('Hidden eq false and ReadOnlyField eq false and FromBaseType eq false')
+      // Get the list queryable object (not data)
+      const list = this.sp.web.lists.getById(listId);
+
+      const fields = await list.fields
+        .filter('Hidden eq false and ReadOnlyField eq false and FromBaseType eq false')
         .select(
           'InternalName',
           'Title',
@@ -95,9 +93,8 @@ export class SharePointService {
         .orderBy('Title')();
 
       // Add common system fields that are useful
-      const systemFields = await this.sp.web.lists
-        .getById(listId)
-        .fields.filter(
+      const systemFields = await list.fields
+        .filter(
           "(InternalName eq 'Created' or InternalName eq 'Modified' or InternalName eq 'Author' or InternalName eq 'Editor' or InternalName eq 'ID' or InternalName eq 'Title' or InternalName eq 'Attachments')"
         )
         .select(

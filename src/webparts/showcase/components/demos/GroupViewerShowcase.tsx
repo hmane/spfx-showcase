@@ -1,8 +1,8 @@
 import * as React from 'react';
 import { Card, Content, Header } from 'spfx-toolkit/lib/components/Card';
-import { ShowcaseHero } from './ShowcaseHero';
-import { ShowcaseKeyFeatures, ShowcaseFeature } from './ShowcaseKeyFeatures';
-import { ShowcaseCodeSample } from './ShowcaseCodeSample';
+import { ShowcaseHero } from '../shared/ShowcaseHero';
+import { ShowcaseKeyFeatures, ShowcaseFeature } from '../shared/ShowcaseKeyFeatures';
+import { ShowcaseCodeSample } from '../shared/ShowcaseCodeSample';
 import { GroupViewer } from 'spfx-toolkit/lib/components/GroupViewer';
 import SPContext from 'spfx-toolkit/lib/utilities/context';
 import { Dropdown, IDropdownOption, TextField, MessageBar, MessageBarType, Spinner } from '@fluentui/react';
@@ -139,7 +139,7 @@ export const GroupViewerShowcase: React.FC = () => {
     try {
       setLoadingGroups(true);
       const sp = SPContext.sp;
-      const siteGroups = await sp.web.siteGroups();
+      const siteGroups = await (sp.web as any).siteGroups();
 
       const groupOptions: IDropdownOption[] = siteGroups.map((group: any) => ({
         key: group.Id,

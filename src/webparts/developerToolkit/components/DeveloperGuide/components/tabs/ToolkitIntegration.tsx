@@ -8,6 +8,64 @@ import { Section } from '../shared/Section';
  * Toolkit Integration tab - spfx-toolkit usage guide
  */
 export const ToolkitIntegration: React.FC<ITabComponentProps> = () => {
+  const pnpImportsGuide = `// src/webparts/pnpImports.ts
+// Imported once per web part entry point (e.g., ShowcaseWebPart.ts)
+import 'spfx-toolkit/lib/utilities/context/pnpImports/core';
+import 'spfx-toolkit/lib/utilities/context/pnpImports/lists';
+import 'spfx-toolkit/lib/utilities/context/pnpImports/content';
+
+// Optional bundles – add only what you need
+// import 'spfx-toolkit/lib/utilities/context/pnpImports/files';
+// import 'spfx-toolkit/lib/utilities/context/pnpImports/search';
+// import 'spfx-toolkit/lib/utilities/context/pnpImports/taxonomy';
+// import 'spfx-toolkit/lib/utilities/context/pnpImports/security';
+`;
+
+  const pnpAugmentationsGuide = `/**
+ * src/types/pnp-augmentations.d.ts
+ * TypeScript-only imports that teach SPFI about .web, .lists, etc.
+ * This file is bundled via tsconfig include and has zero runtime cost.
+ */
+import '@pnp/sp/webs';
+import '@pnp/sp/site-users';
+import '@pnp/sp/profiles';
+import '@pnp/sp/site-groups/web';
+
+import '@pnp/sp/lists';
+import '@pnp/sp/items';
+import '@pnp/sp/batching';
+import '@pnp/sp/views';
+
+import '@pnp/sp/fields';
+import '@pnp/sp/fields/list';
+import '@pnp/sp/column-defaults';
+import '@pnp/sp/content-types';
+
+import '@pnp/sp/files';
+import '@pnp/sp/folders';
+import '@pnp/sp/attachments';
+
+import '@pnp/sp/appcatalog';
+import '@pnp/sp/features';
+import '@pnp/sp/navigation';
+import '@pnp/sp/regional-settings';
+import '@pnp/sp/user-custom-actions';
+
+import '@pnp/sp/clientside-pages';
+import '@pnp/sp/comments';
+import '@pnp/sp/publishing-sitepageservice';
+
+import '@pnp/sp/search';
+import '@pnp/sp/favorites';
+import '@pnp/sp/subscriptions';
+
+import '@pnp/sp/taxonomy';
+import '@pnp/sp/hubsites';
+
+import '@pnp/sp/security';
+import '@pnp/sp/sharing';
+`;
+
   const spContextInitDev = `import { SPContext } from 'spfx-toolkit';
 
 // In your web part class (MyWebPart.ts)
@@ -344,6 +402,50 @@ export const MyComponent: React.FC = () => {
         controls, and SharePoint utilities. It simplifies common tasks and ensures consistency
         across projects.
       </MessageBar>
+
+      {/* Centralized PnP imports */}
+      <Section
+        title="Centralized PnP Imports"
+        icon="CubeShape"
+        description="Runtime side effects and TypeScript augmentations live in shared files."
+        defaultExpanded={true}
+      >
+        <p style={{ margin: '0 0 16px 0', fontSize: '13px', color: '#605e5c' }}>
+          Keep all PnPjs imports in two shared locations so bundlers, TypeScript, and runtime stay in sync.
+          Web parts simply import <code>../pnpImports</code>; components and services never import <code>@pnp/sp</code> directly.
+        </p>
+
+        <h4 style={{ margin: '0 0 8px 0', fontSize: '14px', fontWeight: 600 }}>
+          1. Runtime loader (<code>src/webparts/pnpImports.ts</code>)
+        </h4>
+        <CodeBlock
+          code={pnpImportsGuide}
+          language="typescript"
+          filename="pnpImports.ts"
+          showLineNumbers={true}
+        />
+
+        <h4 style={{ margin: '24px 0 8px 0', fontSize: '14px', fontWeight: 600 }}>
+          2. Type augmentation shim (<code>src/types/pnp-augmentations.d.ts</code>)
+        </h4>
+        <CodeBlock
+          code={pnpAugmentationsGuide}
+          language="typescript"
+          filename="pnp-augmentations.d.ts"
+          showLineNumbers={true}
+        />
+
+        <MessageBar
+          messageBarType={MessageBarType.severeWarning}
+          styles={{ root: { marginTop: '16px' } }}
+        >
+          <ul style={{ margin: 0, paddingLeft: '20px' }}>
+            <li>Import <code>../pnpImports</code> once per web part entry (e.g., <code>ShowcaseWebPart.ts</code>).</li>
+            <li><code>src/types/pnp-augmentations.d.ts</code> is compile-time only—no bundle size impact.</li>
+            <li>When you need new PnP features, update both this shim and <code>spfx-toolkit</code>&rsquo;s augmentation file, then rebuild the toolkit.</li>
+          </ul>
+        </MessageBar>
+      </Section>
 
       {/* SPContext Initialization */}
       <Section title="SPContext Initialization" icon="Plug" defaultExpanded={true}>

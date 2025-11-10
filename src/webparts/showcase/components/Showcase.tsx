@@ -1,24 +1,21 @@
 import { Icon } from '@fluentui/react';
 import * as React from 'react';
 import { CSSProperties, useMemo, useState } from 'react';
-import { CardShowcase } from './CardShowcase';
-import { DocumentLinkShowcase } from './DocumentLinkShowcase';
-import ErrorBoundaryShowcase from './ErrorBoundaryShowcase';
-import { FormShowcaseComplete } from './FormShowcase';
-import { GroupUserPickerShowcase } from './GroupUserPickerShowcase';
-import { PermissionShowcase } from './ManageAccessShowcase';
-import { SPFieldsShowcase } from './SPFieldsShowcase';
-import { SPDynamicFormShowcase } from './SPDynamicFormShowcase';
-import { VersionHistoryShowcase } from './VersionHistoryShowcase';
-import { WorkflowStepperShowcase } from './WorkflowStepperShowcase';
-// import { ConflictDetectorShowcase } from './ConflictDetectorShowcase';
+import { CardShowcase } from './demos/CardShowcase';
+import { DocumentLinkShowcase } from './demos/DocumentLinkShowcase';
+import ErrorBoundaryShowcase from './demos/ErrorBoundaryShowcase';
+import { FormShowcaseComplete } from './demos/FormShowcase';
+import { GroupUserPickerShowcase } from './demos/GroupUserPickerShowcase';
+import { PermissionShowcase } from './demos/ManageAccessShowcase';
+import { SPFieldsShowcase } from './demos/SPFieldsShowcase';
+import { SPDynamicFormShowcase } from './demos/SPDynamicFormShowcase';
+import { VersionHistoryShowcase } from './demos/VersionHistoryShowcase';
+import { WorkflowStepperShowcase } from './demos/WorkflowStepperShowcase';
+// import { ConflictDetectorShowcase } from './demos/ConflictDetectorShowcase';
 import { WebPartContext } from '@microsoft/sp-webpart-base';
-import { GroupViewerShowcase } from './GroupViewerShowcase';
-import { HooksShowcase } from './HooksShowcase';
-import { UserPersonaShowcase } from './UserPersonaShowcase';
-import 'spfx-toolkit/lib/utilities/context/pnpImports/core';
-import 'spfx-toolkit/lib/utilities/context/pnpImports/lists';
-import 'spfx-toolkit/lib/utilities/context/pnpImports/content';
+import { GroupViewerShowcase } from './demos/GroupViewerShowcase';
+import { HooksShowcase } from './demos/HooksShowcase';
+import { UserPersonaShowcase } from './demos/UserPersonaShowcase';
 
 // Define the structure for a showcase item
 interface ShowcaseItem {

@@ -2,9 +2,6 @@ import { Icon } from '@fluentui/react';
 import { WebPartContext } from '@microsoft/sp-webpart-base';
 import * as React from 'react';
 import { CSSProperties, useMemo, useState } from 'react';
-import 'spfx-toolkit/lib/utilities/context/pnpImports/core';
-import 'spfx-toolkit/lib/utilities/context/pnpImports/lists';
-import 'spfx-toolkit/lib/utilities/context/pnpImports/content';
 
 // Tool imports
 import { DeveloperUtilities } from './DeveloperUtilities/DeveloperUtilities';

@@ -153,7 +153,7 @@ always-auth=true`}
             language="bash"
             filename=".npmrc"
             showLineNumbers={false}
-            compact={true}
+            maxHeight={250}
           />
 
           <MessageBar messageBarType={MessageBarType.info} styles={{ root: { marginTop: '12px', marginBottom: '16px' } }}>
@@ -175,7 +175,7 @@ npm install -g vsts-npm-auth
 vsts-npm-auth -config .npmrc`}
             language="bash"
             showLineNumbers={false}
-            compact={true}
+            maxHeight={250}
           />
 
           <p style={{ margin: '16px 0 12px 0', fontSize: '14px', color: '#323130' }}>
@@ -210,7 +210,7 @@ vsts-npm-auth -config .npmrc`}
             language="bash"
             filename=".gitignore (excerpt)"
             showLineNumbers={false}
-            compact={true}
+            maxHeight={250}
           />
 
           <h4 style={{ margin: '16px 0 12px 0', fontSize: '14px', fontWeight: 600 }}>

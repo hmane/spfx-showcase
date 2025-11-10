@@ -2,6 +2,7 @@ import * as React from 'react';
 import { Card, Header, Content } from 'spfx-toolkit/lib/components/Card';
 import { PrimaryButton, DefaultButton, MessageBar, MessageBarType, Spinner, SpinnerSize } from '@fluentui/react';
 import SPContext from 'spfx-toolkit/lib/utilities/context';
+// Import centralized PnP type augmentations
 
 export interface ITestListCreatorProps {
   listTitle: string;

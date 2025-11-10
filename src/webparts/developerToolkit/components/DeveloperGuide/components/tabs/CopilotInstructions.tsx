@@ -8,419 +8,98 @@ import { Section } from '../shared/Section';
  * Copilot Instructions tab - GitHub Copilot configuration
  */
 export const CopilotInstructions: React.FC<ITabComponentProps> = () => {
-  const copilotInstructionsMd = `# GitHub Copilot Instructions for SharePoint Framework (SPFx) Development
+  const copilotInstructionsMd = `# Copilot Instructions for \`spfx-toolkit\`
 
-## Project Context
-This is a SharePoint Framework (SPFx) 1.21.1 project using React, TypeScript, and Fluent UI. We build modern, responsive web parts for SharePoint Online that integrate with Microsoft 365 services.
+This repository contains a **library**, not an SPFx solution. Every suggestion from Copilot must respect the rules below so consuming SPFx projects stay lean and stable.
 
-## Technology Stack
+## 1. Project Context
+- SharePoint Framework ≥ **1.21.1** compatibility.
+- **React 17**, **TypeScript strict**, **Fluent UI 8**.
+- Tree-shakable exports under \`lib/components\`, \`lib/hooks\`, \`lib/utilities\`.
+- **Zero runtime dependencies**. Only peer dependencies listed in \`package.json\` may be referenced.
+- All code lives under \`src/\` and uses **relative imports** (no path aliases).
 
-### Core Technologies
-- **SharePoint Framework (SPFx)**: 1.21.1
-- **React**: 17.x with functional components and hooks
-- **TypeScript**: 5.3.3 with strict mode enabled
-- **Fluent UI React**: @fluentui/react for consistent Microsoft UI
-- **Node.js**: v18 LTS
+## 2. Pre-Drafting Checklist
+1. Confirm the feature belongs in the toolkit (reusable across SPFx projects).
+2. Open/scan an adjacent file (Copilot relies on nearby context).
+3. Add interfaces/types first; mention tree-shakable import expectations in comments.
+4. Keep bundle size in mind: prefer native utilities over pulling in dependencies.
+5. Run \`npm run lint\` or \`npm run build\` to ensure the project is clean before requesting large completions.
 
-### State Management & Validation
-- **Zustand**: For lightweight, scalable state management
-- **Zod**: For runtime validation and TypeScript inference
-- **react-hook-form**: For form handling with zodResolver integration
+## 3. Coding Standards
+- **Functional React components only**. No class components.
+- Type every prop, state, and handler explicitly.
+- Follow file structure: component + \`.module.scss\` (if styles are needed) + \`.types.ts\`.
+- Use existing abstractions (\`SPContext\`, \`createSPExtractor\`, form primitives) instead of re‑implementing logic.
+- Prefer composition over inheritance; keep components focused.
+- Every new helper/util exports from the relevant \`index.ts\` barrel.
 
-### Custom Libraries
-- **spfx-toolkit**: Our internal component library providing:
-  - Form components (FormProvider, FormContainer, FormItem, FormLabel, FormValue, FormError)
-  - SP Field components (SPTextField, SPUserField, SPDateField, SPNumberField, etc.)
-  - Card components (Card, CardHeader, CardContent, CardFooter)
-  - SharePoint utilities (SPContext, createSPExtractor, createSPUpdater, createBatchBuilder)
-  - UserPersona component for user display
+### Relative Imports (Mandatory)
+\`\`\`ts
+// ✅ Allowed
+import { Header } from '../Header';
+import { formatFieldValue } from '../../utilities/listItemHelper';
 
-### Development Tools
-- **spfx-fast-serve**: For 80% faster rebuild times during development
-- **ESLint**: @microsoft/eslint-config-spfx for code quality
-- **Prettier**: For consistent code formatting
-
-## Coding Standards
-
-### TypeScript
-- Use TypeScript strict mode
-- Prefer interfaces over types for object shapes
-- Use \`I\` prefix for interfaces (e.g., \`IMyProps\`, \`IMyData\`)
-- Explicitly type function parameters and return types
-- Avoid \`any\` - use \`unknown\` or proper types
-- Use enums for fixed sets of values
-
-### React Components
-- Use functional components with hooks (no class components)
-- Use TypeScript for all React components (\`.tsx\` extension)
-- Destructure props in function signature
-- Use React.FC type for component functions
-- Keep components focused and single-purpose
-- Extract complex logic to custom hooks
-
-### Component Structure
-\`\`\`typescript
-import * as React from 'react';
-import { useState, useEffect } from 'react';
-
-export interface IMyComponentProps {
-  title: string;
-  onSave: (data: IMyData) => Promise<void>;
-}
-
-export const MyComponent: React.FC<IMyComponentProps> = ({ title, onSave }) => {
-  const [data, setData] = useState<IMyData | null>(null);
-
-  useEffect(() => {
-    // Effect logic here
-  }, []);
-
-  return (
-    <div>
-      {/* Component JSX */}
-    </div>
-  );
-};
+// ❌ Forbidden (Copilot must NOT propose these)
+import { Header } from '@components/Header';
+import '@/utilities/listItemHelper';
 \`\`\`
 
-### File Organization
-- One component per file
-- Co-locate styles: \`MyComponent.tsx\` + \`MyComponent.module.scss\`
-- Group by feature in folders:
-  - \`components/\` - React components
-  - \`services/\` - Business logic & API calls
-  - \`store/\` - Zustand stores
-  - \`types/\` - TypeScript interfaces
-  - \`utils/\` - Helper functions
+### Tree-Shakable Exports
+\`\`\`ts
+// ✅ Re-export in index files
+export * from './Card';
 
-### Naming Conventions
-- **Components**: PascalCase (\`MyComponent.tsx\`)
-- **Interfaces**: PascalCase with I prefix (\`IMyData.ts\`)
-- **Functions/variables**: camelCase
-- **Constants**: UPPER_SNAKE_CASE
-- **Files**: Match component name
-- **Folders**: camelCase or kebab-case
-
-### Import Order
-1. React imports
-2. Third-party libraries
-3. SPFx/Office imports
-4. spfx-toolkit imports
-5. Local project imports (absolute first, then relative)
-6. Styles
-
-Example:
-\`\`\`typescript
-import * as React from 'react';
-import { useState } from 'react';
-import { PrimaryButton, Stack } from '@fluentui/react';
-import { WebPartContext } from '@microsoft/sp-webpart-base';
-import { FormProvider, SPTextField } from 'spfx-toolkit/lib/components';
-import { SPContext } from 'spfx-toolkit';
-import { IMyData } from '../../types/IMyData';
-import { MyService } from '../../services/MyService';
-import styles from './MyComponent.module.scss';
+// ✅ Consumers will import like:
+// import { Card } from 'spfx-toolkit/lib/components/Card';
 \`\`\`
 
-## spfx-toolkit Usage
+## 4. PnP & SP Context Rules
+- Toolkit modules may import PnP packages, but only through the existing bundles under \`src/utilities/context/pnpImports/*\`.
+- Keep \`src/types/pnp-augmentations.d.ts\` in sync when adding new PnP capabilities.
+- \`SPContext\` (under \`utilities/context\`) is responsible for initializing PnP—never add per-component PnP setup.
 
-### SPContext Initialization
-Always initialize SPContext in web part's \`onInit()\`:
+## 5. Build & Validation Workflow
+| Command | Purpose |
+| ------- | ------- |
+| \`npm run build\` | Clean + compile + validate output |
+| \`npm run watch\` | Watch mode for local development |
+| \`npm run validate\` | Ensures required lib files exist |
 
-\`\`\`typescript
-protected async onInit(): Promise<void> {
-  await super.onInit();
+Before opening a PR:
+1. \`npm run build\`
+2. \`npm run lint\` (if needed)
+3. Verify \`lib/\` output or run \`npm run build:full\` when publishing
 
-  // Smart initialization (recommended)
-  const siteUrl = this.context.pageContext.web.absoluteUrl;
-  const isDevelopment = siteUrl.includes('localhost') || siteUrl.includes('workbench');
+## 6. Documentation & Samples
+- Document every component/hook in \`SPFX-Toolkit-Usage-Guide.md\`.
+- Update \`README.md\` feature tables when adding new modules.
+- Provide sample usage (preferably in markdown) showcasing props and expected patterns.
 
-  if (isDevelopment) {
-    SPContext.Init(this.context);
-  } else {
-    SPContext.Init(this.context, siteUrl);
-  }
-}
-\`\`\`
+## 7. Testing & QA
+- Add unit tests or story-like examples when practical.
+- Ensure accessible markup (ARIA roles, labels, keyboard navigation).
+- Run bundle-size sanity checks if a component pulls in large sub-dependencies (DevExtreme, etc.).
 
-### Forms with spfx-toolkit
-\`\`\`typescript
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import {
-  FormProvider,
-  FormContainer,
-  FormItem,
-  FormLabel,
-  FormValue,
-  FormError,
-  FormErrorSummary
-} from 'spfx-toolkit/lib/components/spForm';
-import { SPTextField, SPUserField } from 'spfx-toolkit/lib/components/spFields';
+## 8. Versioning & Releases
+- This repo follows semver but releases are manual. When changing public APIs, update the changelog section in \`SPFX-Toolkit-Usage-Guide.md\`.
+- Do **not** bump versions automatically; maintainers handle publishing.
 
-const schema = z.object({
-  title: z.string().min(1, 'Title is required'),
-  assignedTo: z.object({ id: z.string() }).nullable(),
-});
+## 9. PR / Commit Guidance
+- Use Conventional Commits (\`feat(card): add footer actions\`).
+- Include bullet summaries describing behavior, bundle impact, and testing.
+- Point reviewers to docs updates and usage samples.
 
-const form = useForm({
-  resolver: zodResolver(schema),
-  defaultValues: { title: '', assignedTo: null },
-});
+## 10. Absolute “No-Go” Rules
+- ❌ No new npm dependencies (runtime or dev) without explicit maintainer approval.
+- ❌ No direct DOM manipulation; always go through React.
+- ❌ No copying code from consumer solutions into the toolkit.
+- ❌ No hard-coded tenant/site URLs.
+- ❌ No \`any\` – use \`unknown\` + type guards when unavoidable.
+- ❌ No \`console.log\` — use the toolkit logger utilities or remove before commit.
 
-return (
-  <FormProvider control={form.control}>
-    <form onSubmit={form.handleSubmit(onSubmit)}>
-      <FormContainer labelWidth="150px">
-        <FormItem fieldName="title">
-          <FormLabel isRequired>Title</FormLabel>
-          <FormValue>
-            <SPTextField name="title" />
-            <FormError />
-          </FormValue>
-        </FormItem>
-      </FormContainer>
-      <FormErrorSummary position="top" showFieldLabels />
-    </form>
-  </FormProvider>
-);
-\`\`\`
-
-### SharePoint CRUD Operations
-\`\`\`typescript
-import { createSPExtractor, createSPUpdater, SPContext } from 'spfx-toolkit';
-
-// Define data extractor
-const extractData = createSPExtractor<IMyData>({
-  id: 'number',
-  title: 'string',
-  status: 'string',
-  dueDate: 'date',
-  assignedTo: 'user',
-});
-
-// Define data updater
-const updateData = createSPUpdater<IMyData>({
-  title: 'string',
-  status: 'string',
-  dueDate: 'date',
-  assignedTo: 'user',
-});
-
-// Get items
-const items = await SPContext.GetItems({
-  listTitle: 'Tasks',
-  fields: ['Id', 'Title', 'Status', 'DueDate', 'AssignedTo'],
-});
-const data = items.map(item => extractData(item));
-
-// Create item
-await SPContext.CreateItem({
-  listTitle: 'Tasks',
-  data: updateData(myData),
-});
-
-// Update item
-await SPContext.UpdateItem({
-  listTitle: 'Tasks',
-  itemId: 123,
-  data: updateData(updates),
-});
-\`\`\`
-
-## State Management with Zustand
-
-\`\`\`typescript
-import { create } from 'zustand';
-
-interface IMyStore {
-  items: IMyData[];
-  loading: boolean;
-  error: string | null;
-  fetchItems: () => Promise<void>;
-  addItem: (item: IMyData) => void;
-  updateItem: (id: number, updates: Partial<IMyData>) => void;
-  deleteItem: (id: number) => void;
-}
-
-export const useMyStore = create<IMyStore>((set, get) => ({
-  items: [],
-  loading: false,
-  error: null,
-
-  fetchItems: async () => {
-    set({ loading: true, error: null });
-    try {
-      const items = await MyService.getItems();
-      set({ items, loading: false });
-    } catch (error) {
-      set({ error: error.message, loading: false });
-    }
-  },
-
-  addItem: (item) => {
-    set((state) => ({ items: [...state.items, item] }));
-  },
-
-  updateItem: (id, updates) => {
-    set((state) => ({
-      items: state.items.map(item => item.id === id ? { ...item, ...updates } : item)
-    }));
-  },
-
-  deleteItem: (id) => {
-    set((state) => ({ items: state.items.filter(item => item.id !== id) }));
-  },
-}));
-\`\`\`
-
-## SharePoint Best Practices
-
-### Performance
-- Use batch operations for multiple updates
-- Implement pagination for large lists (use \`top\` and \`skip\`)
-- Cache SharePoint data appropriately
-- Use \`RenderListDataAsStream\` for complex queries via SPContext
-- Lazy load components when possible
-
-### Security
-- Never hardcode credentials or API keys
-- Validate all user input with Zod schemas
-- Use SharePoint permissions - don't bypass security
-- Sanitize HTML content to prevent XSS
-- Use HTTPS for all external API calls
-
-### Error Handling
-\`\`\`typescript
-try {
-  const result = await SPContext.GetItems({ listTitle: 'Tasks' });
-  return result;
-} catch (error) {
-  console.error('Failed to fetch tasks:', error);
-  // Show user-friendly error message
-  throw new Error('Unable to load tasks. Please try again.');
-}
-\`\`\`
-
-## Code Quality
-
-### ESLint Rules
-- No unused variables
-- Explicit return types on functions
-- No \`console.log\` in production (use proper logging)
-- Prefer const over let
-- No var declarations
-- Max line length: 100 characters (soft limit)
-
-### Testing
-- Write unit tests for complex logic
-- Use React Testing Library for component tests
-- Aim for >75% code coverage
-- Mock SharePoint API calls in tests
-
-### Git Commit Messages
-Follow Conventional Commits:
-- \`feat(scope): add new feature\`
-- \`fix(scope): fix bug\`
-- \`docs(scope): update documentation\`
-- \`refactor(scope): refactor code\`
-- \`test(scope): add tests\`
-- \`chore(scope): update dependencies\`
-
-## Common Patterns
-
-### Loading States
-\`\`\`typescript
-const [loading, setLoading] = useState(false);
-const [error, setError] = useState<string | null>(null);
-
-if (loading) return <Spinner label="Loading..." />;
-if (error) return <MessageBar messageBarType={MessageBarType.error}>{error}</MessageBar>;
-\`\`\`
-
-### Async Operations
-Always use async/await (avoid .then/.catch chains):
-\`\`\`typescript
-const handleSubmit = async (data: IFormData): Promise<void> => {
-  setLoading(true);
-  try {
-    await MyService.saveData(data);
-    // Success handling
-  } catch (error) {
-    setError(error.message);
-  } finally {
-    setLoading(false);
-  }
-};
-\`\`\`
-
-### Conditional Rendering
-\`\`\`typescript
-{items.length === 0 ? (
-  <div>No items found</div>
-) : (
-  <List items={items} />
-)}
-
-{showAdvanced && <AdvancedSettings />}
-\`\`\`
-
-## What to Avoid
-
-### DON'T
-- ❌ Use class components (use functional components)
-- ❌ Use \`any\` type (use proper TypeScript types)
-- ❌ Directly manipulate DOM (use React state/refs)
-- ❌ Make synchronous SharePoint calls (always async)
-- ❌ Commit console.log statements
-- ❌ Use inline styles (use SCSS modules)
-- ❌ Bypass form validation
-- ❌ Hardcode URLs or credentials
-- ❌ Create large monolithic components (keep them focused)
-- ❌ Forget error boundaries for production
-
-### DO
-- ✅ Use TypeScript strict mode
-- ✅ Validate all user input with Zod
-- ✅ Use spfx-toolkit components when available
-- ✅ Write clear, descriptive variable names
-- ✅ Extract reusable logic to custom hooks
-- ✅ Handle loading and error states
-- ✅ Use Fluent UI components for consistency
-- ✅ Document complex logic with comments
-- ✅ Keep functions small and focused
-- ✅ Test your changes locally before committing
-
-## Additional Context
-
-### When to Use Each Component
-- **SPTextField**: Text input (single or multi-line)
-- **SPNumberField**: Numeric input with optional formatting
-- **SPDateField**: Date/time picker
-- **SPUserField**: People picker (single or multiple users)
-- **SPChoiceField**: Dropdown, radio buttons, or checkboxes
-- **SPBooleanField**: Checkbox or toggle
-- **SPUrlField**: URL input with description
-- **SPLookupField**: Lookup to another list
-- **SPTaxonomyField**: Managed metadata picker
-
-### Development Workflow
-1. Run \`npm run serve\` (uses spfx-fast-serve)
-2. Make changes - see instant updates via HMR
-3. Test in workbench
-4. Run \`npm run build\` before committing
-5. Follow Git workflow: feature branch → PR → review → merge
-
-### Need Help?
-- Check Developer Guide in Showcase web part
-- Review spfx-toolkit documentation
-- Ask team members in Teams channel
-- Consult SharePoint Framework docs: https://learn.microsoft.com/sharepoint/dev/
-
----
-
-**Remember**: Write code that is maintainable, testable, and follows team conventions. When in doubt, refer to existing components in the project for examples.`;
+Keep the toolkit lean, tree-shakable, and consumer-friendly. EOF
+`;
 
   return (
     <Stack tokens={{ childrenGap: 16 }}>
@@ -477,7 +156,7 @@ const handleSubmit = async (data: IFormData): Promise<void> => {
             language="markdown"
             filename="copilot-instructions.md"
             showLineNumbers={true}
-            maxHeight={700}
+            maxHeight={500}
           />
         </div>
       </Section>

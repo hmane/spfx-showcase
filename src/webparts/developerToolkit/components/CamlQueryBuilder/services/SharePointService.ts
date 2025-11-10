@@ -1,13 +1,5 @@
-// src/webparts/showcase/components/CamlQueryBuilder/services/SharePointService.ts
-
 import { WebPartContext } from '@microsoft/sp-webpart-base';
 import { spfi, SPFI, SPFx } from '@pnp/sp';
-import '@pnp/sp/webs';
-import '@pnp/sp/lists';
-import '@pnp/sp/items';
-import '@pnp/sp/fields';
-import '@pnp/sp/views';
-import '@pnp/sp/site-users';
 import SPContext from 'spfx-toolkit/lib/utilities/context';
 import { FieldType, IFieldInfo, IListInfo, IViewInfo } from '../types/CamlTypes';
 
@@ -53,16 +45,17 @@ export class SharePointService {
    */
   public async getListFields(listId: string): Promise<IFieldInfo[]> {
     try {
-      const fields = await this.sp.web.lists
-        .getById(listId)
-        .fields.filter('Hidden eq false and ReadOnlyField eq false and FromBaseType eq false')
+      // Get the list queryable object (not data)
+      const list = this.sp.web.lists.getById(listId);
+
+      const fields = await list.fields
+        .filter('Hidden eq false and ReadOnlyField eq false and FromBaseType eq false')
         .select('InternalName', 'Title', 'TypeAsString', 'Required', 'Choices')
         .orderBy('Title')();
 
       // Add common system fields that are useful
-      const systemFields = await this.sp.web.lists
-        .getById(listId)
-        .fields.filter(
+      const systemFields = await list.fields
+        .filter(
           "(InternalName eq 'Created' or InternalName eq 'Modified' or InternalName eq 'Author' or InternalName eq 'Editor' or InternalName eq 'ID' or InternalName eq 'Title' or InternalName eq 'Attachments')"
         )
         .select('InternalName', 'Title', 'TypeAsString', 'Required', 'Choices')();
@@ -92,19 +85,18 @@ export class SharePointService {
    */
   public async getListViews(listId: string): Promise<IViewInfo[]> {
     try {
-      const views = await this.sp.web.lists
-        .getById(listId)
-        .views.filter('Hidden eq false')
+      const list = await this.sp.web.lists.getById(listId)();
+      const views = await (list as any).views.filter('Hidden eq false')
         .select('Id', 'Title', 'ViewQuery')
         .orderBy('Title')();
 
-      return views.map(view => ({
+      return views.map((view: any) => ({
         id: view.Id,
         title: view.Title,
         viewQuery: view.ViewQuery || '',
         viewFields: [],
       }));
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error loading views:', error);
       throw new Error(`Failed to load views: ${error.message}`);
     }
@@ -137,13 +129,13 @@ export class SharePointService {
    */
   public async getCurrentUser(): Promise<{ id: number; title: string; email: string }> {
     try {
-      const user = await this.sp.web.currentUser();
+      const user = await (this.sp.web as any).currentUser();
       return {
         id: user.Id,
         title: user.Title,
         email: user.Email,
       };
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error getting current user:', error);
       throw new Error(`Failed to get current user: ${error.message}`);
     }

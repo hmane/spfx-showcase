@@ -5,14 +5,12 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Card, Content, Header } from 'spfx-toolkit/lib/components/Card';
 import type { IFormSubmitResult, ISectionConfig, IFieldOverride } from 'spfx-toolkit/lib/components/SPDynamicForm';
 import { SPDynamicForm } from 'spfx-toolkit/lib/components/SPDynamicForm';
-import { ShowcaseCodeSample } from './ShowcaseCodeSample';
-import { ShowcaseHero } from './ShowcaseHero';
-import type { ShowcaseFeature } from './ShowcaseKeyFeatures';
-import { ShowcaseKeyFeatures } from './ShowcaseKeyFeatures';
+import { ShowcaseCodeSample } from '../shared/ShowcaseCodeSample';
+import { ShowcaseHero } from '../shared/ShowcaseHero';
+import type { ShowcaseFeature } from '../shared/ShowcaseKeyFeatures';
+import { ShowcaseKeyFeatures } from '../shared/ShowcaseKeyFeatures';
 import SPContext from 'spfx-toolkit/lib/utilities/context';
 import { FieldUserSelectionMode } from '@pnp/sp/fields';
-import 'spfx-toolkit/lib/utilities/context/pnpImports/core';
-import 'spfx-toolkit/lib/utilities/context/pnpImports/lists';
 
 const features: ShowcaseFeature[] = [
   {
@@ -461,8 +459,6 @@ export const SPDynamicFormShowcase: React.FC<ISPDynamicFormShowcaseProps> = ({ c
         badges={['Auto-Generated', 'Sections', 'Validation', 'Attachments', 'SharePoint Integration']}
       />
 
-      <ShowcaseKeyFeatures features={features} />
-
       {/* List Creation Banner */}
       <Card id="test-list-setup" elevation={3} defaultExpanded={true} style={{ marginTop: '24px' }}>
         <Header variant="warning">Test List Setup</Header>
@@ -694,6 +690,8 @@ export const SPDynamicFormShowcase: React.FC<ISPDynamicFormShowcaseProps> = ({ c
           </Stack>
         </div>
       </Panel>
+
+      <ShowcaseKeyFeatures features={features} />
 
       {/* Code Samples */}
       <ShowcaseCodeSample

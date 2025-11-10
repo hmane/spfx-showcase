@@ -419,6 +419,7 @@ Add screenshots to help reviewers understand the changes.
             language="bash"
             filename="Git Configuration"
             showLineNumbers={true}
+            maxHeight={250}
           />
 
           <h4 style={{ margin: '24px 0 12px 0', fontSize: '14px', fontWeight: 600 }}>
@@ -432,6 +433,7 @@ Add screenshots to help reviewers understand the changes.
             language="bash"
             filename="Clone and Setup"
             showLineNumbers={true}
+            maxHeight={250}
           />
         </div>
       </Section>
@@ -447,6 +449,7 @@ Add screenshots to help reviewers understand the changes.
             language="bash"
             filename="Feature Development Workflow"
             showLineNumbers={true}
+            maxHeight={500}
           />
 
           <MessageBar
@@ -470,6 +473,7 @@ Add screenshots to help reviewers understand the changes.
             language="bash"
             filename="Branch Naming Examples"
             showLineNumbers={true}
+            maxHeight={500}
           />
         </div>
       </Section>
@@ -485,7 +489,7 @@ Add screenshots to help reviewers understand the changes.
             language="bash"
             filename="Commit Message Guidelines"
             showLineNumbers={true}
-            maxHeight={600}
+            maxHeight={500}
           />
         </div>
       </Section>
@@ -610,6 +614,7 @@ git stash pop
 
 # Continue working`}
             language="bash"
+            maxHeight={250}
           />
 
           <h4 style={{ margin: '24px 0 12px 0', fontSize: '14px', fontWeight: 600 }}>
@@ -624,6 +629,7 @@ git merge origin/main
 git fetch origin
 git rebase origin/main`}
             language="bash"
+            maxHeight={250}
           />
 
           <h4 style={{ margin: '24px 0 12px 0', fontSize: '14px', fontWeight: 600 }}>
@@ -644,6 +650,7 @@ git commit -m "chore: resolve merge conflicts"
 # 6. Push
 git push`}
             language="bash"
+            maxHeight={500}
           />
         </div>
       </Section>

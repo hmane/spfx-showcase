@@ -12,9 +12,9 @@ import {
 import * as React from 'react';
 import { useCallback, useState } from 'react';
 import { StepData, WorkflowStepper } from 'spfx-toolkit/lib/components/WorkflowStepper';
-import { ShowcaseCodeSample } from './ShowcaseCodeSample';
-import { ShowcaseHero } from './ShowcaseHero';
-import { ShowcaseFeature, ShowcaseKeyFeatures } from './ShowcaseKeyFeatures';
+import { ShowcaseCodeSample } from '../shared/ShowcaseCodeSample';
+import { ShowcaseHero } from '../shared/ShowcaseHero';
+import { ShowcaseFeature, ShowcaseKeyFeatures } from '../shared/ShowcaseKeyFeatures';
 
 const WORKFLOW_STEPPER_SAMPLE = `import * as React from 'react';
 import { StepData, WorkflowStepper } from 'spfx-toolkit/lib/components/WorkflowStepper';

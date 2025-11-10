@@ -1,0 +1,21 @@
+.listItemSelector {
+  width: 100%;
+
+  .pickerContainer {
+    width: 100%;
+
+    // Ensure pickers take full width
+    > div {
+      width: 100%;
+    }
+  }
+}
+
+.compactSelector {
+  width: 100%;
+
+  .pickerContainer {
+    flex: 1;
+    min-width: 250px;
+  }
+}

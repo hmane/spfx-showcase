@@ -11,9 +11,9 @@ import {
   SearchableAccordion,
   useCardController,
 } from 'spfx-toolkit/lib/components/Card';
-import { ShowcaseCodeSample } from './ShowcaseCodeSample';
-import { ShowcaseHero } from './ShowcaseHero';
-import { ShowcaseFeature, ShowcaseKeyFeatures } from './ShowcaseKeyFeatures';
+import { ShowcaseCodeSample } from '../shared/ShowcaseCodeSample';
+import { ShowcaseHero } from '../shared/ShowcaseHero';
+import { ShowcaseFeature, ShowcaseKeyFeatures } from '../shared/ShowcaseKeyFeatures';
 
 const CARD_USAGE_SAMPLE = `import * as React from 'react';
 import { Card, Header, Content, Footer } from 'spfx-toolkit/lib/components/Card';

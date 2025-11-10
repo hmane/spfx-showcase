@@ -9,9 +9,9 @@ import {
   useErrorHandler,
 } from 'spfx-toolkit/lib/components/ErrorBoundary';
 import type { IErrorDetails, IErrorInfo } from 'spfx-toolkit/lib/components/ErrorBoundary';
-import { ShowcaseCodeSample } from './ShowcaseCodeSample';
-import { ShowcaseHero } from './ShowcaseHero';
-import { ShowcaseFeature, ShowcaseKeyFeatures } from './ShowcaseKeyFeatures';
+import { ShowcaseCodeSample } from '../shared/ShowcaseCodeSample';
+import { ShowcaseHero } from '../shared/ShowcaseHero';
+import { ShowcaseFeature, ShowcaseKeyFeatures } from '../shared/ShowcaseKeyFeatures';
 
 const ERROR_BOUNDARY_SAMPLE = `import * as React from 'react';
 import {

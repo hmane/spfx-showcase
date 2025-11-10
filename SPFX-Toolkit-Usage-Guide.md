@@ -67,13 +67,8 @@ export default class MyWebPart extends BaseClientSideWebPart<{}> {
 // 4. Use components in your React component
 const MyComponent: React.FC = () => {
   return (
-    <Card title="User Information" allowExpand>
-      <UserPersona
-        userId={123}
-        size="large"
-        showEmail
-        showJobTitle
-      />
+    <Card title='User Information' allowExpand>
+      <UserPersona userId={123} size='large' showEmail showJobTitle />
     </Card>
   );
 };
@@ -119,6 +114,72 @@ npm install react-hook-form@^7.45.4 --save  # For spForm
 npm install zustand@^4.3.9 --save  # For spForm state management
 ```
 
+### Step 3: Centralize PnP Imports
+
+Load PnPjs exactly once per web part and register its typings globally:
+
+```typescript
+// src/webparts/pnpImports.ts
+import 'spfx-toolkit/lib/utilities/context/pnpImports/core';
+import 'spfx-toolkit/lib/utilities/context/pnpImports/lists';
+import 'spfx-toolkit/lib/utilities/context/pnpImports/content';
+
+// Optional bundles
+// import 'spfx-toolkit/lib/utilities/context/pnpImports/files';
+// import 'spfx-toolkit/lib/utilities/context/pnpImports/search';
+// import 'spfx-toolkit/lib/utilities/context/pnpImports/taxonomy';
+// import 'spfx-toolkit/lib/utilities/context/pnpImports/security';
+```
+
+```typescript
+/**
+ * src/types/pnp-augmentations.d.ts
+ * Compile-time only: no bundle impact.
+ */
+import '@pnp/sp/webs';
+import '@pnp/sp/site-users';
+import '@pnp/sp/profiles';
+import '@pnp/sp/site-groups/web';
+
+import '@pnp/sp/lists';
+import '@pnp/sp/items';
+import '@pnp/sp/batching';
+import '@pnp/sp/views';
+
+import '@pnp/sp/fields';
+import '@pnp/sp/fields/list';
+import '@pnp/sp/column-defaults';
+import '@pnp/sp/content-types';
+
+import '@pnp/sp/files';
+import '@pnp/sp/folders';
+import '@pnp/sp/attachments';
+
+import '@pnp/sp/appcatalog';
+import '@pnp/sp/features';
+import '@pnp/sp/navigation';
+import '@pnp/sp/regional-settings';
+import '@pnp/sp/user-custom-actions';
+
+import '@pnp/sp/clientside-pages';
+import '@pnp/sp/comments';
+import '@pnp/sp/publishing-sitepageservice';
+
+import '@pnp/sp/search';
+import '@pnp/sp/favorites';
+import '@pnp/sp/subscriptions';
+
+import '@pnp/sp/taxonomy';
+import '@pnp/sp/hubsites';
+
+import '@pnp/sp/security';
+import '@pnp/sp/sharing';
+```
+
+- Each web part entry imports `../pnpImports`.
+- The `.d.ts` file lives under `src/types` and is automatically included by `tsconfig`.
+- When adding a new PnP module, update both files and mirror the change inside this toolkit’s own `src/types/pnp-augmentations.d.ts`, then rebuild.
+
 ### Step 3: TypeScript Configuration
 
 Ensure your `tsconfig.json` includes:
@@ -161,6 +222,7 @@ Some components require additional SharePoint permissions. Add to `config/packag
 ### Understanding SPContext
 
 SPContext provides:
+
 - **PnP/PnPjs integration** with optimized caching strategies
 - **Logging** with performance tracking
 - **HTTP client** with authentication
@@ -216,8 +278,8 @@ await SPContext.initialize(this.context, 'MyWebPart', {
   enablePeoplePickerContext: true,
   modules: {
     cache: { strategy: 'memory', maxSize: 100 },
-    logger: { console: true, performance: true }
-  }
+    logger: { console: true, performance: true },
+  },
 });
 ```
 
@@ -270,8 +332,8 @@ import { Card } from 'spfx-toolkit/lib/components/Card';
 const MyComponent: React.FC = () => {
   return (
     <Card
-      title="Project Overview"
-      subtitle="Last updated: Today"
+      title='Project Overview'
+      subtitle='Last updated: Today'
       allowExpand={true}
       defaultExpanded={false}
       persistState={true}
@@ -300,14 +362,12 @@ const MyComponent: React.FC = () => {
       <button onClick={handleAction}>Expand Card</button>
 
       <Card
-        cardId="my-card-id"
-        title="Controlled Card"
+        cardId='my-card-id'
+        title='Controlled Card'
         allowExpand
         onExpand={() => console.log('Expanded')}
         onCollapse={() => console.log('Collapsed')}
-        headerActions={
-          <Button text="Action" onClick={() => alert('Clicked')} />
-        }
+        headerActions={<Button text='Action' onClick={() => alert('Clicked')} />}
       >
         <p>Content with external control</p>
       </Card>
@@ -318,18 +378,18 @@ const MyComponent: React.FC = () => {
 
 #### Props Reference
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `title` | `string` | Required | Card header title |
-| `subtitle` | `string` | - | Optional subtitle text |
-| `allowExpand` | `boolean` | `false` | Enable expand/collapse |
-| `defaultExpanded` | `boolean` | `true` | Initial expanded state |
-| `persistState` | `boolean` | `false` | Save state to localStorage |
-| `cardId` | `string` | - | Unique ID for persistence |
-| `className` | `string` | - | Custom CSS class |
-| `headerActions` | `ReactNode` | - | Custom header actions |
-| `onExpand` | `() => void` | - | Expand callback |
-| `onCollapse` | `() => void` | - | Collapse callback |
+| Prop              | Type         | Default  | Description                |
+| ----------------- | ------------ | -------- | -------------------------- |
+| `title`           | `string`     | Required | Card header title          |
+| `subtitle`        | `string`     | -        | Optional subtitle text     |
+| `allowExpand`     | `boolean`    | `false`  | Enable expand/collapse     |
+| `defaultExpanded` | `boolean`    | `true`   | Initial expanded state     |
+| `persistState`    | `boolean`    | `false`  | Save state to localStorage |
+| `cardId`          | `string`     | -        | Unique ID for persistence  |
+| `className`       | `string`     | -        | Custom CSS class           |
+| `headerActions`   | `ReactNode`  | -        | Custom header actions      |
+| `onExpand`        | `() => void` | -        | Expand callback            |
+| `onCollapse`      | `() => void` | -        | Collapse callback          |
 
 ---
 
@@ -344,14 +404,7 @@ const MyComponent: React.FC = () => {
 import { UserPersona } from 'spfx-toolkit/lib/components/UserPersona';
 
 const MyComponent: React.FC = () => {
-  return (
-    <UserPersona
-      userId={123}
-      size="large"
-      showEmail
-      showJobTitle
-    />
-  );
+  return <UserPersona userId={123} size='large' showEmail showJobTitle />;
 };
 ```
 
@@ -370,16 +423,16 @@ const MyComponent: React.FC = () => {
         size={PersonaSize.size72}
         showEmail
         showJobTitle
-        showLivePersonaCard  // Hover card with more info
+        showLivePersonaCard // Hover card with more info
       />
 
       {/* Manual data (no fetching) */}
       <UserPersona
-        displayName="John Doe"
-        email="john.doe@company.com"
-        jobTitle="Senior Developer"
-        photoUrl="/sites/mysite/_layouts/15/userphoto.aspx?size=L&accountname=john.doe"
-        size="regular"
+        displayName='John Doe'
+        email='john.doe@company.com'
+        jobTitle='Senior Developer'
+        photoUrl='/sites/mysite/_layouts/15/userphoto.aspx?size=L&accountname=john.doe'
+        size='regular'
       />
     </div>
   );
@@ -388,18 +441,18 @@ const MyComponent: React.FC = () => {
 
 #### Props Reference
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `userId` | `number` | - | SharePoint user ID (auto-fetches data) |
-| `displayName` | `string` | - | Manual display name |
-| `email` | `string` | - | Manual email |
-| `jobTitle` | `string` | - | Manual job title |
-| `photoUrl` | `string` | - | Manual photo URL |
-| `size` | `PersonaSize \| string` | `'regular'` | Persona size |
-| `showEmail` | `boolean` | `false` | Show email below name |
-| `showJobTitle` | `boolean` | `false` | Show job title |
-| `showLivePersonaCard` | `boolean` | `false` | Enable hover card |
-| `className` | `string` | - | Custom CSS class |
+| Prop                  | Type                    | Default     | Description                            |
+| --------------------- | ----------------------- | ----------- | -------------------------------------- |
+| `userId`              | `number`                | -           | SharePoint user ID (auto-fetches data) |
+| `displayName`         | `string`                | -           | Manual display name                    |
+| `email`               | `string`                | -           | Manual email                           |
+| `jobTitle`            | `string`                | -           | Manual job title                       |
+| `photoUrl`            | `string`                | -           | Manual photo URL                       |
+| `size`                | `PersonaSize \| string` | `'regular'` | Persona size                           |
+| `showEmail`           | `boolean`               | `false`     | Show email below name                  |
+| `showJobTitle`        | `boolean`               | `false`     | Show job title                         |
+| `showLivePersonaCard` | `boolean`               | `false`     | Enable hover card                      |
+| `className`           | `string`                | -           | Custom CSS class                       |
 
 ---
 
@@ -419,31 +472,26 @@ const MyComponent: React.FC = () => {
     {
       label: 'Draft',
       status: 'completed',
-      description: 'Document created'
+      description: 'Document created',
     },
     {
       label: 'Review',
       status: 'current',
-      description: 'Awaiting approval'
+      description: 'Awaiting approval',
     },
     {
       label: 'Approved',
       status: 'pending',
-      description: 'Final approval'
+      description: 'Final approval',
     },
     {
       label: 'Published',
       status: 'pending',
-      description: 'Goes live'
-    }
+      description: 'Goes live',
+    },
   ];
 
-  return (
-    <WorkflowStepper
-      steps={steps}
-      orientation="horizontal"
-    />
-  );
+  return <WorkflowStepper steps={steps} orientation='horizontal' />;
 };
 ```
 
@@ -458,25 +506,25 @@ const MyComponent: React.FC = () => {
       description: 'Request submitted',
       icon: 'CheckMark',
       date: new Date('2024-01-15'),
-      user: 'John Doe'
+      user: 'John Doe',
     },
     {
       label: 'Manager Approval',
       status: 'current',
       description: 'Pending manager review',
       icon: 'Clock',
-      metadata: { approver: 'Jane Smith' }
+      metadata: { approver: 'Jane Smith' },
     },
     {
       label: 'HR Approval',
       status: 'pending',
-      icon: 'People'
+      icon: 'People',
     },
     {
       label: 'Completed',
       status: 'pending',
-      icon: 'CompletedSolid'
-    }
+      icon: 'CompletedSolid',
+    },
   ];
 
   const handleStepClick = (step: IWorkflowStep, index: number) => {
@@ -486,10 +534,10 @@ const MyComponent: React.FC = () => {
   return (
     <WorkflowStepper
       steps={steps}
-      orientation="vertical"
+      orientation='vertical'
       allowClickableSteps
       onStepClick={handleStepClick}
-      theme="arrow"  // Arrow-style design
+      theme='arrow' // Arrow-style design
     />
   );
 };
@@ -497,26 +545,26 @@ const MyComponent: React.FC = () => {
 
 #### Props Reference
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `steps` | `IWorkflowStep[]` | Required | Array of workflow steps |
-| `orientation` | `'horizontal' \| 'vertical'` | `'horizontal'` | Layout direction |
-| `theme` | `'arrow' \| 'circle'` | `'arrow'` | Visual style |
-| `allowClickableSteps` | `boolean` | `false` | Enable step clicking |
-| `onStepClick` | `(step, index) => void` | - | Click handler |
-| `className` | `string` | - | Custom CSS class |
+| Prop                  | Type                         | Default        | Description             |
+| --------------------- | ---------------------------- | -------------- | ----------------------- |
+| `steps`               | `IWorkflowStep[]`            | Required       | Array of workflow steps |
+| `orientation`         | `'horizontal' \| 'vertical'` | `'horizontal'` | Layout direction        |
+| `theme`               | `'arrow' \| 'circle'`        | `'arrow'`      | Visual style            |
+| `allowClickableSteps` | `boolean`                    | `false`        | Enable step clicking    |
+| `onStepClick`         | `(step, index) => void`      | -              | Click handler           |
+| `className`           | `string`                     | -              | Custom CSS class        |
 
 **IWorkflowStep Interface:**
 
 ```typescript
 interface IWorkflowStep {
-  label: string;                    // Step name
+  label: string; // Step name
   status: 'completed' | 'current' | 'pending' | 'error';
-  description?: string;             // Optional description
-  icon?: string;                    // Fluent UI icon name
-  date?: Date;                      // Step date
-  user?: string;                    // User who completed step
-  metadata?: Record<string, any>;   // Additional data
+  description?: string; // Optional description
+  icon?: string; // Fluent UI icon name
+  date?: Date; // Step date
+  user?: string; // User who completed step
+  metadata?: Record<string, any>; // Additional data
 }
 ```
 
@@ -535,7 +583,7 @@ import { ManageAccess } from 'spfx-toolkit/lib/components/ManageAccess';
 const MyComponent: React.FC = () => {
   return (
     <ManageAccess
-      listTitle="Documents"
+      listTitle='Documents'
       itemId={123}
       onPermissionsChanged={() => {
         console.log('Permissions updated');
@@ -564,7 +612,7 @@ const MyComponent: React.FC = () => {
 
   return (
     <ManageAccess
-      listTitle="Projects"
+      listTitle='Projects'
       itemId={456}
       showInheritedPermissions={true}
       allowBreakInheritance={true}
@@ -572,7 +620,7 @@ const MyComponent: React.FC = () => {
       permissionLevels={['Read', 'Contribute', 'Full Control']}
       onPermissionsChanged={handlePermissionChange}
       onError={handleError}
-      className="custom-manage-access"
+      className='custom-manage-access'
     />
   );
 };
@@ -580,19 +628,20 @@ const MyComponent: React.FC = () => {
 
 #### Props Reference
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `listTitle` | `string` | Required | SharePoint list name |
-| `itemId` | `number` | Required | List item ID |
-| `showInheritedPermissions` | `boolean` | `true` | Show inherited permissions |
-| `allowBreakInheritance` | `boolean` | `true` | Allow breaking permission inheritance |
-| `allowRemovePermissions` | `boolean` | `true` | Allow removing permissions |
-| `permissionLevels` | `string[]` | Default levels | Available permission levels |
-| `onPermissionsChanged` | `(updates) => void` | - | Change callback |
-| `onError` | `(error) => void` | - | Error handler |
-| `className` | `string` | - | Custom CSS class |
+| Prop                       | Type                | Default        | Description                           |
+| -------------------------- | ------------------- | -------------- | ------------------------------------- |
+| `listTitle`                | `string`            | Required       | SharePoint list name                  |
+| `itemId`                   | `number`            | Required       | List item ID                          |
+| `showInheritedPermissions` | `boolean`           | `true`         | Show inherited permissions            |
+| `allowBreakInheritance`    | `boolean`           | `true`         | Allow breaking permission inheritance |
+| `allowRemovePermissions`   | `boolean`           | `true`         | Allow removing permissions            |
+| `permissionLevels`         | `string[]`          | Default levels | Available permission levels           |
+| `onPermissionsChanged`     | `(updates) => void` | -              | Change callback                       |
+| `onError`                  | `(error) => void`   | -              | Error handler                         |
+| `className`                | `string`            | -              | Custom CSS class                      |
 
 **Required Peer Dependencies:**
+
 - `@pnp/spfx-controls-react@^3.22.0`
 
 ---
@@ -608,12 +657,7 @@ const MyComponent: React.FC = () => {
 import { VersionHistory } from 'spfx-toolkit/lib/components/VersionHistory';
 
 const MyComponent: React.FC = () => {
-  return (
-    <VersionHistory
-      listTitle="Documents"
-      itemId={789}
-    />
-  );
+  return <VersionHistory listTitle='Documents' itemId={789} />;
 };
 ```
 
@@ -634,7 +678,7 @@ const MyComponent: React.FC = () => {
 
   return (
     <VersionHistory
-      listTitle="Documents"
+      listTitle='Documents'
       itemId={789}
       showFieldComparison={true}
       fieldsToCompare={['Title', 'Status', 'DueDate', 'AssignedTo']}
@@ -642,7 +686,7 @@ const MyComponent: React.FC = () => {
       maxVersions={50}
       onVersionRestore={handleVersionRestore}
       onCompare={handleCompare}
-      className="custom-version-history"
+      className='custom-version-history'
     />
   );
 };
@@ -650,19 +694,20 @@ const MyComponent: React.FC = () => {
 
 #### Props Reference
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `listTitle` | `string` | Required | SharePoint list name |
-| `itemId` | `number` | Required | List item ID |
-| `showFieldComparison` | `boolean` | `true` | Show field-by-field comparison |
-| `fieldsToCompare` | `string[]` | All fields | Fields to compare |
-| `allowRestore` | `boolean` | `false` | Enable version restore |
-| `maxVersions` | `number` | `100` | Maximum versions to display |
-| `onVersionRestore` | `(versionId) => void` | - | Restore callback |
-| `onCompare` | `(v1, v2) => void` | - | Compare callback |
-| `className` | `string` | - | Custom CSS class |
+| Prop                  | Type                  | Default    | Description                    |
+| --------------------- | --------------------- | ---------- | ------------------------------ |
+| `listTitle`           | `string`              | Required   | SharePoint list name           |
+| `itemId`              | `number`              | Required   | List item ID                   |
+| `showFieldComparison` | `boolean`             | `true`     | Show field-by-field comparison |
+| `fieldsToCompare`     | `string[]`            | All fields | Fields to compare              |
+| `allowRestore`        | `boolean`             | `false`    | Enable version restore         |
+| `maxVersions`         | `number`              | `100`      | Maximum versions to display    |
+| `onVersionRestore`    | `(versionId) => void` | -          | Restore callback               |
+| `onCompare`           | `(v1, v2) => void`    | -          | Compare callback               |
+| `className`           | `string`              | -          | Custom CSS class               |
 
 **Required Peer Dependencies:**
+
 - `devextreme@^22.2.3`
 - `devextreme-react@^22.2.3`
 
@@ -681,10 +726,10 @@ import { ConflictDetector } from 'spfx-toolkit/lib/components/ConflictDetector';
 const MyComponent: React.FC = () => {
   return (
     <ConflictDetector
-      listTitle="Tasks"
+      listTitle='Tasks'
       itemId={101}
-      checkInterval={30000}  // Check every 30 seconds
-      onConflictDetected={(conflict) => {
+      checkInterval={30000} // Check every 30 seconds
+      onConflictDetected={conflict => {
         alert(`Conflict detected! Modified by: ${conflict.modifiedBy}`);
       }}
     >
@@ -698,19 +743,17 @@ const MyComponent: React.FC = () => {
 #### Advanced Features
 
 ```typescript
-import { ConflictDetector, useConflictDetection } from 'spfx-toolkit/lib/components/ConflictDetector';
+import {
+  ConflictDetector,
+  useConflictDetection,
+} from 'spfx-toolkit/lib/components/ConflictDetector';
 
 const MyFormComponent: React.FC<{ itemId: number }> = ({ itemId }) => {
   const [formData, setFormData] = React.useState({});
 
   // Custom hook for conflict management
-  const {
-    hasConflict,
-    conflictInfo,
-    startMonitoring,
-    stopMonitoring,
-    resolveConflict
-  } = useConflictDetection('Tasks', itemId, 30000);
+  const { hasConflict, conflictInfo, startMonitoring, stopMonitoring, resolveConflict } =
+    useConflictDetection('Tasks', itemId, 30000);
 
   React.useEffect(() => {
     startMonitoring();
@@ -724,7 +767,7 @@ const MyFormComponent: React.FC<{ itemId: number }> = ({ itemId }) => {
       );
 
       if (!userChoice) return;
-      resolveConflict();  // Mark conflict as resolved
+      resolveConflict(); // Mark conflict as resolved
     }
 
     // Save form data...
@@ -737,9 +780,7 @@ const MyFormComponent: React.FC<{ itemId: number }> = ({ itemId }) => {
           Conflict detected! Modified by {conflictInfo?.modifiedBy}
         </MessageBar>
       )}
-      <form onSubmit={handleSave}>
-        {/* Form fields */}
-      </form>
+      <form onSubmit={handleSave}>{/* Form fields */}</form>
     </div>
   );
 };
@@ -747,14 +788,14 @@ const MyFormComponent: React.FC<{ itemId: number }> = ({ itemId }) => {
 
 #### Props Reference
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `listTitle` | `string` | Required | SharePoint list name |
-| `itemId` | `number` | Required | List item ID |
-| `checkInterval` | `number` | `30000` | Check interval (ms) |
-| `onConflictDetected` | `(conflict) => void` | - | Conflict callback |
-| `onConflictResolved` | `() => void` | - | Resolution callback |
-| `children` | `ReactNode` | - | Child components to protect |
+| Prop                 | Type                 | Default  | Description                 |
+| -------------------- | -------------------- | -------- | --------------------------- |
+| `listTitle`          | `string`             | Required | SharePoint list name        |
+| `itemId`             | `number`             | Required | List item ID                |
+| `checkInterval`      | `number`             | `30000`  | Check interval (ms)         |
+| `onConflictDetected` | `(conflict) => void` | -        | Conflict callback           |
+| `onConflictResolved` | `() => void`         | -        | Resolution callback         |
+| `children`           | `ReactNode`          | -        | Child components to protect |
 
 **useConflictDetection Hook:**
 
@@ -782,12 +823,7 @@ const {
 import { GroupViewer } from 'spfx-toolkit/lib/components/GroupViewer';
 
 const MyComponent: React.FC = () => {
-  return (
-    <GroupViewer
-      groupId={15}
-      showMembers={true}
-    />
-  );
+  return <GroupViewer groupId={15} showMembers={true} />;
 };
 ```
 
@@ -807,16 +843,16 @@ const MyComponent: React.FC = () => {
         showDescription={true}
         maxMembers={10}
         showMemberPhotos={true}
-        onGroupLoaded={(group) => {
+        onGroupLoaded={group => {
           console.log('Group loaded:', group);
         }}
       />
 
       {/* By Group Name */}
       <GroupViewer
-        groupName="Project Team Members"
+        groupName='Project Team Members'
         showMembers={true}
-        renderMemberCard={(member) => (
+        renderMemberCard={member => (
           <div>
             <strong>{member.Title}</strong>
             <p>{member.Email}</p>
@@ -830,18 +866,18 @@ const MyComponent: React.FC = () => {
 
 #### Props Reference
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `groupId` | `number` | - | SharePoint group ID |
-| `groupName` | `string` | - | SharePoint group name |
-| `showMembers` | `boolean` | `true` | Display group members |
-| `showOwner` | `boolean` | `true` | Display group owner |
-| `showDescription` | `boolean` | `true` | Display group description |
-| `maxMembers` | `number` | `50` | Maximum members to display |
-| `showMemberPhotos` | `boolean` | `true` | Show member profile photos |
-| `onGroupLoaded` | `(group) => void` | - | Group load callback |
-| `renderMemberCard` | `(member) => ReactNode` | - | Custom member renderer |
-| `className` | `string` | - | Custom CSS class |
+| Prop               | Type                    | Default | Description                |
+| ------------------ | ----------------------- | ------- | -------------------------- |
+| `groupId`          | `number`                | -       | SharePoint group ID        |
+| `groupName`        | `string`                | -       | SharePoint group name      |
+| `showMembers`      | `boolean`               | `true`  | Display group members      |
+| `showOwner`        | `boolean`               | `true`  | Display group owner        |
+| `showDescription`  | `boolean`               | `true`  | Display group description  |
+| `maxMembers`       | `number`                | `50`    | Maximum members to display |
+| `showMemberPhotos` | `boolean`               | `true`  | Show member profile photos |
+| `onGroupLoaded`    | `(group) => void`       | -       | Group load callback        |
+| `renderMemberCard` | `(member) => ReactNode` | -       | Custom member renderer     |
+| `className`        | `string`                | -       | Custom CSS class           |
 
 ---
 
@@ -857,9 +893,7 @@ import { ErrorBoundary } from 'spfx-toolkit/lib/components/ErrorBoundary';
 
 const MyComponent: React.FC = () => {
   return (
-    <ErrorBoundary
-      fallback={<div>Oops! Something went wrong.</div>}
-    >
+    <ErrorBoundary fallback={<div>Oops! Something went wrong.</div>}>
       <ComplexComponent />
     </ErrorBoundary>
   );
@@ -880,7 +914,7 @@ const MyComponent: React.FC = () => {
     trackError({
       error: error.message,
       stack: error.stack,
-      componentStack: errorInfo.componentStack
+      componentStack: errorInfo.componentStack,
     });
   };
 
@@ -901,7 +935,7 @@ const MyComponent: React.FC = () => {
       onError={handleError}
       onReset={handleReset}
       showRetryButton={true}
-      retryButtonText="Reload Component"
+      retryButtonText='Reload Component'
     >
       <ComplexComponent />
     </ErrorBoundary>
@@ -927,19 +961,19 @@ const MyChildComponent: React.FC = () => {
 
 #### Props Reference
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `fallback` | `ReactNode \| ((error, reset) => ReactNode)` | Default UI | Error UI |
-| `onError` | `(error, errorInfo) => void` | - | Error callback |
-| `onReset` | `() => void` | - | Reset callback |
-| `showRetryButton` | `boolean` | `true` | Show retry button |
-| `retryButtonText` | `string` | `'Try Again'` | Retry button text |
-| `children` | `ReactNode` | Required | Protected components |
+| Prop              | Type                                         | Default       | Description          |
+| ----------------- | -------------------------------------------- | ------------- | -------------------- |
+| `fallback`        | `ReactNode \| ((error, reset) => ReactNode)` | Default UI    | Error UI             |
+| `onError`         | `(error, errorInfo) => void`                 | -             | Error callback       |
+| `onReset`         | `() => void`                                 | -             | Reset callback       |
+| `showRetryButton` | `boolean`                                    | `true`        | Show retry button    |
+| `retryButtonText` | `string`                                     | `'Try Again'` | Retry button text    |
+| `children`        | `ReactNode`                                  | Required      | Protected components |
 
 ### 9. DocumentLink - Rich SharePoint File Links
 
-**Bundle Impact:** Medium (~45KB + optional hover-card assets)  
-**Use Case:** Document lists, dashboards, inline file actions  
+**Bundle Impact:** Medium (~45KB + optional hover-card assets)
+**Use Case:** Document lists, dashboards, inline file actions
 **Peer Dependencies:** `@pnp/spfx-controls-react@^3.22.0` (FileTypeIcon support)
 
 #### Basic Usage
@@ -949,8 +983,8 @@ import { DocumentLink } from 'spfx-toolkit/lib/components/DocumentLink';
 
 const InlineDocument = () => (
   <DocumentLink
-    documentUrl="https://tenant.sharepoint.com/sites/site/Documents/report.pdf"
-    layout="linkWithIcon"
+    documentUrl='https://tenant.sharepoint.com/sites/site/Documents/report.pdf'
+    layout='linkWithIcon'
   />
 );
 ```
@@ -963,39 +997,39 @@ import { DocumentLink } from 'spfx-toolkit/lib/components/DocumentLink';
 const RichDocumentLink: React.FC = () => (
   <DocumentLink
     documentId={42}
-    libraryName="Documents"
-    layout="linkWithIconAndSize"
-    sizePosition="below"
+    libraryName='Documents'
+    layout='linkWithIconAndSize'
+    sizePosition='below'
     enableHoverCard
     showVersionHistory
     showDownloadInCard
-    onClick="preview"
-    previewMode="view"
-    previewTarget="modal"
-    onAfterPreview={(doc) => console.log('Previewed', doc.name)}
-    onAfterDownload={(doc) => console.log('Downloaded', doc.name)}
-    onError={(error) => SPContext.logger.error('DocumentLink error', error)}
+    onClick='preview'
+    previewMode='view'
+    previewTarget='modal'
+    onAfterPreview={doc => console.log('Previewed', doc.name)}
+    onAfterDownload={doc => console.log('Downloaded', doc.name)}
+    onError={error => SPContext.logger.error('DocumentLink error', error)}
   />
 );
 ```
 
 #### Props Reference
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `documentUrl` | `string` | - | Direct URL identifier (one of the identifiers required) |
-| `documentId` + `libraryName` | `number`, `string` | - | Use when you have numeric list item ID |
-| `documentUniqueId` | `string` | - | Use GUID identifier (alternative to URL/ID) |
-| `layout` | `'linkOnly' \| 'linkWithIcon' \| 'linkWithIconAndSize'` | `'linkWithIcon'` | Choose link layout |
-| `sizePosition` | `'inline' \| 'below'` | `'inline'` | File size placement when using size layout |
-| `enableHoverCard` | `boolean` | `false` | Display metadata hover card |
-| `showVersionHistory` | `boolean` | `false` | Show version history link (requires hover card) |
-| `onClick` | `'download' \| 'preview'` | `'preview'` | Click behavior |
-| `previewMode` | `'view' \| 'edit'` | `'view'` | SharePoint preview mode |
-| `previewTarget` | `'modal' \| 'newTab'` | `'modal'` | Where to open preview |
-| `enableCache` | `boolean` | `true` | Cache metadata between renders |
-| `onAfterDownload` / `onAfterPreview` | `(doc) => void` | - | Post-action callbacks |
-| `onError` | `(error: Error) => void` | - | Error handler |
+| Prop                                 | Type                                                    | Default          | Description                                             |
+| ------------------------------------ | ------------------------------------------------------- | ---------------- | ------------------------------------------------------- |
+| `documentUrl`                        | `string`                                                | -                | Direct URL identifier (one of the identifiers required) |
+| `documentId` + `libraryName`         | `number`, `string`                                      | -                | Use when you have numeric list item ID                  |
+| `documentUniqueId`                   | `string`                                                | -                | Use GUID identifier (alternative to URL/ID)             |
+| `layout`                             | `'linkOnly' \| 'linkWithIcon' \| 'linkWithIconAndSize'` | `'linkWithIcon'` | Choose link layout                                      |
+| `sizePosition`                       | `'inline' \| 'below'`                                   | `'inline'`       | File size placement when using size layout              |
+| `enableHoverCard`                    | `boolean`                                               | `false`          | Display metadata hover card                             |
+| `showVersionHistory`                 | `boolean`                                               | `false`          | Show version history link (requires hover card)         |
+| `onClick`                            | `'download' \| 'preview'`                               | `'preview'`      | Click behavior                                          |
+| `previewMode`                        | `'view' \| 'edit'`                                      | `'view'`         | SharePoint preview mode                                 |
+| `previewTarget`                      | `'modal' \| 'newTab'`                                   | `'modal'`        | Where to open preview                                   |
+| `enableCache`                        | `boolean`                                               | `true`           | Cache metadata between renders                          |
+| `onAfterDownload` / `onAfterPreview` | `(doc) => void`                                         | -                | Post-action callbacks                                   |
+| `onError`                            | `(error: Error) => void`                                | -                | Error handler                                           |
 
 **Related APIs:** `useDocumentMetadata`, `clearDocumentCache`, `removeCachedDocument`
 
@@ -1003,8 +1037,8 @@ const RichDocumentLink: React.FC = () => (
 
 ### 10. GroupUsersPicker - Group-Based People Picker
 
-**Bundle Impact:** Medium (~45KB + DevExtreme SelectBox/TagBox)  
-**Use Case:** Approval workflows, audience targeting, form people fields  
+**Bundle Impact:** Medium (~45KB + DevExtreme SelectBox/TagBox)
+**Use Case:** Approval workflows, audience targeting, form people fields
 **Peer Dependencies:** `devextreme@^22.2.3`, `devextreme-react@^22.2.3`
 
 #### Basic Usage
@@ -1018,9 +1052,9 @@ const ApproverPicker: React.FC = () => {
 
   return (
     <GroupUsersPicker
-      groupName="Approvers"
+      groupName='Approvers'
       maxUserCount={3}
-      label="Select approvers"
+      label='Select approvers'
       selectedUsers={approvers}
       onChange={setApprovers}
       ensureUser
@@ -1036,19 +1070,21 @@ import { useForm } from 'react-hook-form';
 import { GroupUsersPicker } from 'spfx-toolkit/lib/components/spForm/customComponents/GroupUsersPicker';
 
 const GroupPickerForm: React.FC = () => {
-  const { control, handleSubmit } = useForm<{ reviewers: any[] }>({ defaultValues: { reviewers: [] } });
+  const { control, handleSubmit } = useForm<{ reviewers: any[] }>({
+    defaultValues: { reviewers: [] },
+  });
 
   return (
     <form onSubmit={handleSubmit(console.log)}>
       <GroupUsersPicker
-        name="reviewers"
+        name='reviewers'
         control={control}
-        groupName="Reviewers"
+        groupName='Reviewers'
         maxUserCount={1}
         rules={{ required: 'Reviewer required' }}
-        placeholder="Pick a reviewer"
+        placeholder='Pick a reviewer'
       />
-      <button type="submit">Save</button>
+      <button type='submit'>Save</button>
     </form>
   );
 };
@@ -1056,17 +1092,17 @@ const GroupPickerForm: React.FC = () => {
 
 #### Props Reference
 
-| Prop | Type | Default | Description |
-|------|------|---------|-------------|
-| `groupName` | `string` | Required | SharePoint group to read users from |
-| `maxUserCount` | `number` | Required | `1` renders SelectBox, `>1` renders TagBox |
-| `selectedUsers` | `IGroupUser[]` | `[]` | Controlled selection values |
-| `ensureUser` | `boolean` | `false` | Call SharePoint `ensureUser` asynchronously |
-| `useCache` | `boolean` | `false` | Use cached (spCached) or fresh (spPessimistic) lookup |
-| `label` / `placeholder` | `string` | - | Fluent label and placeholder text |
-| `required` / `disabled` | `boolean` | `false` | Validation helpers |
-| `itemRender` | `(user) => ReactNode` | - | Custom option template |
-| `onChange` | `(users: IGroupUser[]) => void` | - | Selection change handler |
+| Prop                    | Type                            | Default  | Description                                           |
+| ----------------------- | ------------------------------- | -------- | ----------------------------------------------------- |
+| `groupName`             | `string`                        | Required | SharePoint group to read users from                   |
+| `maxUserCount`          | `number`                        | Required | `1` renders SelectBox, `>1` renders TagBox            |
+| `selectedUsers`         | `IGroupUser[]`                  | `[]`     | Controlled selection values                           |
+| `ensureUser`            | `boolean`                       | `false`  | Call SharePoint `ensureUser` asynchronously           |
+| `useCache`              | `boolean`                       | `false`  | Use cached (spCached) or fresh (spPessimistic) lookup |
+| `label` / `placeholder` | `string`                        | -        | Fluent label and placeholder text                     |
+| `required` / `disabled` | `boolean`                       | `false`  | Validation helpers                                    |
+| `itemRender`            | `(user) => ReactNode`           | -        | Custom option template                                |
+| `onChange`              | `(users: IGroupUser[]) => void` | -        | Selection change handler                              |
 
 **Related APIs:** `useGroupUsers`, `ensureUsers`, `ensureUsersWithCallback`, `getUserPhotoIfNotDefault`
 
@@ -1074,8 +1110,8 @@ const GroupPickerForm: React.FC = () => {
 
 ### 11. spForm System - React Hook Form Building Blocks
 
-**Bundle Impact:** High (300–500KB with DevExtreme + RHF)  
-**Use Case:** Complex business forms, wizard flows, validated edit experiences  
+**Bundle Impact:** High (300–500KB with DevExtreme + RHF)
+**Use Case:** Complex business forms, wizard flows, validated edit experiences
 **Peer Dependencies:** `react-hook-form`, `@hookform/resolvers`, `zod` (optional), `devextreme@^22.2.3`, `devextreme-react@^22.2.3`, `@pnp/spfx-controls-react` (for taxonomy/people)
 
 #### Quick Example
@@ -1099,12 +1135,12 @@ const RequestForm: React.FC = () => {
   });
 
   return (
-    <FormContainer labelWidth="180px">
+    <FormContainer labelWidth='180px'>
       <form onSubmit={form.handleSubmit(console.log)}>
         <FormItem>
           <FormLabel isRequired>Title</FormLabel>
           <FormValue>
-            <DevExtremeTextBox name="title" control={form.control} placeholder="Enter title" />
+            <DevExtremeTextBox name='title' control={form.control} placeholder='Enter title' />
             <FormError error={form.formState.errors.title?.message} />
           </FormValue>
         </FormItem>
@@ -1112,15 +1148,15 @@ const RequestForm: React.FC = () => {
           <FormLabel isRequired>Category</FormLabel>
           <FormValue>
             <DevExtremeSelectBox
-              name="category"
+              name='category'
               control={form.control}
               items={['Finance', 'HR', 'IT']}
-              placeholder="Select category"
+              placeholder='Select category'
             />
             <FormError error={form.formState.errors.category?.message} />
           </FormValue>
         </FormItem>
-        <button type="submit">Submit</button>
+        <button type='submit'>Submit</button>
       </form>
     </FormContainer>
   );
@@ -1129,14 +1165,15 @@ const RequestForm: React.FC = () => {
 
 #### Core Exports
 
-| Module | Key Exports | Notes |
-|--------|-------------|-------|
-| Layout | `FormContainer`, `FormItem`, `FormLabel`, `FormValue`, `FormError`, `FormDescription` | Responsive layout + consistent spacing |
-| DevExtreme Controls | `DevExtremeTextBox`, `DevExtremeSelectBox`, `DevExtremeDateBox`, `DevExtremeNumberBox`, `DevExtremeTagBox`, `DevExtremeSwitch`, `DevExtremeRadioGroup`, `DevExtremeAutocomplete`, `DevExtremeTextArea`, `DevExtremeCheckBox` | RHF-ready wrappers with value conversion |
-| PnP Controls | `PnPPeoplePicker`, `PnPModernTaxonomyPicker` | Async SharePoint pickers with RHF integration |
-| Custom Components | `GroupUsersPicker` (via `spForm/customComponents`) | Re-exports tuned for RHF |
+| Module              | Key Exports                                                                                                                                                                                                                  | Notes                                         |
+| ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------- |
+| Layout              | `FormContainer`, `FormItem`, `FormLabel`, `FormValue`, `FormError`, `FormDescription`                                                                                                                                        | Responsive layout + consistent spacing        |
+| DevExtreme Controls | `DevExtremeTextBox`, `DevExtremeSelectBox`, `DevExtremeDateBox`, `DevExtremeNumberBox`, `DevExtremeTagBox`, `DevExtremeSwitch`, `DevExtremeRadioGroup`, `DevExtremeAutocomplete`, `DevExtremeTextArea`, `DevExtremeCheckBox` | RHF-ready wrappers with value conversion      |
+| PnP Controls        | `PnPPeoplePicker`, `PnPModernTaxonomyPicker`                                                                                                                                                                                 | Async SharePoint pickers with RHF integration |
+| Custom Components   | `GroupUsersPicker` (via `spForm/customComponents`)                                                                                                                                                                           | Re-exports tuned for RHF                      |
 
 **Usage Tips**
+
 - Import DevExtreme styles globally: `import 'devextreme/dist/css/dx.light.css';`
 - Wrap long forms in `FormContainer` for consistent label widths.
 - Combine with Zod via `zodResolver` for schema validation.
@@ -1146,6 +1183,7 @@ const RequestForm: React.FC = () => {
 The spForm system now includes powerful features for enterprise-grade forms:
 
 **FormContext System** - Centralized form state management with:
+
 - Automatic field registry tracking
 - Error handling utilities
 - Focus management
@@ -1154,6 +1192,7 @@ The spForm system now includes powerful features for enterprise-grade forms:
 **FormErrorSummary** - Displays all form errors in a centralized panel with click-to-navigate functionality
 
 **Utility Hooks**:
+
 - `useScrollToError` - Automatically scroll to first error field
 - `useZustandFormSync` - Sync form state with Zustand stores for drafts/auto-save
 - `useFormFieldError` - Extract error info for custom error displays
@@ -1178,9 +1217,9 @@ import {
 } from 'spfx-toolkit/lib/components/spForm';
 
 // Zustand store for form drafts
-const useFormStore = create((set) => ({
+const useFormStore = create(set => ({
   formData: {},
-  setFormData: (data) => set({ formData: data }),
+  setFormData: data => set({ formData: data }),
 }));
 
 // Validation schema
@@ -1225,53 +1264,48 @@ const AdvancedRequestForm: React.FC = () => {
     <FormProvider control={control} autoShowErrors>
       <form onSubmit={handleSubmit(onSubmit)}>
         {/* Error Summary - shows all errors in one place */}
-        <FormErrorSummary
-          position="sticky"
-          clickToScroll
-          showFieldLabels
-          maxErrors={10}
-        />
+        <FormErrorSummary position='sticky' clickToScroll showFieldLabels maxErrors={10} />
 
-        <FormContainer labelWidth="160px">
+        <FormContainer labelWidth='160px'>
           {/* Fields automatically register and show errors */}
-          <FormItem fieldName="title" section="basic">
-            <FormLabel isRequired htmlFor="title">Title</FormLabel>
+          <FormItem fieldName='title' section='basic'>
+            <FormLabel isRequired htmlFor='title'>
+              Title
+            </FormLabel>
             <FormValue>
               <Controller
-                name="title"
+                name='title'
                 control={control}
-                render={({ field }) => (
-                  <TextField {...field} id="title" />
-                )}
+                render={({ field }) => <TextField {...field} id='title' />}
               />
             </FormValue>
           </FormItem>
 
-          <FormItem fieldName="email" section="contact">
-            <FormLabel isRequired htmlFor="email">Email</FormLabel>
+          <FormItem fieldName='email' section='contact'>
+            <FormLabel isRequired htmlFor='email'>
+              Email
+            </FormLabel>
             <FormValue>
               <Controller
-                name="email"
+                name='email'
                 control={control}
-                render={({ field }) => (
-                  <TextField {...field} id="email" />
-                )}
+                render={({ field }) => <TextField {...field} id='email' />}
               />
             </FormValue>
           </FormItem>
 
-          <FormItem fieldName="priority" section="settings">
+          <FormItem fieldName='priority' section='settings'>
             <FormLabel isRequired>Priority</FormLabel>
             <FormValue>
               <DevExtremeSelectBox
-                name="priority"
+                name='priority'
                 control={control}
                 items={['low', 'medium', 'high']}
               />
             </FormValue>
           </FormItem>
 
-          <button type="submit">Submit</button>
+          <button type='submit'>Submit</button>
         </FormContainer>
       </form>
     </FormProvider>
@@ -1282,6 +1316,7 @@ const AdvancedRequestForm: React.FC = () => {
 ##### Key Features Explained
 
 **1. FormProvider** - Wraps form to enable advanced features:
+
 ```typescript
 <FormProvider control={control} autoShowErrors>
   {/* All fields get automatic error handling */}
@@ -1289,25 +1324,28 @@ const AdvancedRequestForm: React.FC = () => {
 ```
 
 **2. FormErrorSummary** - Centralized error display:
+
 ```typescript
 <FormErrorSummary
-  position="sticky"      // 'top' | 'bottom' | 'sticky'
-  clickToScroll          // Click errors to scroll to field
-  showFieldLabels        // Show labels vs field names
-  maxErrors={10}         // Limit displayed errors
+  position='sticky' // 'top' | 'bottom' | 'sticky'
+  clickToScroll // Click errors to scroll to field
+  showFieldLabels // Show labels vs field names
+  maxErrors={10} // Limit displayed errors
 />
 ```
 
 **3. Enhanced FormItem** - Auto-registration and error display:
+
 ```typescript
 <FormItem
-  fieldName="email"      // Registers with FormContext
-  autoShowError          // Automatically shows validation errors
-  section="contact"      // Groups fields by section
+  fieldName='email' // Registers with FormContext
+  autoShowError // Automatically shows validation errors
+  section='contact' // Groups fields by section
 />
 ```
 
 **4. useScrollToError** - Automatic scroll to errors:
+
 ```typescript
 useScrollToError(formState, {
   behavior: 'smooth',
@@ -1318,11 +1356,13 @@ useScrollToError(formState, {
 ```
 
 **5. useZustandFormSync** - Auto-save to store:
+
 ```typescript
 useZustandFormSync(control, useFormStore, {
-  debounceMs: 500,                     // Debounce delay
+  debounceMs: 500, // Debounce delay
   selectFields: ['title', 'priority'], // Only sync specific fields
-  transformOut: (data) => ({           // Transform before sync
+  transformOut: data => ({
+    // Transform before sync
     ...data,
     lastModified: new Date(),
   }),
@@ -1330,33 +1370,34 @@ useZustandFormSync(control, useFormStore, {
 ```
 
 **6. useFormContext** - Access form utilities:
+
 ```typescript
 const formContext = useFormContext();
 
 // Available methods:
-formContext.getFieldError('email');      // Get error message
-formContext.hasError('email');           // Check if has error
-formContext.focusField('email');         // Focus field
-formContext.focusFirstError();           // Focus first error
-formContext.scrollToField('email');      // Scroll to field
-formContext.scrollToFirstError();        // Scroll to first error
-formContext.registry.getAll();           // Get all registered fields
+formContext.getFieldError('email'); // Get error message
+formContext.hasError('email'); // Check if has error
+formContext.focusField('email'); // Focus field
+formContext.focusFirstError(); // Focus first error
+formContext.scrollToField('email'); // Scroll to field
+formContext.scrollToFirstError(); // Scroll to first error
+formContext.registry.getAll(); // Get all registered fields
 formContext.registry.getBySection('contact'); // Get fields by section
 ```
 
 ##### Multi-Step Form with Zustand
 
 ```typescript
-const useWizardStore = create((set) => ({
+const useWizardStore = create(set => ({
   step1Data: {},
   step2Data: {},
   step3Data: {},
   currentStep: 1,
-  setStep1Data: (data) => set({ step1Data: data }),
-  setStep2Data: (data) => set({ step2Data: data }),
-  setStep3Data: (data) => set({ step3Data: data }),
-  nextStep: () => set((state) => ({ currentStep: state.currentStep + 1 })),
-  prevStep: () => set((state) => ({ currentStep: state.currentStep - 1 })),
+  setStep1Data: data => set({ step1Data: data }),
+  setStep2Data: data => set({ step2Data: data }),
+  setStep3Data: data => set({ step3Data: data }),
+  nextStep: () => set(state => ({ currentStep: state.currentStep + 1 })),
+  prevStep: () => set(state => ({ currentStep: state.currentStep - 1 })),
 }));
 
 const WizardStep1: React.FC = () => {
@@ -1368,7 +1409,7 @@ const WizardStep1: React.FC = () => {
     debounceMs: 300,
   });
 
-  const onNext = (data) => {
+  const onNext = data => {
     console.log('Step 1 data saved to store:', data);
     nextStep();
   };
@@ -1377,7 +1418,7 @@ const WizardStep1: React.FC = () => {
     <FormProvider control={control}>
       <form onSubmit={handleSubmit(onNext)}>
         {/* Step 1 fields */}
-        <button type="submit">Next</button>
+        <button type='submit'>Next</button>
       </form>
     </FormProvider>
   );
@@ -1391,9 +1432,9 @@ import { persist } from 'zustand/middleware';
 
 const useFormDraftStore = create(
   persist(
-    (set) => ({
+    set => ({
       draft: {},
-      saveDraft: (data) => set({ draft: data }),
+      saveDraft: data => set({ draft: data }),
       clearDraft: () => set({ draft: {} }),
     }),
     {
@@ -1419,11 +1460,7 @@ const FormWithAutoSave: React.FC = () => {
     debounceMs: 500,
   });
 
-  return (
-    <FormProvider control={control}>
-      {/* Form fields */}
-    </FormProvider>
-  );
+  return <FormProvider control={control}>{/* Form fields */}</FormProvider>;
 };
 ```
 
@@ -1438,20 +1475,20 @@ The new form system is WCAG 2.1 AA compliant with:
 - **Screen reader support**: Comprehensive announcements for all interactions
 
 ```typescript
-<FormItem fieldName="email">
-  <FormLabel isRequired htmlFor="email">
+<FormItem fieldName='email'>
+  <FormLabel isRequired htmlFor='email'>
     Email Address
   </FormLabel>
   <FormValue>
     <Controller
-      name="email"
+      name='email'
       control={control}
       render={({ field }) => (
         <TextField
           {...field}
-          id="email"                              // Links to label
-          aria-invalid={hasError}                 // Invalid state
-          aria-describedby="email-error"          // Links to error
+          id='email' // Links to label
+          aria-invalid={hasError} // Invalid state
+          aria-describedby='email-error' // Links to error
         />
       )}
     />
@@ -1469,6 +1506,7 @@ The new form system is WCAG 2.1 AA compliant with:
 ##### Further Reading
 
 For detailed documentation:
+
 - [FormContext System](../src/components/spForm/context/README.md)
 - [Utility Hooks Guide](../src/components/spForm/hooks/README.md)
 - [FormErrorSummary Component](../src/components/spForm/FormErrorSummary/README.md)
@@ -1478,67 +1516,195 @@ For detailed documentation:
 
 ### 12. SPField Suite - SharePoint Field Controls
 
-**Bundle Impact:** Medium–High (varies per field; relies on DevExtreme + RHF)  
+**Bundle Impact:** Medium–High (varies per field; relies on DevExtreme + RHF)
 **Use Case:** List form replacements, data collection aligned with SharePoint field types
 
 #### Basic Usage
+
+> **⚠️ CRITICAL: Validation Requires `control` Prop or FormProvider**
+> To enable validation, error messages, and proper form integration, you have **two options**:
+>
+> **Option 1: Pass `control` directly to each field**
+>
+> ```typescript
+> <SPTextField name='title' control={form.control} required />
+> ```
+>
+> **Option 2: Use FormProvider (recommended for multiple fields)**
+>
+> ```typescript
+> <FormProvider control={form.control}>
+>   <SPTextField name='title' required /> {/* Gets control from context */}
+>   <SPChoiceField name='status' required /> {/* Gets control from context */}
+> </FormProvider>
+> ```
+>
+> Without either option:
+>
+> - ❌ Validation will not work (no red borders, no error messages)
+> - ❌ `isValid` will always be `true`
+> - ❌ `fieldState.error` will always be `undefined`
+> - ✅ Component will work in "standalone mode" but without form integration
+
+**Option 1: Pass control directly (works, but verbose)**
 
 ```typescript
 import { useForm } from 'react-hook-form';
 import { SPTextField, SPChoiceField, SPUserField } from 'spfx-toolkit/lib/components/spFields';
 
 const TaskEditor: React.FC = () => {
-  const { control, handleSubmit } = useForm<{ title: string; status: string; assignees: number[] }>({
+  const form = useForm<{ title: string; status: string; assignees: number[] }>({
     defaultValues: { title: '', status: '', assignees: [] },
   });
 
   return (
-    <form onSubmit={handleSubmit(console.log)}>
-      <SPTextField name="title" label="Title" control={control} rules={{ required: 'Title required' }} />
+    <form onSubmit={form.handleSubmit(console.log)}>
+      <SPTextField
+        name='title'
+        label='Title'
+        control={form.control} // Must pass to each field
+        rules={{ required: 'Title required' }}
+      />
       <SPChoiceField
-        name="status"
-        label="Status"
-        control={control}
+        name='status'
+        label='Status'
+        control={form.control} // Must pass to each field
         choices={['Draft', 'Review', 'Approved']}
-        allowCustomValue
       />
       <SPUserField
-        name="assignees"
-        label="Assignees"
-        control={control}
+        name='assignees'
+        label='Assignees'
+        control={form.control} // Must pass to each field
         allowMultiple
       />
-      <button type="submit">Save</button>
+      <button type='submit'>Save</button>
     </form>
+  );
+};
+```
+
+**Option 2: Use FormProvider (recommended, cleaner)**
+
+```typescript
+import { useForm } from 'react-hook-form';
+import { FormProvider } from 'spfx-toolkit/lib/components/spForm';
+import { SPTextField, SPChoiceField, SPUserField } from 'spfx-toolkit/lib/components/spFields';
+
+const TaskEditor: React.FC = () => {
+  const form = useForm<{ title: string; status: string; assignees: number[] }>({
+    defaultValues: { title: '', status: '', assignees: [] },
+  });
+
+  return (
+    <FormProvider control={form.control}>
+      {' '}
+      {/* Provide control once */}
+      <form onSubmit={form.handleSubmit(console.log)}>
+        <SPTextField
+          name='title'
+          label='Title'
+          rules={{ required: 'Title required' }}
+          // No need to pass control!
+        />
+        <SPChoiceField
+          name='status'
+          label='Status'
+          choices={['Draft', 'Review', 'Approved']}
+          // No need to pass control!
+        />
+        <SPUserField
+          name='assignees'
+          label='Assignees'
+          allowMultiple
+          // No need to pass control!
+        />
+        <button type='submit'>Save</button>
+      </form>
+    </FormProvider>
   );
 };
 ```
 
 #### Component Coverage
 
-| Component | Field Type Highlights |
-|-----------|----------------------|
-| `SPTextField` | Single/multi-line text, rich text, note history |
-| `SPChoiceField` | Choice & multi-choice, custom values, async loaders |
-| `SPUserField` | People & groups, display modes, auto `ensureUser` |
-| `SPDateField` | Date only + date/time, friendly formatting |
-| `SPNumberField` | Integers, decimals, min/max, formatting |
-| `SPBooleanField` | Checkbox or toggle switch display |
-| `SPUrlField` | URL + description pairs, link validation |
-| `SPLookupField` | Lookup + dependent lookup data sources |
-| `SPTaxonomyField` | Managed metadata (single/multi) via PnP taxonomy |
-| `SPField` | Metadata-driven smart field that renders correct control |
+| Component         | Field Type Highlights                                    |
+| ----------------- | -------------------------------------------------------- |
+| `SPTextField`     | Single/multi-line text, rich text, note history          |
+| `SPChoiceField`   | Choice & multi-choice, custom values, async loaders      |
+| `SPUserField`     | People & groups, display modes, auto `ensureUser`        |
+| `SPDateField`     | Date only + date/time, friendly formatting               |
+| `SPNumberField`   | Integers, decimals, min/max, formatting                  |
+| `SPBooleanField`  | Checkbox or toggle switch display                        |
+| `SPUrlField`      | URL + description pairs, link validation                 |
+| `SPLookupField`   | Lookup + dependent lookup data sources                   |
+| `SPTaxonomyField` | Managed metadata (single/multi) via PnP taxonomy         |
+| `SPField`         | Metadata-driven smart field that renders correct control |
 
 **Notes**
+
 - All fields support RHF `name`, `control`, and `rules` props.
 - Combine with `SPContext.smart` to enable SharePoint-backed lookups.
 - Utility types in `spFields/types` help define strongly-typed list item models.
+
+#### Troubleshooting Validation
+
+**Problem: No red border or error messages appear**
+
+Check these common issues:
+
+1. **Missing `control` prop or FormProvider** (most common)
+
+   ```typescript
+   // ❌ WRONG - No validation
+   <SPTextField name="title" rules={{ required: true }} />
+
+   // ✅ CORRECT - Option 1: Direct control prop
+   <SPTextField name="title" control={form.control} rules={{ required: true }} />
+
+   // ✅ CORRECT - Option 2: FormProvider (recommended)
+   <FormProvider control={form.control}>
+     <SPTextField name="title" rules={{ required: true }} />
+   </FormProvider>
+   ```
+
+2. **Form mode settings** - Validation timing depends on `mode` and `reValidateMode`:
+
+   ```typescript
+   const form = useForm({
+     mode: 'onSubmit', // Validate only on submit
+     reValidateMode: 'onChange', // Re-validate on every change after first submit
+   });
+   ```
+
+   Try submitting the form first - errors may appear after submission depending on your mode.
+
+3. **Validation rules not triggering** - Check that rules are properly defined:
+
+   ```typescript
+   // ✅ Use zod resolver
+   const form = useForm({
+     resolver: zodResolver(schema),
+   });
+
+   // ✅ Or use rules prop
+   <SPTextField
+     name='title'
+     control={form.control}
+     rules={{ required: 'Title is required', minLength: { value: 3, message: 'Min 3 chars' } }}
+   />;
+   ```
+
+4. **Debug validation state** - Add console logs to inspect fieldState:
+   ```typescript
+   console.log('Form errors:', form.formState.errors);
+   console.log('Form state:', form.formState);
+   ```
 
 ---
 
 ### 13. Lazy Components - On-Demand Heavy Features
 
-**Bundle Impact:** Wrapper only (~3–5KB) + deferred component chunk  
+**Bundle Impact:** Wrapper only (~3–5KB) + deferred component chunk
 **Use Case:** Reduce initial bundle size by loading heavy components on demand
 
 ```typescript
@@ -1558,7 +1724,9 @@ const VersionHistoryTrigger: React.FC = () => {
   return (
     <>
       <button
-        onMouseEnter={() => preloadComponent(() => import('spfx-toolkit/lib/components/VersionHistory'))}
+        onMouseEnter={() =>
+          preloadComponent(() => import('spfx-toolkit/lib/components/VersionHistory'))
+        }
         onClick={() => setShowHistory(true)}
       >
         View Version History
@@ -1566,7 +1734,7 @@ const VersionHistoryTrigger: React.FC = () => {
 
       {showHistory && (
         <LazyVersionHistory
-          listTitle="Documents"
+          listTitle='Documents'
           itemId={123}
           onClose={() => setShowHistory(false)}
         />
@@ -1577,6 +1745,7 @@ const VersionHistoryTrigger: React.FC = () => {
 ```
 
 **Available Lazy Exports**
+
 - `LazyVersionHistory`
 - `LazyManageAccessComponent`
 - `LazyManageAccessPanel`
@@ -1606,7 +1775,7 @@ const MyComponent: React.FC = () => {
   const [settings, setSettings] = useLocalStorage('appSettings', {
     theme: 'light',
     notifications: true,
-    language: 'en'
+    language: 'en',
   });
 
   // With type safety
@@ -1619,26 +1788,21 @@ const MyComponent: React.FC = () => {
   const [prefs, setPrefs] = useLocalStorage<IUserPreferences>('userPrefs', {
     view: 'grid',
     sortBy: 'title',
-    pageSize: 20
+    pageSize: 20,
   });
 
   return (
     <div>
-      <input
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-      />
+      <input value={name} onChange={e => setName(e.target.value)} />
 
-      <button onClick={() => setSettings({ ...settings, theme: 'dark' })}>
-        Toggle Theme
-      </button>
+      <button onClick={() => setSettings({ ...settings, theme: 'dark' })}>Toggle Theme</button>
 
       <select
         value={prefs.view}
-        onChange={(e) => setPrefs({ ...prefs, view: e.target.value as 'grid' | 'list' })}
+        onChange={e => setPrefs({ ...prefs, view: e.target.value as 'grid' | 'list' })}
       >
-        <option value="grid">Grid</option>
-        <option value="list">List</option>
+        <option value='grid'>Grid</option>
+        <option value='list'>List</option>
       </select>
     </div>
   );
@@ -1649,12 +1813,13 @@ const MyComponent: React.FC = () => {
 
 ```typescript
 function useLocalStorage<T>(
-  key: string,           // localStorage key
-  initialValue: T        // Default value if key doesn't exist
+  key: string, // localStorage key
+  initialValue: T // Default value if key doesn't exist
 ): [T, (value: T | ((prev: T) => T)) => void];
 ```
 
 **Features:**
+
 - Automatic JSON serialization/deserialization
 - SSR-safe (checks for window existence)
 - TypeScript generic support
@@ -1680,16 +1845,20 @@ const MyComponent: React.FC = () => {
       {isDesktop && <DesktopView />}
 
       {/* Viewport dimensions */}
-      <p>Screen size: {width}x{height}</p>
+      <p>
+        Screen size: {width}x{height}
+      </p>
 
       {/* Responsive layout */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: isMobile ? '1fr' : isTablet ? '1fr 1fr' : '1fr 1fr 1fr'
-      }}>
-        <Card title="Card 1" />
-        <Card title="Card 2" />
-        <Card title="Card 3" />
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: isMobile ? '1fr' : isTablet ? '1fr 1fr' : '1fr 1fr 1fr',
+        }}
+      >
+        <Card title='Card 1' />
+        <Card title='Card 2' />
+        <Card title='Card 3' />
       </div>
     </div>
   );
@@ -1700,11 +1869,11 @@ const MyComponent: React.FC = () => {
 
 ```typescript
 interface IViewport {
-  width: number;          // Current viewport width (px)
-  height: number;         // Current viewport height (px)
-  isMobile: boolean;      // width < 768px
-  isTablet: boolean;      // 768px <= width < 1024px
-  isDesktop: boolean;     // 1024px <= width < 1920px
+  width: number; // Current viewport width (px)
+  height: number; // Current viewport height (px)
+  isMobile: boolean; // width < 768px
+  isTablet: boolean; // 768px <= width < 1024px
+  isDesktop: boolean; // 1024px <= width < 1920px
   isLargeScreen: boolean; // width >= 1920px
 }
 
@@ -1712,6 +1881,7 @@ function useViewport(): IViewport;
 ```
 
 **Breakpoints:**
+
 - Mobile: < 768px
 - Tablet: 768px - 1023px
 - Desktop: 1024px - 1919px
@@ -1753,11 +1923,11 @@ const MyComponent: React.FC = () => {
         <button onClick={toggleBoth}>Toggle Both</button>
       </Stack>
 
-      <Card cardId="card-1" title="Card 1" allowExpand>
+      <Card cardId='card-1' title='Card 1' allowExpand>
         <p>Content 1</p>
       </Card>
 
-      <Card cardId="card-2" title="Card 2" allowExpand>
+      <Card cardId='card-2' title='Card 2' allowExpand>
         <p>Content 2</p>
       </Card>
     </div>
@@ -1816,8 +1986,8 @@ if (result.success) {
 ```typescript
 // Concurrent execution (faster but less safe)
 const batch = new BatchBuilder(SPContext.sp, {
-  batchSize: 100,          // Items per batch (default: 100)
-  enableConcurrency: true  // Parallel execution (default: false)
+  batchSize: 100, // Items per batch (default: 100)
+  enableConcurrency: true, // Parallel execution (default: false)
 });
 
 // Multiple lists
@@ -1846,29 +2016,29 @@ result.results.forEach(op => {
 ```typescript
 class BatchBuilder {
   constructor(
-    sp: SPFI,                        // PnP SP instance
-    options?: IBatchBuilderOptions   // Configuration
+    sp: SPFI, // PnP SP instance
+    options?: IBatchBuilderOptions // Configuration
   );
 
-  list(title: string): this;         // Target list
-  add(data: any): this;              // Add item
-  update(id: number, data: any): this;  // Update item
-  delete(id: number): this;          // Delete item
-  execute(): Promise<IBatchResult>;  // Execute batch
+  list(title: string): this; // Target list
+  add(data: any): this; // Add item
+  update(id: number, data: any): this; // Update item
+  delete(id: number): this; // Delete item
+  execute(): Promise<IBatchResult>; // Execute batch
 }
 
 interface IBatchBuilderOptions {
-  batchSize?: number;          // Items per batch (default: 100)
+  batchSize?: number; // Items per batch (default: 100)
   enableConcurrency?: boolean; // Parallel execution (default: false)
 }
 
 interface IBatchResult {
-  success: boolean;            // All operations succeeded
+  success: boolean; // All operations succeeded
   results: IOperationResult[]; // Operation results
-  errors: IOperationError[];   // Failed operations
-  totalOperations: number;     // Total operation count
-  successCount: number;        // Successful operations
-  errorCount: number;          // Failed operations
+  errors: IOperationError[]; // Failed operations
+  totalOperations: number; // Total operation count
+  successCount: number; // Successful operations
+  errorCount: number; // Failed operations
 }
 ```
 
@@ -1879,10 +2049,7 @@ interface IBatchResult {
 **Use Case:** Access control, permission checks, security validation
 
 ```typescript
-import {
-  PermissionHelper,
-  PermissionLevel
-} from 'spfx-toolkit/lib/utilities/permissionHelper';
+import { PermissionHelper, PermissionLevel } from 'spfx-toolkit/lib/utilities/permissionHelper';
 import { SPContext } from 'spfx-toolkit/lib/utilities/context';
 
 // Initialize
@@ -1890,8 +2057,8 @@ const permHelper = new PermissionHelper(SPContext.sp);
 
 // Check user permissions on list item
 const hasEditAccess = await permHelper.checkPermissions(
-  'Documents',    // List title
-  123,            // Item ID
+  'Documents', // List title
+  123, // Item ID
   PermissionLevel.Edit
 );
 
@@ -1900,11 +2067,11 @@ if (hasEditAccess) {
 }
 
 // Check multiple permission levels
-const permissions = await permHelper.validateAccess(
-  'Documents',
-  123,
-  [PermissionLevel.View, PermissionLevel.Edit, PermissionLevel.Delete]
-);
+const permissions = await permHelper.validateAccess('Documents', 123, [
+  PermissionLevel.View,
+  PermissionLevel.Edit,
+  PermissionLevel.Delete,
+]);
 
 console.log(permissions);
 // { View: true, Edit: true, Delete: false }
@@ -1916,34 +2083,26 @@ console.log(permissions);
 import { PermissionHelper, PermissionLevel } from 'spfx-toolkit/lib/utilities/permissionHelper';
 
 // Check list-level permissions
-const canManageList = await permHelper.hasListPermission(
-  'Documents',
-  PermissionLevel.ManageLists
-);
+const canManageList = await permHelper.hasListPermission('Documents', PermissionLevel.ManageLists);
 
 // Check site-level permissions
-const isSiteAdmin = await permHelper.hasSitePermission(
-  PermissionLevel.FullControl
-);
+const isSiteAdmin = await permHelper.hasSitePermission(PermissionLevel.FullControl);
 
 // Get user's effective permissions
-const effectivePerms = await permHelper.getEffectivePermissions(
-  'Documents',
-  123
-);
+const effectivePerms = await permHelper.getEffectivePermissions('Documents', 123);
 
 console.log('User can:', {
   view: effectivePerms.hasView,
   edit: effectivePerms.hasEdit,
   delete: effectivePerms.hasDelete,
-  managePermissions: effectivePerms.hasManagePermissions
+  managePermissions: effectivePerms.hasManagePermissions,
 });
 
 // Custom permission checks with base permissions
 const canApprove = await permHelper.checkBasePermissions(
   'Documents',
   123,
-  PermissionKind.ApproveItems  // From @pnp/sp
+  PermissionKind.ApproveItems // From @pnp/sp
 );
 ```
 
@@ -1957,7 +2116,7 @@ enum PermissionLevel {
   Delete = 'Delete',
   ManagePermissions = 'ManagePermissions',
   ManageLists = 'ManageLists',
-  FullControl = 'FullControl'
+  FullControl = 'FullControl',
 }
 ```
 
@@ -1967,11 +2126,7 @@ enum PermissionLevel {
 class PermissionHelper {
   constructor(sp: SPFI);
 
-  checkPermissions(
-    listTitle: string,
-    itemId: number,
-    level: PermissionLevel
-  ): Promise<boolean>;
+  checkPermissions(listTitle: string, itemId: number, level: PermissionLevel): Promise<boolean>;
 
   validateAccess(
     listTitle: string,
@@ -1979,19 +2134,11 @@ class PermissionHelper {
     levels: PermissionLevel[]
   ): Promise<Record<string, boolean>>;
 
-  hasListPermission(
-    listTitle: string,
-    level: PermissionLevel
-  ): Promise<boolean>;
+  hasListPermission(listTitle: string, level: PermissionLevel): Promise<boolean>;
 
-  hasSitePermission(
-    level: PermissionLevel
-  ): Promise<boolean>;
+  hasSitePermission(level: PermissionLevel): Promise<boolean>;
 
-  getEffectivePermissions(
-    listTitle: string,
-    itemId: number
-  ): Promise<IEffectivePermissions>;
+  getEffectivePermissions(listTitle: string, itemId: number): Promise<IEffectivePermissions>;
 }
 ```
 
@@ -2002,15 +2149,10 @@ class PermissionHelper {
 **Use Case:** Type-safe field access, field transformations, data extraction
 
 ```typescript
-import {
-  createSPExtractor,
-  createSPUpdater
-} from 'spfx-toolkit/lib/utilities/listItemHelper';
+import { createSPExtractor, createSPUpdater } from 'spfx-toolkit/lib/utilities/listItemHelper';
 
 // Get list item from SharePoint
-const item = await SPContext.sp.web.lists
-  .getByTitle('Tasks')
-  .items.getById(123)();
+const item = await SPContext.sp.web.lists.getByTitle('Tasks').items.getById(123)();
 
 // Extract fields with type safety
 const extractor = createSPExtractor(item);
@@ -2028,7 +2170,7 @@ const updater = createSPUpdater();
 
 updater.setText('Title', 'Updated Task');
 updater.setDate('DueDate', new Date('2024-12-31'));
-updater.setUser('AssignedTo', 50);  // User ID
+updater.setUser('AssignedTo', 50); // User ID
 updater.setChoice('Status', 'In Progress');
 updater.setMultiChoice('Tags', ['urgent', 'high-priority']);
 
@@ -2036,10 +2178,7 @@ updater.setMultiChoice('Tags', ['urgent', 'high-priority']);
 const updatePayload = updater.getPayload();
 
 // Apply update
-await SPContext.sp.web.lists
-  .getByTitle('Tasks')
-  .items.getById(123)
-  .update(updatePayload);
+await SPContext.sp.web.lists.getByTitle('Tasks').items.getById(123).update(updatePayload);
 ```
 
 **Advanced Usage:**
@@ -2048,8 +2187,8 @@ await SPContext.sp.web.lists
 import { createSPExtractor } from 'spfx-toolkit/lib/utilities/listItemHelper';
 
 // Lookup fields
-const projectId = extractor.getLookup('Project');  // Returns lookup ID
-const projectTitle = extractor.getLookupValue('Project', 'Title');  // Returns lookup value
+const projectId = extractor.getLookup('Project'); // Returns lookup ID
+const projectTitle = extractor.getLookupValue('Project', 'Title'); // Returns lookup value
 
 // Multi-select lookups
 const categoryIds = extractor.getMultiLookup('Categories');
@@ -2078,8 +2217,8 @@ const computed = extractor.getComputed('CalculatedField');
 const description = extractor.getRichText('Description');
 
 // With default values
-const priority = extractor.getNumber('Priority', 1);  // Default to 1 if null
-const status = extractor.getChoice('Status', 'New');   // Default to 'New'
+const priority = extractor.getNumber('Priority', 1); // Default to 1 if null
+const status = extractor.getChoice('Status', 'New'); // Default to 'New'
 ```
 
 **API Reference:**
@@ -2167,12 +2306,12 @@ const kebab = StringUtils.toKebabCase('Hello World');
 // Returns: 'hello-world'
 
 // String validation
-const isEmpty = StringUtils.isEmpty('   ');  // true
-const isNotEmpty = StringUtils.isEmpty('text');  // false
+const isEmpty = StringUtils.isEmpty('   '); // true
+const isNotEmpty = StringUtils.isEmpty('text'); // false
 
 // Safe trim
-const trimmed = StringUtils.safeTrim(null);  // Returns ''
-const trimmed2 = StringUtils.safeTrim('  text  ');  // Returns 'text'
+const trimmed = StringUtils.safeTrim(null); // Returns ''
+const trimmed2 = StringUtils.safeTrim('  text  '); // Returns 'text'
 ```
 
 **API Reference:**
@@ -2227,16 +2366,13 @@ const nextMonth = DateUtils.addMonths(new Date(), 1);
 const nextYear = DateUtils.addYears(new Date(), 1);
 
 // Date differences
-const daysDiff = DateUtils.getDaysBetween(
-  new Date('2025-10-01'),
-  new Date('2025-10-13')
-);
+const daysDiff = DateUtils.getDaysBetween(new Date('2025-10-01'), new Date('2025-10-13'));
 // Returns: 12
 
 // Date validation
-const isToday = DateUtils.isToday(new Date());  // true
-const isPast = DateUtils.isPast(new Date('2025-01-01'));  // true
-const isFuture = DateUtils.isFuture(new Date('2026-01-01'));  // true
+const isToday = DateUtils.isToday(new Date()); // true
+const isPast = DateUtils.isPast(new Date('2025-01-01')); // true
+const isFuture = DateUtils.isFuture(new Date('2026-01-01')); // true
 
 // Start/end of period
 const startOfDay = DateUtils.getStartOfDay(new Date());
@@ -2249,24 +2385,24 @@ const endOfMonth = DateUtils.getEndOfMonth(new Date());
 
 **Format Patterns:**
 
-| Pattern | Output | Description |
-|---------|--------|-------------|
-| `YYYY` | 2025 | 4-digit year |
-| `YY` | 25 | 2-digit year |
-| `MMMM` | October | Full month name |
-| `MMM` | Oct | Short month name |
-| `MM` | 10 | 2-digit month |
-| `M` | 10 | Month number |
-| `DD` | 13 | 2-digit day |
-| `D` | 13 | Day number |
-| `dddd` | Monday | Full day name |
-| `ddd` | Mon | Short day name |
-| `HH` | 14 | 24-hour (00-23) |
-| `hh` | 02 | 12-hour (01-12) |
-| `mm` | 30 | Minutes |
-| `ss` | 45 | Seconds |
-| `A` | PM | AM/PM |
-| `a` | pm | am/pm |
+| Pattern | Output  | Description      |
+| ------- | ------- | ---------------- |
+| `YYYY`  | 2025    | 4-digit year     |
+| `YY`    | 25      | 2-digit year     |
+| `MMMM`  | October | Full month name  |
+| `MMM`   | Oct     | Short month name |
+| `MM`    | 10      | 2-digit month    |
+| `M`     | 10      | Month number     |
+| `DD`    | 13      | 2-digit day      |
+| `D`     | 13      | Day number       |
+| `dddd`  | Monday  | Full day name    |
+| `ddd`   | Mon     | Short day name   |
+| `HH`    | 14      | 24-hour (00-23)  |
+| `hh`    | 02      | 12-hour (01-12)  |
+| `mm`    | 30      | Minutes          |
+| `ss`    | 45      | Seconds          |
+| `A`     | PM      | AM/PM            |
+| `a`     | pm      | am/pm            |
 
 **API Reference:**
 
@@ -2315,12 +2451,13 @@ export default class MyWebPart extends BaseClientSideWebPart<{}> {
 
 #### API Highlights
 
-| Method | Signature | Notes |
-|--------|-----------|-------|
-| `loadCssFile` | `(webUrl, libraryName, fileName, options?)` | Loads single CSS asset; cached by default |
-| `loadCssFiles` | `(webUrl, libraryName, files[], options?)` | Loads multiple files in order |
+| Method         | Signature                                   | Notes                                     |
+| -------------- | ------------------------------------------- | ----------------------------------------- |
+| `loadCssFile`  | `(webUrl, libraryName, fileName, options?)` | Loads single CSS asset; cached by default |
+| `loadCssFiles` | `(webUrl, libraryName, files[], options?)`  | Loads multiple files in order             |
 
 **Tips**
+
 - Disable caching during theming or live previews: `{ cache: false }`
 - Organize assets by folder (`themes/dark.css`, `components/card.css`) and load conditionally
 - Call during `onInit()` to avoid layout shifts
@@ -2333,9 +2470,13 @@ export default class MyWebPart extends BaseClientSideWebPart<{}> {
 
 ```typescript
 import * as React from 'react';
-import { createLazyComponent, preloadComponent, useLazyPreload } from 'spfx-toolkit/lib/utilities/lazyLoader';
+import {
+  createLazyComponent,
+  preloadComponent,
+  useLazyPreload,
+} from 'spfx-toolkit/lib/utilities/lazyLoader';
 
-const lazyAdminImport = () => import('../AdminPanel').then((m) => ({ default: m.AdminPanel }));
+const lazyAdminImport = () => import('../AdminPanel').then(m => ({ default: m.AdminPanel }));
 
 const LazyAdminPanel = createLazyComponent(lazyAdminImport, {
   fallback: <div style={{ padding: 24 }}>Loading admin tools…</div>,
@@ -2363,6 +2504,7 @@ const SettingsButton: React.FC = () => {
 ```
 
 **Helper Components**
+
 - `LazyLoadFallback` – Consistent shimmer/loading indicator
 - `LazyLoadErrorBoundary` – Component-level error handling around lazy boundaries
 - `preloadComponent` / `useLazyPreload` – Warm caches on hover/focus or state changes
@@ -2406,7 +2548,7 @@ import type {
   ISPUser,
   ISPGroup,
   ISPRoleAssignment,
-  PermissionErrorCode
+  PermissionErrorCode,
 } from 'spfx-toolkit/lib/types';
 
 // ===== COMPONENT TYPES =====
@@ -2444,7 +2586,7 @@ import type {
   ISPRoleAssignment,
   ISPMember,
   ISPRoleDefinition,
-  IManageAccessComponentProps
+  IManageAccessComponentProps,
 } from 'spfx-toolkit/lib/components';
 ```
 
@@ -2465,7 +2607,7 @@ export interface IPrincipal {
   id: string;
   email?: string;
   title?: string;
-  value?: string;              // login name
+  value?: string; // login name
   loginName?: string;
   department?: string;
   jobTitle?: string;
@@ -2537,11 +2679,11 @@ import type { IPrincipal, SPLookup, SPTaxonomy } from 'spfx-toolkit/lib/types';
 interface IProjectItem {
   Id: number;
   Title: string;
-  ProjectManager: IPrincipal;           // Person field
-  Category: SPLookup;                   // Lookup field
-  Department: SPTaxonomy;               // Managed metadata field
-  RelatedProjects: SPLookup[];          // Multi-lookup field
-  TeamMembers: IPrincipal[];            // Multi-person field
+  ProjectManager: IPrincipal; // Person field
+  Category: SPLookup; // Lookup field
+  Department: SPTaxonomy; // Managed metadata field
+  RelatedProjects: SPLookup[]; // Multi-lookup field
+  TeamMembers: IPrincipal[]; // Multi-person field
 }
 
 // Type-safe field access
@@ -2609,20 +2751,20 @@ export interface IBatchError {
  * Complete batch operation result
  */
 export interface IBatchResult {
-  success: boolean;              // All operations succeeded
-  totalOperations: number;       // Total operations count
-  successfulOperations: number;  // Successful count
-  failedOperations: number;      // Failed count
-  results: IOperationResult[];   // All operation results
-  errors: IBatchError[];         // Failed operations
+  success: boolean; // All operations succeeded
+  totalOperations: number; // Total operations count
+  successfulOperations: number; // Successful count
+  failedOperations: number; // Failed count
+  results: IOperationResult[]; // All operation results
+  errors: IBatchError[]; // Failed operations
 }
 
 /**
  * Batch builder configuration
  */
 export interface IBatchBuilderConfig {
-  batchSize?: number;            // Items per batch (default: 100)
-  enableConcurrency?: boolean;   // Parallel execution (default: false)
+  batchSize?: number; // Items per batch (default: 100)
+  enableConcurrency?: boolean; // Parallel execution (default: false)
 }
 ```
 
@@ -2635,7 +2777,7 @@ import { BatchBuilder } from 'spfx-toolkit/lib/utilities/batchBuilder';
 const executeBatchOperations = async (): Promise<IBatchResult> => {
   const batch = new BatchBuilder(SPContext.sp, {
     batchSize: 50,
-    enableConcurrency: false
+    enableConcurrency: false,
   });
 
   const result: IBatchResult = await batch
@@ -2716,9 +2858,9 @@ export interface IItemPermissions {
  */
 export interface IPermissionHelperConfig {
   enableCaching?: boolean;
-  cacheTimeout?: number;                           // in milliseconds
-  customGroupMappings?: Record<string, string>;    // Map custom group names
-  permissionLevelMappings?: Record<string, any>;   // Map custom permission levels
+  cacheTimeout?: number; // in milliseconds
+  customGroupMappings?: Record<string, string>; // Map custom group names
+  permissionLevelMappings?: Record<string, any>; // Map custom permission levels
 }
 
 /**
@@ -2784,19 +2926,15 @@ import type {
   SPPermissionLevel,
   IUserPermissions,
   IItemPermissions,
-  PermissionErrorCode
+  PermissionErrorCode,
 } from 'spfx-toolkit/lib/types';
 
 // Type-safe permission checking
-const checkUserAccess = async (
-  userId: number
-): Promise<IUserPermissions | null> => {
+const checkUserAccess = async (userId: number): Promise<IUserPermissions | null> => {
   try {
     const permissions: IUserPermissions = await getPermissions(userId);
 
-    const hasEdit = permissions.permissionLevels.includes(
-      SPPermissionLevel.Edit
-    );
+    const hasEdit = permissions.permissionLevels.includes(SPPermissionLevel.Edit);
 
     return permissions;
   } catch (error) {
@@ -2835,7 +2973,7 @@ export type StepStatus = 'completed' | 'current' | 'pending' | 'error';
 export interface CardAction {
   id: string;
   label: string;
-  icon?: string;                              // Fluent UI icon name
+  icon?: string; // Fluent UI icon name
   onClick: (cardId?: string) => void;
   disabled?: boolean;
   variant?: 'primary' | 'secondary' | 'danger';
@@ -2953,7 +3091,7 @@ const MyComponent: React.FC = () => {
     onExpand: (data: CardEventData) => {
       console.log('Card expanded', data.timestamp);
     },
-    children: <div>Card content</div>
+    children: <div>Card content</div>,
   };
 
   return <Card {...cardProps} />;
@@ -2983,7 +3121,7 @@ export interface StepData {
   label: string;
   status: StepStatus;
   description?: string;
-  icon?: string;                    // Fluent UI icon name
+  icon?: string; // Fluent UI icon name
   date?: Date;
   user?: string;
   metadata?: Record<string, any>;
@@ -3018,19 +3156,19 @@ const MyWorkflow: React.FC = () => {
       status: 'completed',
       description: 'Request submitted',
       date: new Date('2024-01-15'),
-      user: 'John Doe'
+      user: 'John Doe',
     },
     {
       id: 'step2',
       label: 'Review',
       status: 'current',
-      description: 'Pending approval'
+      description: 'Pending approval',
     },
     {
       id: 'step3',
       label: 'Approved',
-      status: 'pending'
-    }
+      status: 'pending',
+    },
   ];
 
   const props: WorkflowStepperProps = {
@@ -3039,7 +3177,7 @@ const MyWorkflow: React.FC = () => {
     allowClickableSteps: true,
     onStepClick: (step: StepData, index: number) => {
       console.log(`Clicked step ${index}: ${step.label}`);
-    }
+    },
   };
 
   return <WorkflowStepper {...props} />;
@@ -3061,7 +3199,7 @@ export type ConflictSeverity = 'low' | 'medium' | 'high';
  */
 export interface ConflictInfo {
   hasConflict: boolean;
-  lastModified: string;           // ISO date string
+  lastModified: string; // ISO date string
   modifiedBy: string;
   modifiedById?: number;
   eTag?: string;
@@ -3073,7 +3211,7 @@ export interface ConflictInfo {
  */
 export interface EnhancedConflictInfo extends ConflictInfo {
   severity: ConflictSeverity;
-  timeSinceConflict: number;      // milliseconds
+  timeSinceConflict: number; // milliseconds
   isRecentConflict: boolean;
 }
 
@@ -3081,11 +3219,11 @@ export interface EnhancedConflictInfo extends ConflictInfo {
  * Conflict detection options
  */
 export interface ConflictDetectionOptions {
-  checkInterval?: number;          // Check interval in ms (default: 30000)
-  autoStart?: boolean;             // Auto-start monitoring (default: true)
-  useETag?: boolean;               // Use ETag for detection (default: true)
-  notifyOnConflict?: boolean;      // Show notifications (default: true)
-  logErrors?: boolean;             // Log errors to console (default: true)
+  checkInterval?: number; // Check interval in ms (default: 30000)
+  autoStart?: boolean; // Auto-start monitoring (default: true)
+  useETag?: boolean; // Use ETag for detection (default: true)
+  notifyOnConflict?: boolean; // Show notifications (default: true)
+  logErrors?: boolean; // Log errors to console (default: true)
 }
 
 /**
@@ -3109,7 +3247,7 @@ export interface UseConflictDetectionReturn {
 import type {
   ConflictInfo,
   ConflictDetectionOptions,
-  UseConflictDetectionReturn
+  UseConflictDetectionReturn,
 } from 'spfx-toolkit/lib/components/ConflictDetector';
 import { useConflictDetection } from 'spfx-toolkit/lib/components/ConflictDetector';
 
@@ -3117,7 +3255,7 @@ const MyForm: React.FC<{ itemId: number }> = ({ itemId }) => {
   const options: ConflictDetectionOptions = {
     checkInterval: 30000,
     autoStart: true,
-    notifyOnConflict: true
+    notifyOnConflict: true,
   };
 
   const {
@@ -3125,12 +3263,8 @@ const MyForm: React.FC<{ itemId: number }> = ({ itemId }) => {
     conflictInfo,
     startMonitoring,
     stopMonitoring,
-    resolveConflict
-  }: UseConflictDetectionReturn = useConflictDetection(
-    'Tasks',
-    itemId,
-    options
-  );
+    resolveConflict,
+  }: UseConflictDetectionReturn = useConflictDetection('Tasks', itemId, options);
 
   React.useEffect(() => {
     startMonitoring();
@@ -3249,7 +3383,7 @@ export interface IManageAccessComponentProps {
 import type {
   IGroupViewerProps,
   IPermissionPrincipal,
-  IManageAccessComponentProps
+  IManageAccessComponentProps,
 } from 'spfx-toolkit/lib/components';
 
 const MyComponent: React.FC = () => {
@@ -3267,7 +3401,7 @@ const MyComponent: React.FC = () => {
     permissionTypes: 'both',
     maxAvatars: 5,
     onPermissionChanged: handlePermissionChange,
-    onError: (error: string) => console.error(error)
+    onError: (error: string) => console.error(error),
   };
 
   return <div>Component with typed props</div>;
@@ -3338,16 +3472,11 @@ const processOperationResults = <T>(
   result: IBatchResult,
   transform: (op: IOperationResult) => T
 ): T[] => {
-  return result.results
-    .filter(op => op.success)
-    .map(transform);
+  return result.results.filter(op => op.success).map(transform);
 };
 
 // Usage
-const itemIds = processOperationResults(
-  batchResult,
-  (op) => op.data?.ID as number
-);
+const itemIds = processOperationResults(batchResult, op => op.data?.ID as number);
 ```
 
 ---
@@ -3360,35 +3489,66 @@ Quick reference for all type exports:
 // Core types (from /lib/types)
 export {
   // SharePoint Field Types
-  IPrincipal, SPLookup, SPTaxonomy, SPUrl, SPLocation, SPImage,
+  IPrincipal,
+  SPLookup,
+  SPTaxonomy,
+  SPUrl,
+  SPLocation,
+  SPImage,
   IListItemFormUpdateValue,
 
   // Batch Types
-  OperationType, IBatchOperation, IOperationResult, IBatchError,
-  IBatchResult, IBatchBuilderConfig,
+  OperationType,
+  IBatchOperation,
+  IOperationResult,
+  IBatchError,
+  IBatchResult,
+  IBatchBuilderConfig,
 
   // Permission Types
-  SPPermissionLevel, IPermissionResult, IUserPermissions,
-  IItemPermissions, IPermissionHelperConfig, ISPUser, ISPGroup,
-  ISPRoleAssignment, PermissionErrorCode, PermissionErrorCodes
+  SPPermissionLevel,
+  IPermissionResult,
+  IUserPermissions,
+  IItemPermissions,
+  IPermissionHelperConfig,
+  ISPUser,
+  ISPGroup,
+  ISPRoleAssignment,
+  PermissionErrorCode,
+  PermissionErrorCodes,
 };
 
 // Component types (from specific components)
 export {
   // Card
-  CardProps, CardVariant, CardSize, CardAction, CardEventData,
-  CardState, CardController, AccordionProps,
+  CardProps,
+  CardVariant,
+  CardSize,
+  CardAction,
+  CardEventData,
+  CardState,
+  CardController,
+  AccordionProps,
 
   // WorkflowStepper
-  WorkflowStepperProps, StepData, StepStatus, StepperMode,
+  WorkflowStepperProps,
+  StepData,
+  StepStatus,
+  StepperMode,
 
   // ConflictDetector
-  ConflictInfo, ConflictSeverity, ConflictDetectionOptions,
+  ConflictInfo,
+  ConflictSeverity,
+  ConflictDetectionOptions,
   UseConflictDetectionReturn,
 
   // GroupViewer & ManageAccess
-  IGroupViewerProps, IGroupMember, IGroupInfo, SPPrincipalType,
-  IPermissionPrincipal, IManageAccessComponentProps
+  IGroupViewerProps,
+  IGroupMember,
+  IGroupInfo,
+  SPPrincipalType,
+  IPermissionPrincipal,
+  IManageAccessComponentProps,
 };
 ```
 
@@ -3397,11 +3557,13 @@ export {
 ### 8. Best Practices for Types
 
 1. **Always use `import type`** for type-only imports (tree-shaking):
+
    ```typescript
    import type { CardProps } from 'spfx-toolkit/lib/components/Card';
    ```
 
 2. **Define list item interfaces** using toolkit types:
+
    ```typescript
    interface IMyListItem {
      Manager: IPrincipal;
@@ -3410,6 +3572,7 @@ export {
    ```
 
 3. **Use strict typing** for callbacks and handlers:
+
    ```typescript
    const handleChange = (op: 'add' | 'remove', data: IPermissionPrincipal[]): Promise<boolean> => {
      // Type-safe implementation
@@ -3417,6 +3580,7 @@ export {
    ```
 
 4. **Leverage generic types** for reusable functions:
+
    ```typescript
    function processItems<T extends { Id: number }>(items: T[]): number[] {
      return items.map(item => item.Id);
@@ -3478,26 +3642,26 @@ import { Button, TextField, Icon } from '@fluentui/react';
 
 **Common Fluent UI Import Paths:**
 
-| Component | Import Path |
-|-----------|-------------|
-| Button, PrimaryButton, DefaultButton | `@fluentui/react/lib/Button` |
-| TextField | `@fluentui/react/lib/TextField` |
-| Dropdown | `@fluentui/react/lib/Dropdown` |
-| Icon | `@fluentui/react/lib/Icon` |
-| Stack | `@fluentui/react/lib/Stack` |
-| Text | `@fluentui/react/lib/Text` |
-| MessageBar | `@fluentui/react/lib/MessageBar` |
-| Dialog | `@fluentui/react/lib/Dialog` |
-| Panel | `@fluentui/react/lib/Panel` |
-| Spinner | `@fluentui/react/lib/Spinner` |
-| Persona | `@fluentui/react/lib/Persona` |
-| Tooltip | `@fluentui/react/lib/Tooltip` |
-| Modal | `@fluentui/react/lib/Modal` |
-| Link | `@fluentui/react/lib/Link` |
-| Label | `@fluentui/react/lib/Label` |
-| Pivot, PivotItem | `@fluentui/react/lib/Pivot` |
-| DetailsList | `@fluentui/react/lib/DetailsList` |
-| CommandBar | `@fluentui/react/lib/CommandBar` |
+| Component                            | Import Path                       |
+| ------------------------------------ | --------------------------------- |
+| Button, PrimaryButton, DefaultButton | `@fluentui/react/lib/Button`      |
+| TextField                            | `@fluentui/react/lib/TextField`   |
+| Dropdown                             | `@fluentui/react/lib/Dropdown`    |
+| Icon                                 | `@fluentui/react/lib/Icon`        |
+| Stack                                | `@fluentui/react/lib/Stack`       |
+| Text                                 | `@fluentui/react/lib/Text`        |
+| MessageBar                           | `@fluentui/react/lib/MessageBar`  |
+| Dialog                               | `@fluentui/react/lib/Dialog`      |
+| Panel                                | `@fluentui/react/lib/Panel`       |
+| Spinner                              | `@fluentui/react/lib/Spinner`     |
+| Persona                              | `@fluentui/react/lib/Persona`     |
+| Tooltip                              | `@fluentui/react/lib/Tooltip`     |
+| Modal                                | `@fluentui/react/lib/Modal`       |
+| Link                                 | `@fluentui/react/lib/Link`        |
+| Label                                | `@fluentui/react/lib/Label`       |
+| Pivot, PivotItem                     | `@fluentui/react/lib/Pivot`       |
+| DetailsList                          | `@fluentui/react/lib/DetailsList` |
+| CommandBar                           | `@fluentui/react/lib/CommandBar`  |
 
 ### Analyzing Bundle Size
 
@@ -3510,18 +3674,19 @@ open temp/webpack-bundle-analyzer/index.html
 ```
 
 **Look for:**
+
 - Large chunks from `spfx-toolkit` (should be minimal)
 - Large Fluent UI imports (optimize if > 500KB)
 - Duplicate dependencies
 
 ### Bundle Size Targets
 
-| Import Type | Expected Size | Warning Threshold |
-|-------------|---------------|-------------------|
-| Single component | 50-200KB | > 500KB |
-| Single hook | 10-50KB | > 100KB |
-| Single utility | 50-150KB | > 300KB |
-| Fluent UI component | 20-100KB | > 200KB |
+| Import Type         | Expected Size | Warning Threshold |
+| ------------------- | ------------- | ----------------- |
+| Single component    | 50-200KB      | > 500KB           |
+| Single hook         | 10-50KB       | > 100KB           |
+| Single utility      | 50-150KB      | > 300KB           |
+| Fluent UI component | 20-100KB      | > 200KB           |
 
 ---
 
@@ -3547,15 +3712,13 @@ const Dashboard: React.FC = () => {
   }, []);
 
   const loadWorkflowData = async () => {
-    const items = await SPContext.sp.web.lists
-      .getByTitle('Approvals')
-      .items.top(1)();
+    const items = await SPContext.sp.web.lists.getByTitle('Approvals').items.top(1)();
 
     // Transform to workflow steps
     const steps: IWorkflowStep[] = [
       { label: 'Submitted', status: 'completed' },
       { label: 'Review', status: 'current' },
-      { label: 'Approved', status: 'pending' }
+      { label: 'Approved', status: 'pending' },
     ];
 
     setWorkflowSteps(steps);
@@ -3563,20 +3726,12 @@ const Dashboard: React.FC = () => {
 
   return (
     <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 20 }}>
-      <Card title="My Profile" allowExpand persistState>
-        <UserPersona
-          userId={SPContext.currentUser.Id}
-          showEmail
-          showJobTitle
-          showLivePersonaCard
-        />
+      <Card title='My Profile' allowExpand persistState>
+        <UserPersona userId={SPContext.currentUser.Id} showEmail showJobTitle showLivePersonaCard />
       </Card>
 
-      <Card title="Current Workflow" allowExpand persistState>
-        <WorkflowStepper
-          steps={workflowSteps}
-          orientation={isMobile ? 'vertical' : 'horizontal'}
-        />
+      <Card title='Current Workflow' allowExpand persistState>
+        <WorkflowStepper steps={workflowSteps} orientation={isMobile ? 'vertical' : 'horizontal'} />
       </Card>
     </div>
   );
@@ -3612,9 +3767,7 @@ const TaskForm: React.FC<ITaskFormProps> = ({ itemId, onSave }) => {
 
   const loadItem = async () => {
     try {
-      const item = await SPContext.sp.web.lists
-        .getByTitle('Tasks')
-        .items.getById(itemId)();
+      const item = await SPContext.sp.web.lists.getByTitle('Tasks').items.getById(itemId)();
 
       const extractor = createSPExtractor(item);
       setTitle(extractor.getText('Title'));
@@ -3652,10 +3805,10 @@ const TaskForm: React.FC<ITaskFormProps> = ({ itemId, onSave }) => {
   return (
     <ErrorBoundary>
       <ConflictDetector
-        listTitle="Tasks"
+        listTitle='Tasks'
         itemId={itemId}
         checkInterval={30000}
-        onConflictDetected={(conflict) => {
+        onConflictDetected={conflict => {
           setError(`This task was modified by ${conflict.modifiedBy}`);
         }}
       >
@@ -3666,25 +3819,21 @@ const TaskForm: React.FC<ITaskFormProps> = ({ itemId, onSave }) => {
         )}
 
         <TextField
-          label="Title"
+          label='Title'
           value={title}
           onChange={(_, newValue) => setTitle(newValue || '')}
           required
         />
 
         <TextField
-          label="Description"
+          label='Description'
           value={description}
           onChange={(_, newValue) => setDescription(newValue || '')}
           multiline
           rows={5}
         />
 
-        <PrimaryButton
-          text="Save"
-          onClick={handleSave}
-          disabled={saving || !title}
-        />
+        <PrimaryButton text='Save' onClick={handleSave} disabled={saving || !title} />
       </ConflictDetector>
     </ErrorBoundary>
   );
@@ -3718,7 +3867,7 @@ const BulkUpdate: React.FC<IBulkUpdateProps> = ({ itemIds, status, onComplete })
     try {
       const batch = new BatchBuilder(SPContext.sp, {
         batchSize: 50,
-        enableConcurrency: false  // Sequential for progress tracking
+        enableConcurrency: false, // Sequential for progress tracking
       });
 
       // Queue all updates
@@ -3756,7 +3905,7 @@ const BulkUpdate: React.FC<IBulkUpdateProps> = ({ itemIds, status, onComplete })
     <div>
       {isProcessing && (
         <ProgressIndicator
-          label="Updating items"
+          label='Updating items'
           description={`Processing ${itemIds.length} items...`}
           percentComplete={progress}
         />
@@ -3764,7 +3913,9 @@ const BulkUpdate: React.FC<IBulkUpdateProps> = ({ itemIds, status, onComplete })
 
       {message && (
         <MessageBar
-          messageBarType={message.includes('failed') ? MessageBarType.error : MessageBarType.success}
+          messageBarType={
+            message.includes('failed') ? MessageBarType.error : MessageBarType.success
+          }
         >
           {message}
         </MessageBar>
@@ -3788,7 +3939,7 @@ const ResponsiveDashboard: React.FC = () => {
   const [settings, setSettings] = useLocalStorage('dashboard-settings', {
     showCharts: true,
     showRecentActivity: true,
-    showNotifications: true
+    showNotifications: true,
   });
 
   const getGridColumns = () => {
@@ -3805,36 +3956,23 @@ const ResponsiveDashboard: React.FC = () => {
         <button onClick={() => setLayout('list')}>List View</button>
       </Stack>
 
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: `repeat(${getGridColumns()}, 1fr)`,
-        gap: 20,
-        marginTop: 20
-      }}>
-        <Card
-          cardId="card-charts"
-          title="Analytics"
-          allowExpand
-          persistState
-        >
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: `repeat(${getGridColumns()}, 1fr)`,
+          gap: 20,
+          marginTop: 20,
+        }}
+      >
+        <Card cardId='card-charts' title='Analytics' allowExpand persistState>
           {settings.showCharts && <ChartsComponent />}
         </Card>
 
-        <Card
-          cardId="card-activity"
-          title="Recent Activity"
-          allowExpand
-          persistState
-        >
+        <Card cardId='card-activity' title='Recent Activity' allowExpand persistState>
           {settings.showRecentActivity && <ActivityComponent />}
         </Card>
 
-        <Card
-          cardId="card-notifications"
-          title="Notifications"
-          allowExpand
-          persistState
-        >
+        <Card cardId='card-notifications' title='Notifications' allowExpand persistState>
           {settings.showNotifications && <NotificationsComponent />}
         </Card>
       </div>
@@ -3852,6 +3990,7 @@ const ResponsiveDashboard: React.FC = () => {
 **Symptoms:** Components fail with "SPContext not initialized" error
 
 **Solutions:**
+
 1. Ensure `SPContext.initialize()` or preset method is called in web part's `onInit()`
 2. Wait for initialization to complete before rendering components
 3. Check `SPContext.isReady()` before using context
@@ -3875,6 +4014,7 @@ protected async onInit(): Promise<void> {
 **Symptoms:** SPFx bundle exceeds size limits (> 2MB)
 
 **Solutions:**
+
 1. Check import statements - use direct imports, not barrel imports
 2. Verify Fluent UI imports use `/lib/` paths
 3. Run bundle analyzer: `gulp bundle --ship --analyze-bundle`
@@ -3889,7 +4029,7 @@ const VersionHistory = React.lazy(() =>
 const MyComponent: React.FC = () => {
   return (
     <React.Suspense fallback={<Spinner />}>
-      <VersionHistory listTitle="Documents" itemId={123} />
+      <VersionHistory listTitle='Documents' itemId={123} />
     </React.Suspense>
   );
 };
@@ -3900,6 +4040,7 @@ const MyComponent: React.FC = () => {
 **Symptoms:** "Cannot find module" or "Module has no exported member" errors
 
 **Solutions:**
+
 1. Check import paths are correct (case-sensitive)
 2. Verify package is installed: `npm ls spfx-toolkit`
 3. Clear TypeScript cache: `rm -rf node_modules/.cache`
@@ -3911,6 +4052,7 @@ const MyComponent: React.FC = () => {
 **Symptoms:** SharePoint API returns 403 Forbidden
 
 **Solutions:**
+
 1. Check user has required SharePoint permissions
 2. Verify SharePoint API permissions in `package-solution.json`
 3. Check site collection app catalog permissions
@@ -3927,6 +4069,7 @@ console.log('Context health:', health);
 **Symptoms:** Component appears blank or doesn't render
 
 **Solutions:**
+
 1. Check browser console for JavaScript errors
 2. Verify all required props are provided
 3. Check CSS is loading (inspect element styles)
@@ -3947,7 +4090,7 @@ import { ErrorBoundary } from 'spfx-toolkit/lib/components/ErrorBoundary';
 
 <ErrorBoundary fallback={<div>Error occurred</div>}>
   <MyComponent />
-</ErrorBoundary>
+</ErrorBoundary>;
 ```
 
 ### Issue: PnP Operations Failing
@@ -3955,6 +4098,7 @@ import { ErrorBoundary } from 'spfx-toolkit/lib/components/ErrorBoundary';
 **Symptoms:** PnP SP operations return errors or undefined
 
 **Solutions:**
+
 1. Check SPContext is initialized
 2. Verify list/library exists and user has access
 3. Use correct caching strategy:
@@ -3964,14 +4108,10 @@ import { ErrorBoundary } from 'spfx-toolkit/lib/components/ErrorBoundary';
 
 ```typescript
 // ✅ Fresh data (no cache)
-const items = await SPContext.spPessimistic.web.lists
-  .getByTitle('Tasks')
-  .items();
+const items = await SPContext.spPessimistic.web.lists.getByTitle('Tasks').items();
 
 // ✅ Cached data (fast)
-const cachedItems = await SPContext.spCached.web.lists
-  .getByTitle('Tasks')
-  .items();
+const cachedItems = await SPContext.spCached.web.lists.getByTitle('Tasks').items();
 ```
 
 4. Enable verbose logging:
@@ -3986,21 +4126,20 @@ await SPContext.development(this.context, 'MyWebPart');
 **Symptoms:** React warning about missing dependencies in useEffect
 
 **Solutions:**
+
 1. Add all used variables to dependency array
 2. Wrap functions in `useCallback`:
 
 ```typescript
 // ✅ CORRECT
 const loadData = React.useCallback(async () => {
-  const items = await SPContext.sp.web.lists
-    .getByTitle('Tasks')
-    .items();
+  const items = await SPContext.sp.web.lists.getByTitle('Tasks').items();
   setData(items);
-}, []);  // No dependencies needed
+}, []); // No dependencies needed
 
 React.useEffect(() => {
   loadData();
-}, [loadData]);  // Include callback in dependencies
+}, [loadData]); // Include callback in dependencies
 ```
 
 ---
@@ -4115,21 +4254,21 @@ SPContext.reset(): void;
 
 ### Component Props Summary
 
-| Component | Required Props | Optional Props |
-|-----------|---------------|----------------|
-| Card | `title` | `subtitle`, `allowExpand`, `defaultExpanded`, `persistState`, `cardId`, `onExpand`, `onCollapse` |
-| UserPersona | `userId` OR (`displayName` + `email`) | `size`, `showEmail`, `showJobTitle`, `showLivePersonaCard` |
-| WorkflowStepper | `steps` | `orientation`, `theme`, `allowClickableSteps`, `onStepClick` |
-| ManageAccess | `listTitle`, `itemId` | `showInheritedPermissions`, `allowBreakInheritance`, `allowRemovePermissions` |
-| VersionHistory | `listTitle`, `itemId` | `showFieldComparison`, `fieldsToCompare`, `allowRestore`, `maxVersions` |
-| ConflictDetector | `listTitle`, `itemId`, `children` | `checkInterval`, `onConflictDetected`, `onConflictResolved` |
-| GroupViewer | `groupId` OR `groupName` | `showMembers`, `showOwner`, `showDescription`, `maxMembers` |
-| ErrorBoundary | `children` | `fallback`, `onError`, `onReset`, `showRetryButton` |
-| DocumentLink | One of: `documentUrl`, `documentUniqueId`, or (`documentId` + `libraryName`) | `layout`, `enableHoverCard`, `onClick`, `previewMode`, `previewTarget`, `enableCache` |
-| GroupUsersPicker | `groupName`, `maxUserCount` | `selectedUsers`, `ensureUser`, `useCache`, `itemRender` |
-| spForm Controls | `name`, `control` | Field-specific props (`items`, `placeholder`, `rules`, etc.) |
-| SPField Components | `name`, `control` | `label`, `rules`, field-specific options (choices, allowMultiple, formatting) |
-| Lazy Components | Same as underlying component (`VersionHistory`, `ManageAccess`, etc.) | Use `preloadComponent` / `useLazyPreload` for smoother UX |
+| Component          | Required Props                                                               | Optional Props                                                                                   |
+| ------------------ | ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| Card               | `title`                                                                      | `subtitle`, `allowExpand`, `defaultExpanded`, `persistState`, `cardId`, `onExpand`, `onCollapse` |
+| UserPersona        | `userId` OR (`displayName` + `email`)                                        | `size`, `showEmail`, `showJobTitle`, `showLivePersonaCard`                                       |
+| WorkflowStepper    | `steps`                                                                      | `orientation`, `theme`, `allowClickableSteps`, `onStepClick`                                     |
+| ManageAccess       | `listTitle`, `itemId`                                                        | `showInheritedPermissions`, `allowBreakInheritance`, `allowRemovePermissions`                    |
+| VersionHistory     | `listTitle`, `itemId`                                                        | `showFieldComparison`, `fieldsToCompare`, `allowRestore`, `maxVersions`                          |
+| ConflictDetector   | `listTitle`, `itemId`, `children`                                            | `checkInterval`, `onConflictDetected`, `onConflictResolved`                                      |
+| GroupViewer        | `groupId` OR `groupName`                                                     | `showMembers`, `showOwner`, `showDescription`, `maxMembers`                                      |
+| ErrorBoundary      | `children`                                                                   | `fallback`, `onError`, `onReset`, `showRetryButton`                                              |
+| DocumentLink       | One of: `documentUrl`, `documentUniqueId`, or (`documentId` + `libraryName`) | `layout`, `enableHoverCard`, `onClick`, `previewMode`, `previewTarget`, `enableCache`            |
+| GroupUsersPicker   | `groupName`, `maxUserCount`                                                  | `selectedUsers`, `ensureUser`, `useCache`, `itemRender`                                          |
+| spForm Controls    | `name`, `control`                                                            | Field-specific props (`items`, `placeholder`, `rules`, etc.)                                     |
+| SPField Components | `name`, `control`                                                            | `label`, `rules`, field-specific options (choices, allowMultiple, formatting)                    |
+| Lazy Components    | Same as underlying component (`VersionHistory`, `ManageAccess`, etc.)        | Use `preloadComponent` / `useLazyPreload` for smoother UX                                        |
 
 ---
 
@@ -4148,7 +4287,10 @@ import type { IUserPersonaProps } from 'spfx-toolkit/lib/components/UserPersona'
 
 // WorkflowStepper
 import { WorkflowStepper } from 'spfx-toolkit/lib/components/WorkflowStepper';
-import type { IWorkflowStepperProps, IWorkflowStep } from 'spfx-toolkit/lib/components/WorkflowStepper';
+import type {
+  IWorkflowStepperProps,
+  IWorkflowStep,
+} from 'spfx-toolkit/lib/components/WorkflowStepper';
 
 // ManageAccess
 import { ManageAccess } from 'spfx-toolkit/lib/components/ManageAccess';
@@ -4159,7 +4301,10 @@ import { VersionHistory } from 'spfx-toolkit/lib/components/VersionHistory';
 import type { IVersionHistoryProps } from 'spfx-toolkit/lib/components/VersionHistory';
 
 // ConflictDetector
-import { ConflictDetector, useConflictDetection } from 'spfx-toolkit/lib/components/ConflictDetector';
+import {
+  ConflictDetector,
+  useConflictDetection,
+} from 'spfx-toolkit/lib/components/ConflictDetector';
 import type { IConflictDetectorProps } from 'spfx-toolkit/lib/components/ConflictDetector';
 
 // GroupViewer
@@ -4172,7 +4317,10 @@ import type { IDocumentLinkProps, IDocumentInfo } from 'spfx-toolkit/lib/compone
 
 // GroupUsersPicker
 import { GroupUsersPicker, useGroupUsers } from 'spfx-toolkit/lib/components/GroupUsersPicker';
-import type { IGroupUsersPickerProps, IGroupUser } from 'spfx-toolkit/lib/components/GroupUsersPicker';
+import type {
+  IGroupUsersPickerProps,
+  IGroupUser,
+} from 'spfx-toolkit/lib/components/GroupUsersPicker';
 
 // spForm
 import {
@@ -4196,7 +4344,11 @@ import type {
 
 // SPField Suite
 import { SPTextField, SPChoiceField, SPField } from 'spfx-toolkit/lib/components/spFields';
-import type { ISPTextFieldProps, ISPChoiceFieldProps, ISPFieldProps } from 'spfx-toolkit/lib/components/spFields';
+import type {
+  ISPTextFieldProps,
+  ISPChoiceFieldProps,
+  ISPFieldProps,
+} from 'spfx-toolkit/lib/components/spFields';
 
 // Lazy Components
 import {
@@ -4237,7 +4389,11 @@ import type { IEffectivePermissions } from 'spfx-toolkit/lib/utilities/permissio
 
 // ListItemHelper
 import { createSPExtractor, createSPUpdater } from 'spfx-toolkit/lib/utilities/listItemHelper';
-import type { ISPExtractor, ISPUpdater, IUserInfo } from 'spfx-toolkit/lib/utilities/listItemHelper';
+import type {
+  ISPExtractor,
+  ISPUpdater,
+  IUserInfo,
+} from 'spfx-toolkit/lib/utilities/listItemHelper';
 
 // StringUtils
 import { StringUtils } from 'spfx-toolkit/lib/utilities/stringUtils';
@@ -4263,20 +4419,24 @@ import {
 ## Support & Resources
 
 ### Documentation
+
 - Component READMEs: `src/components/*/README.md`
 - Hook documentation: `src/hooks/README.md`
 - Utility documentation: `src/utilities/*/README.md`
 
 ### Example Projects
+
 - Sample web parts: [Link to samples repository]
 - Starter templates: [Link to templates]
 
 ### Community
+
 - GitHub Issues: [Report bugs or request features]
 - Stack Overflow: Tag `spfx-toolkit`
 - SharePoint Dev Community: [Link]
 
 ### Version Information
+
 - Current Version: Check `package.json`
 - Changelog: `CHANGELOG.md`
 - Migration Guides: `docs/migrations/`
@@ -4343,13 +4503,13 @@ For components not needed on initial page load, use lazy loading:
 
 #### Available Lazy Components
 
-| Component | Initial Bundle | Lazy Wrapper | Savings |
-|-----------|---------------|--------------|---------|
-| `LazyVersionHistory` | 200-300KB | ~5KB | 195-295KB |
-| `LazyManageAccessComponent` | 150-250KB | ~5KB | 145-245KB |
-| `LazyManageAccessPanel` | 150-250KB | ~5KB | 145-245KB |
-| `LazyConflictDetector` | 100-150KB | ~3KB | 97-147KB |
-| `LazyWorkflowStepper` | 80-120KB | ~3KB | 77-117KB |
+| Component                   | Initial Bundle | Lazy Wrapper | Savings   |
+| --------------------------- | -------------- | ------------ | --------- |
+| `LazyVersionHistory`        | 200-300KB      | ~5KB         | 195-295KB |
+| `LazyManageAccessComponent` | 150-250KB      | ~5KB         | 145-245KB |
+| `LazyManageAccessPanel`     | 150-250KB      | ~5KB         | 145-245KB |
+| `LazyConflictDetector`      | 100-150KB      | ~3KB         | 97-147KB  |
+| `LazyWorkflowStepper`       | 80-120KB       | ~3KB         | 77-117KB  |
 
 #### Usage Example
 
@@ -4362,9 +4522,9 @@ function MyComponent() {
   return (
     <LazyVersionHistory
       itemId={123}
-      listId="abc-def-ghi"
-      itemType="document"
-      onDownload={(version) => console.log('Downloaded', version)}
+      listId='abc-def-ghi'
+      itemType='document'
+      onDownload={version => console.log('Downloaded', version)}
     />
   );
 }
@@ -4381,9 +4541,9 @@ function MyComponent() {
   return (
     <Button
       // Preload on hover for instant display on click
-      onMouseEnter={() => preloadComponent(
-        () => import('spfx-toolkit/lib/components/VersionHistory')
-      )}
+      onMouseEnter={() =>
+        preloadComponent(() => import('spfx-toolkit/lib/components/VersionHistory'))
+      }
       onClick={() => setShowHistory(true)}
     >
       View History
@@ -4401,12 +4561,11 @@ We provide `DirectionalHint` enum to avoid Fluent UI import issues:
 import { DirectionalHint } from 'spfx-toolkit/lib/types';
 import { TooltipHost } from '@fluentui/react/lib/Tooltip';
 
-<TooltipHost directionalHint={DirectionalHint.topCenter}>
-  Content
-</TooltipHost>
+<TooltipHost directionalHint={DirectionalHint.topCenter}>Content</TooltipHost>;
 ```
 
 **Why we provide this:**
+
 - Fluent UI's `DirectionalHint` export path changed and breaks tree-shaking
 - Importing from main `@fluentui/react` adds 2-3MB to bundle
 - Our custom enum maintains tree-shaking with identical values
@@ -4414,6 +4573,7 @@ import { TooltipHost } from '@fluentui/react/lib/Tooltip';
 ### When to Use Lazy Loading
 
 **✅ DO use lazy loading for:**
+
 - Components > 100KB
 - Modal/panel content
 - Admin/configuration screens
@@ -4421,6 +4581,7 @@ import { TooltipHost } from '@fluentui/react/lib/Tooltip';
 - Components with heavy dependencies (DevExtreme, etc.)
 
 **❌ DON'T use lazy loading for:**
+
 - Small components (< 50KB)
 - Components needed immediately on page load
 - Critical UI elements
@@ -4440,7 +4601,7 @@ import {
   LazyVersionHistory,
   LazyManageAccessComponent,
   LazyConflictDetector,
-  LazyWorkflowStepper
+  LazyWorkflowStepper,
 } from 'spfx-toolkit/lib/components/lazy';
 ```
 
@@ -4463,18 +4624,19 @@ ls -lh temp/deploy/
 
 Expected improvements with optimizations:
 
-| Metric | Before | After | Improvement |
-|--------|--------|-------|-------------|
-| Initial bundle | 2.5MB | 1.7MB | -32% |
-| Initial load | 1200ms | 800ms | -33% |
-| Time to interactive | 1800ms | 1100ms | -39% |
-| Lighthouse score | 75 | 92 | +23% |
+| Metric              | Before | After  | Improvement |
+| ------------------- | ------ | ------ | ----------- |
+| Initial bundle      | 2.5MB  | 1.7MB  | -32%        |
+| Initial load        | 1200ms | 800ms  | -33%        |
+| Time to interactive | 1800ms | 1100ms | -39%        |
+| Lighthouse score    | 75     | 92     | +23%        |
 
 ### Migration Guide
 
 #### For Existing Projects
 
 1. **Update imports to lazy versions** (optional but recommended):
+
    ```typescript
    // Before
    import { VersionHistory } from 'spfx-toolkit/lib/components/VersionHistory';

@@ -12,7 +12,9 @@
     "test": "gulp test",
     "debug": "npm run clean && gulp bundle --ship=false && gulp package-solution --ship=false",
     "release": "npm run clean && gulp bundle --ship && gulp package-solution --ship",
-    "serve": "fast-serve"
+    "serve": "fast-serve",
+    "build:production": "npm run clean && gulp bundle --ship && gulp package-solution --ship",
+    "analyze": "gulp bundle --ship && echo '\nBundle analysis complete. Check temp/stats.json for details.\nPackage size:' && ls -lh sharepoint/solution/*.sppkg | awk '{print $5, $9}'"
   },
   "dependencies": {
     "@fluentui/react": "^8.106.4",

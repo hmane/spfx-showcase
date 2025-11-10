@@ -9,9 +9,7 @@ import * as ReactDom from 'react-dom';
 
 import * as strings from 'DeveloperToolkitWebPartStrings';
 import { SPContext } from 'spfx-toolkit/lib/utilities/context';
-import 'spfx-toolkit/lib/utilities/context/pnpImports/core';
-import 'spfx-toolkit/lib/utilities/context/pnpImports/lists';
-import 'spfx-toolkit/lib/utilities/context/pnpImports/content';
+import '../pnpImports';
 import DeveloperToolkit from './components/DeveloperToolkit';
 
 export interface IDeveloperToolkitWebPartProps {

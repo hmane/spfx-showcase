@@ -4,9 +4,9 @@ import { IVersionInfo, VersionHistory } from 'spfx-toolkit/lib/components/Versio
 import { SPContext } from 'spfx-toolkit/lib/utilities/context';
 import { ListPicker } from '@pnp/spfx-controls-react/lib/ListPicker';
 import { ListItemPicker } from '@pnp/spfx-controls-react/lib/ListItemPicker';
-import { ShowcaseCodeSample } from './ShowcaseCodeSample';
-import { ShowcaseHero } from './ShowcaseHero';
-import { ShowcaseFeature, ShowcaseKeyFeatures } from './ShowcaseKeyFeatures';
+import { ShowcaseCodeSample } from '../shared/ShowcaseCodeSample';
+import { ShowcaseHero } from '../shared/ShowcaseHero';
+import { ShowcaseFeature, ShowcaseKeyFeatures } from '../shared/ShowcaseKeyFeatures';
 
 const VERSION_HISTORY_SAMPLE = `import * as React from 'react';
 import { useState } from 'react';

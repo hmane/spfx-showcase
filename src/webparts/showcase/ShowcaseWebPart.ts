@@ -1,3 +1,4 @@
+import '../pnpImports';
 import { Version } from '@microsoft/sp-core-library';
 import {
   type IPropertyPaneConfiguration,
@@ -9,9 +10,7 @@ import * as ReactDom from 'react-dom';
 
 import * as strings from 'ShowcaseWebPartStrings';
 import { SPContext } from 'spfx-toolkit/lib/utilities/context';
-import 'spfx-toolkit/lib/utilities/context/pnpImports/core';
-import 'spfx-toolkit/lib/utilities/context/pnpImports/lists';
-import 'spfx-toolkit/lib/utilities/context/pnpImports/content';
+
 import Showcase from './components/Showcase';
 
 export interface IShowcaseWebPartProps {

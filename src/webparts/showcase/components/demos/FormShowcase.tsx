@@ -34,10 +34,10 @@ import {
 } from 'spfx-toolkit/lib/components/spForm';
 import { SPContext } from 'spfx-toolkit/lib/utilities/context';
 import { z } from 'zod';
-import { ShowcaseCodeSample } from './ShowcaseCodeSample';
-import { ShowcaseHero } from './ShowcaseHero';
-import type { ShowcaseFeature } from './ShowcaseKeyFeatures';
-import { ShowcaseKeyFeatures } from './ShowcaseKeyFeatures';
+import { ShowcaseCodeSample } from '../shared/ShowcaseCodeSample';
+import { ShowcaseHero } from '../shared/ShowcaseHero';
+import type { ShowcaseFeature } from '../shared/ShowcaseKeyFeatures';
+import { ShowcaseKeyFeatures } from '../shared/ShowcaseKeyFeatures';
 
 const employmentTypes = [
   { key: 'hybrid', text: 'Hybrid (2-3 days onsite)' },

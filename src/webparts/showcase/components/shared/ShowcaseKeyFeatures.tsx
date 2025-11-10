@@ -29,6 +29,7 @@ export const ShowcaseKeyFeatures: React.FC<ShowcaseKeyFeaturesProps> = ({
         background: 'white',
         padding: '32px',
         borderRadius: '16px',
+        marginTop: '32px',
         marginBottom: '32px',
         border: '2px solid #e9ecef',
         boxShadow: '0 4px 16px rgba(0, 0, 0, 0.08)',

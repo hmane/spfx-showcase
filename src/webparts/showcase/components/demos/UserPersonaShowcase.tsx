@@ -1,8 +1,8 @@
 import * as React from 'react';
 import { Card, Content, Header } from 'spfx-toolkit/lib/components/Card';
-import { ShowcaseHero } from './ShowcaseHero';
-import { ShowcaseKeyFeatures, ShowcaseFeature } from './ShowcaseKeyFeatures';
-import { ShowcaseCodeSample } from './ShowcaseCodeSample';
+import { ShowcaseHero } from '../shared/ShowcaseHero';
+import { ShowcaseKeyFeatures, ShowcaseFeature } from '../shared/ShowcaseKeyFeatures';
+import { ShowcaseCodeSample } from '../shared/ShowcaseCodeSample';
 import { UserPersona, UserPersonaSize, UserPersonaDisplayMode } from 'spfx-toolkit/lib/components/UserPersona';
 import { SPContext } from 'spfx-toolkit/lib/utilities/context';
 import { Dropdown, IDropdownOption, Toggle } from '@fluentui/react';

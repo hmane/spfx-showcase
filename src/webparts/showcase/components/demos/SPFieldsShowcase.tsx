@@ -40,13 +40,11 @@ import {
   useZustandFormSync,
 } from 'spfx-toolkit/lib/components/spForm';
 import SPContext from 'spfx-toolkit/lib/utilities/context';
-import 'spfx-toolkit/lib/utilities/context/pnpImports/core';
-import 'spfx-toolkit/lib/utilities/context/pnpImports/lists';
 import { z } from 'zod';
-import { ShowcaseCodeSample } from './ShowcaseCodeSample';
-import { ShowcaseHero } from './ShowcaseHero';
-import type { ShowcaseFeature } from './ShowcaseKeyFeatures';
-import { ShowcaseKeyFeatures } from './ShowcaseKeyFeatures';
+import { ShowcaseCodeSample } from '../shared/ShowcaseCodeSample';
+import { ShowcaseHero } from '../shared/ShowcaseHero';
+import type { ShowcaseFeature } from '../shared/ShowcaseKeyFeatures';
+import { ShowcaseKeyFeatures } from '../shared/ShowcaseKeyFeatures';
 
 // Zod schemas for form validation
 const urlSchema = z.object({

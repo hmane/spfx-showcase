@@ -258,7 +258,7 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser`}
             language="bash"
             filename="PowerShell (Run as Administrator)"
             showLineNumbers={false}
-            compact={true}
+            maxHeight={250}
           />
           <MessageBar messageBarType={MessageBarType.warning} styles={{ root: { marginTop: '12px' } }}>
             <strong>Required:</strong> This is a one-time setup to allow spfx-fast-serve to run HTTPS development server with self-signed certificates.
@@ -277,7 +277,7 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser`}
             language="bash"
             filename="Installation Steps"
             showLineNumbers={false}
-            compact={true}
+            maxHeight={500}
           />
           <MessageBar messageBarType={MessageBarType.info} styles={{ root: { marginTop: '16px' } }}>
             <strong>Note:</strong> The setup wizard will automatically configure your project. Just
@@ -304,7 +304,7 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser`}
             language="json"
             filename="config/serve.json"
             showLineNumbers={false}
-            compact={true}
+            maxHeight={500}
           />
 
           <MessageBar

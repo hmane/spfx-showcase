@@ -19,7 +19,7 @@ import styles from './CodeEditor.module.scss';
  *
  * @example
  * // Compact mode for PowerShell/bash commands
- * <CodeEditor value={code} language="powershell" compact={true} />
+ * <CodeEditor value={code} language="powershell" />
  *
  * // Auto-height for code snippets
  * <CodeEditor value={code} language="typescript" autoHeight={true} />

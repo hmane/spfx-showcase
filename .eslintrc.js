@@ -288,6 +288,16 @@ module.exports = {
         '@microsoft/spfx/import-requires-chunk-name': 1,
         '@microsoft/spfx/no-require-ensure': 2,
         '@microsoft/spfx/pair-react-dom-render-unmount': 1,
+        // ====================================================================
+        // Custom Project Rules - PnP Import Standardization
+        // ====================================================================
+        // RATIONALE:         Enforce centralized PnP imports for consistency and type safety.
+        //                    All PnP type augmentations must come from src/types/pnp.ts to ensure
+        //                    TypeScript recognizes augmented properties across the entire codebase.
+        //                    Direct imports from @pnp/sp/* are not allowed except in:
+        //                    - src/types/pnp.ts (centralized type augmentations)
+        //                    - Webpart files (runtime imports via spfx-toolkit pnpImports)
+        'no-restricted-imports': 1,
       },
     },
     {
@@ -320,6 +330,22 @@ module.exports = {
             '@typescript-eslint/explicit-function-return-type': 'off',
             'prefer-const': 'off',
             'no-undef': 'off',
+          },
+        },
+        {
+          // Exception: Allow direct PnP imports in specific files
+          // - src/types/pnp.ts: Centralized type augmentations
+          // - *WebPart.ts: Webpart files
+          // - *Service.ts: Service files need runtime imports for side-effects
+          // - src/webparts/pnpImports.ts: Centralized runtime imports
+          files: [
+            'src/types/pnp.ts',
+            'src/webparts/**/*WebPart.ts',
+            'src/webparts/**/services/*Service.ts',
+            'src/webparts/pnpImports.ts'
+          ],
+          rules: {
+            'no-restricted-imports': 'off',
           },
         },
       ],

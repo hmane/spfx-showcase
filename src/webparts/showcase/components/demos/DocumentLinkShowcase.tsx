@@ -13,11 +13,12 @@ import * as React from 'react';
 import { useCallback, useState, useMemo } from 'react';
 import { DocumentLink, IDocumentInfo, DocumentLinkLayout, SizePosition, ClickAction, PreviewMode, PreviewTarget, IDocumentLinkProps } from 'spfx-toolkit/lib/components/DocumentLink';
 import { SPContext } from 'spfx-toolkit/lib/utilities/context';
+// Import centralized PnP type augmentations
 import { ListPicker } from '@pnp/spfx-controls-react/lib/ListPicker';
 import { ListItemPicker } from '@pnp/spfx-controls-react/lib/ListItemPicker';
-import { ShowcaseCodeSample } from './ShowcaseCodeSample';
-import { ShowcaseHero } from './ShowcaseHero';
-import { ShowcaseFeature, ShowcaseKeyFeatures } from './ShowcaseKeyFeatures';
+import { ShowcaseCodeSample } from '../shared/ShowcaseCodeSample';
+import { ShowcaseHero } from '../shared/ShowcaseHero';
+import { ShowcaseFeature, ShowcaseKeyFeatures } from '../shared/ShowcaseKeyFeatures';
 
 const DOCUMENT_LINK_SAMPLE = `import * as React from 'react';
 import { useState } from 'react';

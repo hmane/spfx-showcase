@@ -5,9 +5,9 @@ import { GroupViewer } from 'spfx-toolkit/lib/components/GroupViewer/GroupViewer
 import { ManageAccessComponent } from 'spfx-toolkit/lib/components/ManageAccess/ManageAccessComponent';
 import { IPermissionPrincipal } from 'spfx-toolkit/lib/components/ManageAccess/types';
 import { SPContext } from 'spfx-toolkit/lib/utilities/context';
-import { ShowcaseCodeSample } from './ShowcaseCodeSample';
-import { ShowcaseHero } from './ShowcaseHero';
-import { ShowcaseFeature, ShowcaseKeyFeatures } from './ShowcaseKeyFeatures';
+import { ShowcaseCodeSample } from '../shared/ShowcaseCodeSample';
+import { ShowcaseHero } from '../shared/ShowcaseHero';
+import { ShowcaseFeature, ShowcaseKeyFeatures } from '../shared/ShowcaseKeyFeatures';
 import { ListPicker } from '@pnp/spfx-controls-react/lib/ListPicker';
 import { ListItemPicker } from '@pnp/spfx-controls-react/lib/ListItemPicker';
 

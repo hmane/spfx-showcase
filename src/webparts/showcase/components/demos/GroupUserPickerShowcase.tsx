@@ -24,10 +24,10 @@ import { GroupUsersPicker } from 'spfx-toolkit/lib/components/GroupUsersPicker';
 import type { IGroupUser } from 'spfx-toolkit/lib/components/GroupUsersPicker/GroupUsersPicker.types';
 import { SPContext } from 'spfx-toolkit/lib/utilities/context';
 import { z } from 'zod';
-import { ShowcaseCodeSample } from './ShowcaseCodeSample';
-import { ShowcaseHero } from './ShowcaseHero';
-import type { ShowcaseFeature } from './ShowcaseKeyFeatures';
-import { ShowcaseKeyFeatures } from './ShowcaseKeyFeatures';
+import { ShowcaseCodeSample } from '../shared/ShowcaseCodeSample';
+import { ShowcaseHero } from '../shared/ShowcaseHero';
+import type { ShowcaseFeature } from '../shared/ShowcaseKeyFeatures';
+import { ShowcaseKeyFeatures } from '../shared/ShowcaseKeyFeatures';
 
 const groupUserSchema = z
   .object({
@@ -256,9 +256,9 @@ export const GroupUserPickerShowcase: React.FC = () => {
     const fetchSiteGroups = async () => {
       try {
         setLoadingGroups(true);
-        const groups = await SPContext.sp.web.siteGroups.select('Id', 'Title', 'Description')();
+        const groups = await (SPContext.sp.web as any).siteGroups.select('Id', 'Title', 'Description')();
 
-        const groupOptions: IDropdownOption[] = groups.map(group => ({
+        const groupOptions: IDropdownOption[] = groups.map((group: any) => ({
           key: group.Title,
           text: group.Title,
           data: { id: group.Id, description: group.Description }
