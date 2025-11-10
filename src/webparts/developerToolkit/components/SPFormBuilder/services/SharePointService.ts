@@ -1,40 +1,52 @@
 import { WebPartContext } from '@microsoft/sp-webpart-base';
-import { spfi, SPFI, SPFx } from '@pnp/sp';
+import { SPFI } from '@pnp/sp';
 import SPContext from 'spfx-toolkit/lib/utilities/context';
 import { ISPField, ISPList } from '../types/SPFormBuilderTypes';
 
 /**
  * SharePoint service for SPFormBuilder
- * Instance-based service that supports changing site URLs
+ * Instance-based service that supports changing site URLs using SPContext.sites
  */
 export class SharePointService {
   private sp: SPFI;
   private context: WebPartContext;
+  private currentSiteUrl: string;
 
   constructor(context: WebPartContext, siteUrl?: string) {
     this.context = context;
+    this.currentSiteUrl = siteUrl || context.pageContext.web.absoluteUrl;
 
     // Initialize with provided site URL or use current context
     if (siteUrl && siteUrl !== context.pageContext.web.absoluteUrl) {
-      this.sp = spfi(siteUrl).using(SPFx(context));
+      this.sp = this.getSpForSite(siteUrl);
     } else {
       this.sp = SPContext.sp;
     }
   }
 
   /**
-   * Get current site URL
+   * Get SPFI instance for a specific site using SPContext.sites
    */
-  public getCurrentSiteUrl(): string {
-    return this.context.pageContext.web.absoluteUrl;
+  private getSpForSite(siteUrl: string): SPFI {
+    // Get the site context (assumes site is already registered)
+    const siteContext = SPContext.sites.get(siteUrl);
+    return siteContext.sp;
   }
 
   /**
-   * Change site URL and reinitialize SP instance
+   * Get current site URL
+   */
+  public getCurrentSiteUrl(): string {
+    return this.currentSiteUrl;
+  }
+
+  /**
+   * Change site URL and reinitialize SP instance using SPContext.sites
    */
   public changeSiteUrl(siteUrl: string): void {
+    this.currentSiteUrl = siteUrl;
     if (siteUrl !== this.context.pageContext.web.absoluteUrl) {
-      this.sp = spfi(siteUrl).using(SPFx(this.context));
+      this.sp = this.getSpForSite(siteUrl);
     } else {
       this.sp = SPContext.sp;
     }
@@ -59,7 +71,17 @@ export class SharePointService {
       }));
     } catch (error: any) {
       console.error('Error loading lists:', error);
-      throw new Error(`Failed to load lists: ${error.message}`);
+
+      // Provide more helpful error messages
+      if (error.status === 403) {
+        throw new Error('Access denied. You may not have permissions to access this site.');
+      } else if (error.status === 404) {
+        throw new Error('Site not found. Please check the URL and try again.');
+      } else if (!error.response && error.message?.includes('Failed to fetch')) {
+        throw new Error('Network error. Please check the site URL and your connection.');
+      }
+
+      throw new Error(`Failed to load lists: ${error.message || 'Unknown error'}`);
     }
   }
 

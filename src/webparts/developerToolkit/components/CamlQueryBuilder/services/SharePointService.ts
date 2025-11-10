@@ -1,21 +1,46 @@
 import { WebPartContext } from '@microsoft/sp-webpart-base';
-import { spfi, SPFI, SPFx } from '@pnp/sp';
+import { SPFI } from '@pnp/sp';
 import SPContext from 'spfx-toolkit/lib/utilities/context';
 import { FieldType, IFieldInfo, IListInfo, IViewInfo } from '../types/CamlTypes';
 
 export class SharePointService {
   private sp: SPFI;
   private context: WebPartContext;
+  private currentSiteUrl: string;
 
   constructor(context: WebPartContext, siteUrl?: string) {
     this.context = context;
+    this.currentSiteUrl = siteUrl || context.pageContext.web.absoluteUrl;
 
     // Initialize with provided site URL or use current context
     if (siteUrl && siteUrl !== context.pageContext.web.absoluteUrl) {
-      this.sp = spfi(siteUrl).using(SPFx(context));
+      this.sp = this.getSpForSite(siteUrl);
     } else {
       this.sp = SPContext.sp;
     }
+  }
+
+  /**
+   * Get SPFI instance for a specific site using SPContext.sites
+   */
+  private async ensureSiteRegistered(siteUrl: string): Promise<void> {
+    // Check if site is already registered
+    if (!SPContext.sites.has(siteUrl)) {
+      // Add the site to SPContext with default config
+      await SPContext.sites.add(siteUrl, {
+        cache: { strategy: 'memory', ttl: 300000 }, // 5 minutes cache
+        logger: { enabled: true, prefix: 'MultiSite' }
+      });
+    }
+  }
+
+  /**
+   * Get SPFI instance for a specific site using SPContext.sites
+   */
+  private getSpForSite(siteUrl: string): SPFI {
+    // Get the site context (assumes site is already registered)
+    const siteContext = SPContext.sites.get(siteUrl);
+    return siteContext.sp;
   }
 
   /**
@@ -23,6 +48,12 @@ export class SharePointService {
    */
   public async getLists(): Promise<IListInfo[]> {
     try {
+      // Ensure site is registered if using a different site
+      if (this.currentSiteUrl !== this.context.pageContext.web.absoluteUrl) {
+        await this.ensureSiteRegistered(this.currentSiteUrl);
+        this.sp = this.getSpForSite(this.currentSiteUrl);
+      }
+
       const lists = await this.sp.web.lists
         .filter('Hidden eq false and BaseTemplate ne 115')
         .select('Id', 'Title', 'ItemCount', 'BaseTemplate')
@@ -34,9 +65,19 @@ export class SharePointService {
         itemCount: list.ItemCount,
         baseTemplate: list.BaseTemplate,
       }));
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error loading lists:', error);
-      throw new Error(`Failed to load lists: ${error.message}`);
+
+      // Provide more helpful error messages
+      if (error.status === 403) {
+        throw new Error('Access denied. You may not have permissions to access this site.');
+      } else if (error.status === 404) {
+        throw new Error('Site not found. Please check the URL and try again.');
+      } else if (!error.response && error.message?.includes('Failed to fetch')) {
+        throw new Error('Network error. Please check the site URL and your connection.');
+      }
+
+      throw new Error(`Failed to load lists: ${error.message || 'Unknown error'}`);
     }
   }
 
@@ -85,8 +126,10 @@ export class SharePointService {
    */
   public async getListViews(listId: string): Promise<IViewInfo[]> {
     try {
-      const list = await this.sp.web.lists.getById(listId)();
-      const views = await (list as any).views.filter('Hidden eq false')
+      // Get the list queryable object (not data)
+      const list = this.sp.web.lists.getById(listId);
+      const views = await list.views
+        .filter('Hidden eq false')
         .select('Id', 'Title', 'ViewQuery')
         .orderBy('Title')();
 
@@ -174,8 +217,9 @@ export class SharePointService {
    * Change site URL
    */
   public changeSiteUrl(siteUrl: string): void {
+    this.currentSiteUrl = siteUrl;
     if (siteUrl !== this.context.pageContext.web.absoluteUrl) {
-      this.sp = spfi(siteUrl).using(SPFx(this.context));
+      this.sp = this.getSpForSite(siteUrl);
     } else {
       this.sp = SPContext.sp;
     }
@@ -185,6 +229,6 @@ export class SharePointService {
    * Get current site URL
    */
   public getCurrentSiteUrl(): string {
-    return this.context.pageContext.web.absoluteUrl;
+    return this.currentSiteUrl;
   }
 }
