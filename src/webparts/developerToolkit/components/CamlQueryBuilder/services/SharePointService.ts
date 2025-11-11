@@ -4,7 +4,7 @@ import SPContext from 'spfx-toolkit/lib/utilities/context';
 import { FieldType, IFieldInfo, IListInfo, IViewInfo } from '../types/CamlTypes';
 
 export class SharePointService {
-  private sp: SPFI;
+  private sp: SPFI | null = null;
   private context: WebPartContext;
   private currentSiteUrl: string;
 
@@ -12,12 +12,11 @@ export class SharePointService {
     this.context = context;
     this.currentSiteUrl = siteUrl || context.pageContext.web.absoluteUrl;
 
-    // Initialize with provided site URL or use current context
-    if (siteUrl && siteUrl !== context.pageContext.web.absoluteUrl) {
-      this.sp = this.getSpForSite(siteUrl);
-    } else {
+    // For current site, initialize immediately
+    if (!siteUrl || siteUrl === context.pageContext.web.absoluteUrl) {
       this.sp = SPContext.sp;
     }
+    // For other sites, defer initialization until first use
   }
 
   /**
@@ -44,17 +43,33 @@ export class SharePointService {
   }
 
   /**
+   * Ensure SP instance is initialized for the current site
+   */
+  private async ensureSpInitialized(): Promise<SPFI> {
+    if (this.sp) {
+      return this.sp;
+    }
+
+    // Register and get SP for the current site
+    if (this.currentSiteUrl !== this.context.pageContext.web.absoluteUrl) {
+      await this.ensureSiteRegistered(this.currentSiteUrl);
+      this.sp = this.getSpForSite(this.currentSiteUrl);
+    } else {
+      this.sp = SPContext.sp;
+    }
+
+    return this.sp;
+  }
+
+  /**
    * Get all non-hidden lists from the site
    */
   public async getLists(): Promise<IListInfo[]> {
     try {
-      // Ensure site is registered if using a different site
-      if (this.currentSiteUrl !== this.context.pageContext.web.absoluteUrl) {
-        await this.ensureSiteRegistered(this.currentSiteUrl);
-        this.sp = this.getSpForSite(this.currentSiteUrl);
-      }
+      // Ensure SP instance is initialized
+      const sp = await this.ensureSpInitialized();
 
-      const lists = await this.sp.web.lists
+      const lists = await sp.web.lists
         .filter('Hidden eq false and BaseTemplate ne 115')
         .select('Id', 'Title', 'ItemCount', 'BaseTemplate')
         .orderBy('Title')();
@@ -86,8 +101,11 @@ export class SharePointService {
    */
   public async getListFields(listId: string): Promise<IFieldInfo[]> {
     try {
+      // Ensure SP instance is initialized
+      const sp = await this.ensureSpInitialized();
+
       // Get the list queryable object (not data)
-      const list = this.sp.web.lists.getById(listId);
+      const list = sp.web.lists.getById(listId);
 
       const fields = await list.fields
         .filter('Hidden eq false and ReadOnlyField eq false and FromBaseType eq false')
@@ -126,8 +144,11 @@ export class SharePointService {
    */
   public async getListViews(listId: string): Promise<IViewInfo[]> {
     try {
+      // Ensure SP instance is initialized
+      const sp = await this.ensureSpInitialized();
+
       // Get the list queryable object (not data)
-      const list = this.sp.web.lists.getById(listId);
+      const list = sp.web.lists.getById(listId);
       const views = await list.views
         .filter('Hidden eq false')
         .select('Id', 'Title', 'ViewQuery')
@@ -153,7 +174,10 @@ export class SharePointService {
     camlQuery: string
   ): Promise<{ count: number; items: Record<string, unknown>[] }> {
     try {
-      const items = await this.sp.web.lists.getById(listId).getItemsByCAMLQuery({
+      // Ensure SP instance is initialized
+      const sp = await this.ensureSpInitialized();
+
+      const items = await sp.web.lists.getById(listId).getItemsByCAMLQuery({
         ViewXml: camlQuery,
       });
 
@@ -172,7 +196,10 @@ export class SharePointService {
    */
   public async getCurrentUser(): Promise<{ id: number; title: string; email: string }> {
     try {
-      const user = await (this.sp.web as any).currentUser();
+      // Ensure SP instance is initialized
+      const sp = await this.ensureSpInitialized();
+
+      const user = await (sp.web as any).currentUser();
       return {
         id: user.Id,
         title: user.Title,
@@ -218,8 +245,9 @@ export class SharePointService {
    */
   public changeSiteUrl(siteUrl: string): void {
     this.currentSiteUrl = siteUrl;
+    // Reset sp instance to force re-initialization on next use
     if (siteUrl !== this.context.pageContext.web.absoluteUrl) {
-      this.sp = this.getSpForSite(siteUrl);
+      this.sp = null; // Will be initialized on next use
     } else {
       this.sp = SPContext.sp;
     }

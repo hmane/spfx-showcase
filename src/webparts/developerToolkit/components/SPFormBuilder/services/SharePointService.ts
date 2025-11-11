@@ -8,7 +8,7 @@ import { ISPField, ISPList } from '../types/SPFormBuilderTypes';
  * Instance-based service that supports changing site URLs using SPContext.sites
  */
 export class SharePointService {
-  private sp: SPFI;
+  private sp: SPFI | null = null;
   private context: WebPartContext;
   private currentSiteUrl: string;
 
@@ -16,11 +16,24 @@ export class SharePointService {
     this.context = context;
     this.currentSiteUrl = siteUrl || context.pageContext.web.absoluteUrl;
 
-    // Initialize with provided site URL or use current context
-    if (siteUrl && siteUrl !== context.pageContext.web.absoluteUrl) {
-      this.sp = this.getSpForSite(siteUrl);
-    } else {
+    // For current site, initialize immediately
+    if (!siteUrl || siteUrl === context.pageContext.web.absoluteUrl) {
       this.sp = SPContext.sp;
+    }
+    // For other sites, defer initialization until first use
+  }
+
+  /**
+   * Ensure site is registered in SPContext.sites
+   */
+  private async ensureSiteRegistered(siteUrl: string): Promise<void> {
+    // Check if site is already registered
+    if (!SPContext.sites.has(siteUrl)) {
+      // Add the site to SPContext with default config
+      await SPContext.sites.add(siteUrl, {
+        cache: { strategy: 'memory', ttl: 300000 }, // 5 minutes cache
+        logger: { enabled: true, prefix: 'MultiSite' }
+      });
     }
   }
 
@@ -31,6 +44,25 @@ export class SharePointService {
     // Get the site context (assumes site is already registered)
     const siteContext = SPContext.sites.get(siteUrl);
     return siteContext.sp;
+  }
+
+  /**
+   * Ensure SP instance is initialized for the current site
+   */
+  private async ensureSpInitialized(): Promise<SPFI> {
+    if (this.sp) {
+      return this.sp;
+    }
+
+    // Register and get SP for the current site
+    if (this.currentSiteUrl !== this.context.pageContext.web.absoluteUrl) {
+      await this.ensureSiteRegistered(this.currentSiteUrl);
+      this.sp = this.getSpForSite(this.currentSiteUrl);
+    } else {
+      this.sp = SPContext.sp;
+    }
+
+    return this.sp;
   }
 
   /**
@@ -45,8 +77,9 @@ export class SharePointService {
    */
   public changeSiteUrl(siteUrl: string): void {
     this.currentSiteUrl = siteUrl;
+    // Reset sp instance to force re-initialization on next use
     if (siteUrl !== this.context.pageContext.web.absoluteUrl) {
-      this.sp = this.getSpForSite(siteUrl);
+      this.sp = null; // Will be initialized on next use
     } else {
       this.sp = SPContext.sp;
     }
@@ -57,7 +90,10 @@ export class SharePointService {
    */
   public async getLists(): Promise<ISPList[]> {
     try {
-      const lists = await this.sp.web.lists
+      // Ensure SP instance is initialized
+      const sp = await this.ensureSpInitialized();
+
+      const lists = await sp.web.lists
         .filter('Hidden eq false and BaseTemplate ne 115')
         .select('Id', 'Title', 'ItemCount', 'BaseTemplate', 'BaseType')
         .orderBy('Title')();
@@ -90,8 +126,11 @@ export class SharePointService {
    */
   public async getListFields(listId: string): Promise<ISPField[]> {
     try {
+      // Ensure SP instance is initialized
+      const sp = await this.ensureSpInitialized();
+
       // Get the list queryable object (not data)
-      const list = this.sp.web.lists.getById(listId);
+      const list = sp.web.lists.getById(listId);
 
       const fields = await list.fields
         .filter('Hidden eq false and ReadOnlyField eq false and FromBaseType eq false')
