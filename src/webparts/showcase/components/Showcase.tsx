@@ -16,6 +16,7 @@ import { WebPartContext } from '@microsoft/sp-webpart-base';
 import { GroupViewerShowcase } from './demos/GroupViewerShowcase';
 import { HooksShowcase } from './demos/HooksShowcase';
 import { UserPersonaShowcase } from './demos/UserPersonaShowcase';
+import { DialogServiceShowcase } from './demos/DialogServiceShowcase';
 
 // Define the structure for a showcase item
 interface ShowcaseItem {
@@ -151,6 +152,16 @@ const showcases: ShowcaseItem[] = [
     description: 'useLocalStorage and useViewport hooks for state persistence and responsive design',
     status: 'Stable',
     category: 'Hooks',
+  },
+
+  // Utilities Category
+  {
+    id: 'dialog-service',
+    name: 'Dialog Service',
+    component: DialogServiceShowcase,
+    description: 'Loading overlays, alerts, and confirmation dialogs with JSX support and promise-based API',
+    status: 'New',
+    category: 'Utilities',
   },
 ];
 
