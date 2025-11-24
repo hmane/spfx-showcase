@@ -10,6 +10,7 @@ import { DeveloperGuide } from './DeveloperGuide/DeveloperGuide';
 import { FormGenerator } from './FormGenerator/FormGenerator';
 import { SPFormBuilder } from './SPFormBuilder/SPFormBuilder';
 import { SchemaExplorer } from './SchemaExplorer/SchemaExplorer';
+import { UISnippets } from './UISnippets/UISnippets';
 
 // Define the structure for a toolkit item
 interface ToolkitItem {
@@ -76,6 +77,15 @@ const toolkitSections: ToolkitItem[] = [
     description: 'Explore, select, and export SharePoint site schemas for provisioning',
     icon: 'SiteMapAdd',
     requiresContext: true,
+    showViewportControls: false,
+  },
+  {
+    id: 'ui-snippets',
+    name: 'UI Snippets',
+    component: UISnippets,
+    description: 'Reusable UI sections and patterns for SPFx development',
+    icon: 'CodeEdit',
+    requiresContext: false,
     showViewportControls: false,
   },
 ];
