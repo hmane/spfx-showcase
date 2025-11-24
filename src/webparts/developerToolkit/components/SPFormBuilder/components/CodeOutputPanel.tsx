@@ -79,19 +79,12 @@ export const CodeOutputPanel: React.FC<ICodeOutputPanelProps> = ({
           filename: '',
           label: 'Preview'
         };
-      case 'interface':
-        return {
-          code: generationResult.enums
-            ? `${generationResult.enums}\n\n${generationResult.interface}`
-            : generationResult.interface,
-          filename: `${listTitle}Types.ts`,
-          label: 'Interface & Enums'
-        };
       case 'schema':
+        // Schema now includes enums and inferred types - single source of truth
         return {
           code: generationResult.zodSchema,
           filename: `${listTitle}Schema.ts`,
-          label: 'Zod Schema'
+          label: 'Schema + Types'
         };
       case 'form':
         return {
@@ -116,6 +109,13 @@ export const CodeOutputPanel: React.FC<ICodeOutputPanelProps> = ({
           code: generationResult.complete,
           filename: `${listTitle}Complete.tsx`,
           label: 'Complete Package'
+        };
+      case 'interface':
+        // Legacy - redirect to schema (interface is now part of schema)
+        return {
+          code: generationResult.zodSchema,
+          filename: `${listTitle}Schema.ts`,
+          label: 'Schema + Types'
         };
       default:
         return {
@@ -145,8 +145,7 @@ export const CodeOutputPanel: React.FC<ICodeOutputPanelProps> = ({
         <PivotItem headerText="Form Preview" itemKey="preview" itemIcon="View" />
         <PivotItem headerText="Complete Package" itemKey="complete" itemIcon="Package" />
         <PivotItem headerText="Form Component" itemKey="form" itemIcon="Form" />
-        <PivotItem headerText="Interface + Enums" itemKey="interface" itemIcon="CodeEdit" />
-        <PivotItem headerText="Zod Schema" itemKey="schema" itemIcon="CheckMark" />
+        <PivotItem headerText="Schema + Types" itemKey="schema" itemIcon="CheckMark" title="Zod schema with enums and inferred TypeScript types" />
         <PivotItem headerText="CRUD Operations" itemKey="crud" itemIcon="Database" />
         <PivotItem headerText="Zustand Store" itemKey="store" itemIcon="BulletedList2" />
       </Pivot>
@@ -248,7 +247,7 @@ export const CodeOutputPanel: React.FC<ICodeOutputPanelProps> = ({
           color: '#605e5c'
         }}
       >
-        💡 Copy individual sections or download the complete package
+        💡 Schema + Types tab contains enums, Zod schema, and inferred TypeScript types in one file
       </div>
     </div>
   );

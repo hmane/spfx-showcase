@@ -27,10 +27,9 @@ export const SPFormBuilder: React.FC<ISPFormBuilderProps> = ({ context }) => {
 
   /**
    * Generate complete package with all files
+   * Note: Zod schema now contains enums and inferred types, making it the single source of truth
    */
   const generateCompletePackage = useCallback((parts: {
-    interfaceCode: string;
-    enums: string;
     zodSchema: string;
     formComponent: string;
     crud: string;
@@ -39,16 +38,13 @@ export const SPFormBuilder: React.FC<ISPFormBuilderProps> = ({ context }) => {
   }): string => {
     const sections: string[] = [];
 
-    if (parts.enums) {
-      sections.push(`// ===== ENUMS =====\n\n${parts.enums}`);
-    }
-
-    if (parts.interfaceCode) {
-      sections.push(`// ===== INTERFACE =====\n\n${parts.interfaceCode}`);
-    }
-
+    // Zod schema is now the primary source containing:
+    // - Enums (from Choice fields)
+    // - Reusable schemas (User, Lookup, Taxonomy, URL)
+    // - Main schema definition
+    // - Inferred TypeScript types
     if (parts.zodSchema) {
-      sections.push(`// ===== ZOD SCHEMA =====\n\n${parts.zodSchema}`);
+      sections.push(`// ===== SCHEMA + TYPES (Single Source of Truth) =====\n\n${parts.zodSchema}`);
     }
 
     if (parts.crud) {
@@ -183,10 +179,8 @@ export const SPFormBuilder: React.FC<ISPFormBuilderProps> = ({ context }) => {
       // Generate view component (placeholder for now)
       const viewComponent = '// View component generation coming soon';
 
-      // Generate complete package
+      // Generate complete package (Zod schema now contains enums and types)
       const complete = generateCompletePackage({
-        interfaceCode,
-        enums,
         zodSchema,
         formComponent,
         crud,

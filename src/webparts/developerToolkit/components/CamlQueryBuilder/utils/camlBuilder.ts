@@ -12,6 +12,24 @@ export function generateId(): string {
 }
 
 /**
+ * Check if a condition is empty (no field selected yet)
+ * A condition is considered valid as soon as a field is selected
+ */
+function isEmptyCondition(condition: ICondition): boolean {
+  return !condition.fieldInternalName || condition.fieldInternalName.trim() === '';
+}
+
+/**
+ * Check if a group has any valid (non-empty) conditions
+ * A condition is valid as soon as a field is selected (value can be empty)
+ */
+export function hasValidConditions(group: IConditionGroup): boolean {
+  const hasValidDirectConditions = group.conditions.some(c => !isEmptyCondition(c));
+  const hasValidNestedConditions = group.nestedGroups.some(g => hasValidConditions(g));
+  return hasValidDirectConditions || hasValidNestedConditions;
+}
+
+/**
  * Build CAML XML for a single condition
  */
 function buildConditionXML(condition: ICondition, indent: string = '  '): string {
@@ -25,10 +43,12 @@ function buildConditionXML(condition: ICondition, indent: string = '  '): string
 
   // Handle In operator (multiple values)
   if (operator === 'In') {
-    const values = value.split(';').filter((v: string) => v.trim());
-    const valuesXML = values
-      .map((v: string) => `${indent}    <Value Type="${valueType}">${escapeXML(v.trim())}</Value>`)
-      .join('\n');
+    const valueString = value ?? '';
+    const values = valueString.split(';').filter((v: string) => v.trim());
+    // If no values, still output In with empty Values section
+    const valuesXML = values.length > 0
+      ? values.map((v: string) => `${indent}    <Value Type="${valueType}">${escapeXML(v.trim())}</Value>`).join('\n')
+      : '';
 
     return `${indent}<In>\n${indent}  <FieldRef Name="${fieldInternalName}"/>\n${indent}  <Values>\n${valuesXML}\n${indent}  </Values>\n${indent}</In>`;
   }
@@ -46,12 +66,13 @@ function buildConditionXML(condition: ICondition, indent: string = '  '): string
     valueTag += ` IncludeTimeValue="${includeTimeValue ? 'TRUE' : 'FALSE'}"`;
   }
 
-  // Handle special tokens (don't escape)
-  const isToken = value.startsWith('<') && value.endsWith('/>');
+  // Handle special tokens (don't escape) - ensure value is a string first
+  const valueStr = value ?? '';
+  const isToken = valueStr.startsWith('<') && valueStr.endsWith('/>');
   if (isToken) {
-    valueTag += `>${value}</Value>`;
+    valueTag += `>${valueStr}</Value>`;
   } else {
-    valueTag += `>${escapeXML(value)}</Value>`;
+    valueTag += `>${escapeXML(valueStr)}</Value>`;
   }
 
   return `${indent}<${operator}>\n${indent}  ${fieldRef}\n${indent}  ${valueTag}\n${indent}</${operator}>`;
@@ -64,8 +85,11 @@ function buildConditionXML(condition: ICondition, indent: string = '  '): string
 function buildGroupXML(group: IConditionGroup, indent: string = '  '): string {
   const { operator, conditions, nestedGroups } = group;
 
-  // Combine conditions and nested groups into a single array
-  const allChildren: (ICondition | IConditionGroup)[] = [...conditions, ...nestedGroups];
+  // Filter out empty conditions (where field is not selected)
+  const validConditions = conditions.filter(c => c.fieldInternalName && c.fieldInternalName.trim() !== '');
+
+  // Combine valid conditions and nested groups into a single array
+  const allChildren: (ICondition | IConditionGroup)[] = [...validConditions, ...nestedGroups];
 
   if (allChildren.length === 0) {
     return '';
@@ -170,12 +194,15 @@ export function buildCAMLQuery(query: ICAMLQuery): string {
   // Build Query section
   const queryParts: string[] = ['  <Query>'];
 
-  // Where clause
-  if (query.where && (query.where.conditions.length > 0 || query.where.nestedGroups.length > 0)) {
+  // Where clause - only add if there are valid (non-empty) conditions
+  if (query.where && hasValidConditions(query.where)) {
     const whereXML = buildGroupXML(query.where, '      ');
-    queryParts.push('    <Where>');
-    queryParts.push(whereXML);
-    queryParts.push('    </Where>');
+    // Only add Where clause if we have actual content
+    if (whereXML && whereXML.trim()) {
+      queryParts.push('    <Where>');
+      queryParts.push(whereXML);
+      queryParts.push('    </Where>');
+    }
   }
 
   // OrderBy clause
@@ -231,12 +258,13 @@ function escapeXML(str: string): string {
 
 /**
  * Validate CAML query structure
+ * Only validates conditions that have a field selected (ignores empty placeholder conditions)
  */
 export function validateCAMLQuery(query: ICAMLQuery): string[] {
   const errors: string[] = [];
 
-  // Validate conditions
-  if (query.where) {
+  // Validate conditions - only if there are non-empty conditions
+  if (query.where && hasValidConditions(query.where)) {
     validateGroup(query.where, errors);
   }
 
@@ -244,27 +272,26 @@ export function validateCAMLQuery(query: ICAMLQuery): string[] {
   if (query.orderBy) {
     query.orderBy.forEach((field, index) => {
       if (!field.fieldInternalName || field.fieldInternalName.trim() === '') {
-        errors.push(`OrderBy field #${index + 1} has no field name`);
+        errors.push(`Sort field #${index + 1} has no field selected`);
       }
     });
   }
 
-  // Validate ViewFields
+  // Validate ViewFields - silently ignore empty ones
   if (query.viewFields) {
-    query.viewFields.forEach((field, index) => {
-      if (!field || field.trim() === '') {
-        errors.push(`ViewField #${index + 1} is empty`);
-      }
-    });
+    const emptyFields = query.viewFields.filter(f => !f || f.trim() === '');
+    if (emptyFields.length > 0) {
+      errors.push(`${emptyFields.length} ViewField(s) are empty`);
+    }
   }
 
   // Validate RowLimit
   if (query.rowLimit !== undefined && query.rowLimit !== null) {
     if (query.rowLimit < 1) {
-      errors.push('RowLimit must be at least 1');
+      errors.push('Row limit must be at least 1');
     }
     if (query.rowLimit > 5000) {
-      errors.push('RowLimit should not exceed 5000 (list view threshold)');
+      errors.push('Row limit exceeds 5000 (SharePoint list view threshold)');
     }
   }
 
@@ -272,40 +299,37 @@ export function validateCAMLQuery(query: ICAMLQuery): string[] {
 }
 
 function validateGroup(group: IConditionGroup, errors: string[]): void {
-  // Validate conditions
-  group.conditions.forEach((condition, index) => {
-    if (!condition.fieldInternalName || condition.fieldInternalName.trim() === '') {
-      errors.push(`Condition #${index + 1} has no field selected`);
-    }
+  // Validate only non-empty conditions (conditions with a field selected)
+  group.conditions
+    .filter(c => !isEmptyCondition(c)) // Skip empty conditions
+    .forEach((condition) => {
+      const conditionNum = group.conditions.indexOf(condition) + 1;
 
-    if (!condition.operator) {
-      errors.push(`Condition #${index + 1} has no operator selected`);
-    }
-
-    // Check if operator requires a value
-    const requiresValue = !['IsNull', 'IsNotNull'].includes(condition.operator);
-    if (requiresValue && (condition.value === undefined || condition.value === null || condition.value === '')) {
-      errors.push(`Condition #${index + 1} requires a value for operator ${condition.operator}`);
-    }
-
-    // Validate Boolean values
-    if (condition.valueType === 'Boolean' && condition.value !== '0' && condition.value !== '1') {
-      errors.push(
-        `Condition #${index + 1}: Boolean values must be 0 or 1, not "true" or "false"`
-      );
-    }
-
-    // Validate In operator
-    if (condition.operator === 'In') {
-      const values = String(condition.value).split(';').filter(v => v.trim());
-      if (values.length === 0) {
-        errors.push(`Condition #${index + 1}: In operator requires at least one value`);
+      if (!condition.operator) {
+        errors.push(`Condition #${conditionNum}: No operator selected`);
       }
-      if (values.length > 500) {
-        errors.push(`Condition #${index + 1}: In operator supports maximum 500 values`);
+
+      // Empty values are valid for most operators (searching for empty field values)
+      // Only "In" operator requires at least one value to make sense
+
+      // Validate Boolean values - only if value is provided
+      if (condition.valueType === 'Boolean' && condition.value && condition.value !== '0' && condition.value !== '1') {
+        errors.push(
+          `Condition #${conditionNum}: Boolean value must be 0 (No) or 1 (Yes)`
+        );
       }
-    }
-  });
+
+      // Validate In operator - requires at least one value
+      if (condition.operator === 'In') {
+        const values = String(condition.value ?? '').split(';').filter(v => v.trim());
+        if (values.length === 0) {
+          errors.push(`Condition #${conditionNum}: "In" operator requires at least one value`);
+        }
+        if (values.length > 500) {
+          errors.push(`Condition #${conditionNum}: "In" operator supports max 500 values (found ${values.length})`);
+        }
+      }
+    });
 
   // Validate nested groups recursively
   group.nestedGroups.forEach(nestedGroup => {

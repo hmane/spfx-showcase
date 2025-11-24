@@ -9,6 +9,7 @@ import { CamlQueryBuilder } from './CamlQueryBuilder/CamlQueryBuilder';
 import { DeveloperGuide } from './DeveloperGuide/DeveloperGuide';
 import { FormGenerator } from './FormGenerator/FormGenerator';
 import { SPFormBuilder } from './SPFormBuilder/SPFormBuilder';
+import { SchemaExplorer } from './SchemaExplorer/SchemaExplorer';
 
 // Define the structure for a toolkit item
 interface ToolkitItem {
@@ -65,6 +66,15 @@ const toolkitSections: ToolkitItem[] = [
     component: SPFormBuilder,
     description: 'Auto-generate TypeScript interfaces, forms, CRUD operations from SharePoint lists',
     icon: 'Generate',
+    requiresContext: true,
+    showViewportControls: false,
+  },
+  {
+    id: 'schema-explorer',
+    name: 'Schema Explorer',
+    component: SchemaExplorer,
+    description: 'Explore, select, and export SharePoint site schemas for provisioning',
+    icon: 'SiteMapAdd',
     requiresContext: true,
     showViewportControls: false,
   },

@@ -81,7 +81,7 @@ const DynamicFormWrapper: React.FC<IDynamicFormWrapperProps> = React.memo(({
     <SPDynamicForm
       listId={listId}
       mode={mode}
-      itemId={itemId}
+      
       sections={sections}
       fieldOrder={fieldOrder}
       excludeFields={excludeFields}
@@ -124,6 +124,12 @@ export const SPDynamicFormShowcase: React.FC<ISPDynamicFormShowcaseProps> = ({ c
 
     try {
       const sp = SPContext.sp;
+
+      // Check if SPContext is initialized
+      if (!sp || !sp.web) {
+        throw new Error('SPContext is not initialized. Please refresh the page and try again.');
+      }
+
       const categoryListTitle = 'SPFieldsCategories';
 
       // Check if list exists
@@ -296,6 +302,14 @@ export const SPDynamicFormShowcase: React.FC<ISPDynamicFormShowcaseProps> = ({ c
     (async () => {
       try {
         const sp = SPContext.sp;
+
+        // Check if SPContext is initialized
+        if (!sp || !sp.web) {
+          console.warn('SPContext not yet initialized, will retry...');
+          setListExists(null);
+          return;
+        }
+
         await sp.web.lists.getByTitle(LIST_TITLE)();
         setListExists(true);
       } catch {

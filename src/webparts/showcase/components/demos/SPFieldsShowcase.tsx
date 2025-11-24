@@ -27,6 +27,7 @@ import {
 import { SPBooleanDisplayType } from 'spfx-toolkit/lib/components/spFields/SPBooleanField';
 import { SPLookupDisplayMode } from 'spfx-toolkit/lib/components/spFields/SPLookupField';
 import { SPTextFieldMode } from 'spfx-toolkit/lib/components/spFields/SPTextField';
+import { SPUserFieldDisplayMode } from 'spfx-toolkit/lib/components/spFields/SPUserField';
 import {
   FormContainer,
   FormDescription,
@@ -52,11 +53,13 @@ const urlSchema = z.object({
   Description: z.string().optional(),
 });
 
+// IPrincipal schema - updated to match spfx-toolkit's new IPrincipal format
 const userSchema = z
   .object({
-    Id: z.number(),
-    Title: z.string().optional(),
-    EMail: z.string().optional(),
+    id: z.union([z.string(), z.number()]), // User ID (can be string or number)
+    email: z.string().email().optional(),
+    title: z.string().optional(),
+    loginName: z.string().optional(),
   })
   .passthrough();
 
@@ -153,13 +156,19 @@ const features: ShowcaseFeature[] = [
     icon: '📝',
     title: '10 Field Components',
     description:
-      'Complete suite: Text (Single/Multi-line/Rich), Choice, User, Date, Number, Boolean, URL, Lookup, Taxonomy, and universal SPField',
+      'Complete suite: Text (Single/Multi-line/Rich), Choice, User (3 display modes), Date, Number, Boolean, URL, Lookup (smart auto-switching), Taxonomy, and universal SPField',
+  },
+  {
+    icon: '👥',
+    title: 'Enhanced User Field',
+    description:
+      'Three display modes (PeoplePicker, Compact, List) with presence indicators, photos, job titles. Returns IPrincipal objects with full user metadata',
   },
   {
     icon: '🔌',
     title: 'Smart SharePoint Integration',
     description:
-      'Auto-load field configurations from lists and site columns. Supports dependent lookups, cascading filters, and real-time data fetching',
+      'Auto-load field configurations via columnName prop. Multi-site support, cross-site lookups, and deferred initialization',
   },
   {
     icon: '✅',
@@ -168,28 +177,22 @@ const features: ShowcaseFeature[] = [
       'Full integration with React Hook Form for validation, error handling, auto-scroll to errors, and Zod schema validation',
   },
   {
+    icon: '📅',
+    title: 'Advanced Date Picker',
+    description:
+      'Multiple styling modes (outlined/underlined/filled), time intervals, week numbers, custom date validation, and disabled date ranges',
+  },
+  {
+    icon: '🔍',
+    title: 'Smart Lookup Fields',
+    description:
+      'Auto-switching between dropdown and searchable modes based on item count threshold. Supports dependent/cascading lookups and custom templates',
+  },
+  {
     icon: '📜',
     title: 'Append-Only with History',
     description:
       'SPTextField supports append-only mode with full version history, copy previous entries, customizable rendering, and load-more functionality',
-  },
-  {
-    icon: '🎨',
-    title: 'Rich Text & Formatting',
-    description:
-      'Built-in rich text editor with HTML formatting, character counters, and configurable text modes (single/multi-line/rich)',
-  },
-  {
-    icon: '🔍',
-    title: 'Advanced Lookup & Search',
-    description:
-      'Auto-switching between dropdown and searchable modes based on item count. Supports filtering, custom display templates, and dependent lookups',
-  },
-  {
-    icon: '🏷️',
-    title: 'Taxonomy & Metadata',
-    description:
-      'Full term store integration with SPTaxonomyField. Supports term path display, single/multiple selection, and custom term set filtering',
   },
   {
     icon: '💾',
@@ -207,7 +210,7 @@ const features: ShowcaseFeature[] = [
     icon: '💻',
     title: 'TypeScript & Performance',
     description:
-      'Full TypeScript support with discriminated unions, lazy loading, caching strategies, and optimized re-renders',
+      'Full TypeScript support with IPrincipal types, lazy loading, caching strategies, and optimized re-renders',
   },
 ];
 
@@ -296,28 +299,82 @@ const CHOICE_FIELD_SAMPLE = `// Load from SharePoint list
   }}
 />`;
 
-const USER_FIELD_SAMPLE = `<SPUserField
+const USER_FIELD_SAMPLE = `import { SPUserField, SPUserFieldDisplayMode } from 'spfx-toolkit/lib/components/spFields';
+
+// People Picker mode (default) - full search experience
+<SPUserField
   name="assignedTo"
   label="Assigned To"
   allowMultiple={true}
-  placeholder="Select users"
+  displayMode={SPUserFieldDisplayMode.PeoplePicker}
+  placeholder="Search for users or groups"
   required
+  showPresence={true}
+  showPhoto={true}
+/>
+
+// Compact mode - condensed display for space-constrained UIs
+<SPUserField
+  name="reviewer"
+  label="Reviewer"
+  displayMode={SPUserFieldDisplayMode.Compact}
+  showEmail={true}
+  showJobTitle={false}
+/>
+
+// List mode - displays users in a vertical list format
+<SPUserField
+  name="teamMembers"
+  label="Team Members"
+  allowMultiple={true}
+  displayMode={SPUserFieldDisplayMode.List}
+  showPhoto={true}
+  showEmail={true}
+  showJobTitle={true}
+/>
+
+// Auto-load from SharePoint column metadata
+<SPUserField
+  name="manager"
+  label="Manager"
+  columnName="Manager"
+  listId="Tasks"
+  resolveDelay={300}
+  suggestionLimit={10}
 />`;
 
-const DATE_FIELD_SAMPLE = `<SPDateField
+const DATE_FIELD_SAMPLE = `import { SPDateField } from 'spfx-toolkit/lib/components/spFields';
+
+// DateTime picker with time
+<SPDateField
   name="dueDate"
   label="Due Date"
   showTimePicker={true}
+  timeInterval={15}  // 15-minute intervals
   required
   placeholder="Select due date and time"
+  stylingMode="outlined"
+  showTodayButton={true}
 />
 
-// Date only (no time)
+// Date only with week numbers
 <SPDateField
   name="startDate"
   label="Start Date"
   showTimePicker={false}
+  showWeekNumbers={true}
+  showCalendarIcon={true}
   placeholder="Select date"
+/>
+
+// Date with custom validation and disabled dates
+<SPDateField
+  name="deliveryDate"
+  label="Delivery Date"
+  showTimePicker={false}
+  disabledDates={(date) => date.getDay() === 0 || date.getDay() === 6}  // Disable weekends
+  dateValidator={(date) => date >= new Date() ? true : 'Date must be in the future'}
+  stylingMode="underlined"
 />`;
 
 const NUMBER_FIELD_SAMPLE = `<SPNumberField
@@ -1211,18 +1268,26 @@ export const SPFieldsShowcase: React.FC = () => {
 
               {/* User Field Section */}
               <div style={styles.formSection}>
-                <h3 style={styles.formSectionTitle}>👥 User/People Field</h3>
+                <h3 style={styles.formSectionTitle}>👥 User/People Field (3 Display Modes)</h3>
+                <p style={{ marginBottom: '16px', fontSize: '0.875rem', color: '#605e5c' }}>
+                  SPUserField now supports three display modes and returns IPrincipal objects with id, email, title, and loginName.
+                </p>
                 <FormItem>
-                  <FormLabel isRequired>Assigned To</FormLabel>
+                  <FormLabel isRequired>Assigned To (PeoplePicker Mode)</FormLabel>
                   <FormValue>
                     <SPUserField
                       name='assignedTo'
                       allowMultiple={true}
-                      placeholder='Select users or groups'
+                      displayMode={SPUserFieldDisplayMode.PeoplePicker}
+                      placeholder='Search for users or groups'
                       required
+                      showPresence={true}
+                      showPhoto={true}
+                      resolveDelay={300}
+                      suggestionLimit={5}
                     />
                     <FormDescription>
-                      Select one or more users/groups (supports people picker search)
+                      Full people picker with presence indicators and photos. Returns IPrincipal[] with {'{id, email, title, loginName}'}
                     </FormDescription>
                     <FormError error={form.formState.errors.assignedTo?.message} showIcon />
                   </FormValue>

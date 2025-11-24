@@ -1,7 +1,7 @@
 // src/webparts/showcase/components/CamlQueryBuilder/components/AdvancedOptions.tsx
 
 import * as React from 'react';
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import {
   TextField,
   Dropdown,
@@ -9,6 +9,7 @@ import {
   IconButton,
   DefaultButton,
 } from '@fluentui/react';
+import { TagBox } from 'devextreme-react/tag-box';
 import { IOrderByField, IFieldInfo } from '../types/CamlTypes';
 
 export interface IAdvancedOptionsProps {
@@ -79,20 +80,12 @@ export const AdvancedOptions: React.FC<IAdvancedOptionsProps> = ({
     [onRowLimitChange]
   );
 
-  // Handle ViewFields selection change
+  // Handle ViewFields selection change (for TagBox)
   const handleViewFieldsChange = useCallback(
-    (event: React.FormEvent<HTMLDivElement>, option?: IDropdownOption): void => {
-      if (option) {
-        let newViewFields: string[];
-        if (option.selected) {
-          newViewFields = [...viewFields, option.key as string];
-        } else {
-          newViewFields = viewFields.filter(f => f !== option.key);
-        }
-        onViewFieldsChange(newViewFields);
-      }
+    (e: { value?: string[] }): void => {
+      onViewFieldsChange(e.value || []);
     },
-    [viewFields, onViewFieldsChange]
+    [onViewFieldsChange]
   );
 
   // Select all fields
@@ -111,12 +104,14 @@ export const AdvancedOptions: React.FC<IAdvancedOptionsProps> = ({
     text: field.title,
   }));
 
-  // ViewFields options with checkboxes
-  const viewFieldOptions: IDropdownOption[] = fields.map(field => ({
-    key: field.internalName,
-    text: field.title,
-    selected: viewFields.includes(field.internalName),
-  }));
+  // TagBox data source for ViewFields
+  const tagBoxDataSource = useMemo(() => {
+    return fields.map(field => ({
+      internalName: field.internalName,
+      title: field.title,
+      typeAsString: field.typeAsString,
+    }));
+  }, [fields]);
 
   return (
     <div
@@ -219,12 +214,20 @@ export const AdvancedOptions: React.FC<IAdvancedOptionsProps> = ({
           </div>
         </div>
 
-        <Dropdown
-          placeholder="Select fields to return"
-          multiSelect
-          options={viewFieldOptions}
-          onChange={handleViewFieldsChange}
-          styles={{ dropdown: { width: '100%' } }}
+        <TagBox
+          dataSource={tagBoxDataSource}
+          value={viewFields}
+          valueExpr="internalName"
+          displayExpr="title"
+          placeholder="Select fields to return..."
+          showSelectionControls={true}
+          showClearButton={true}
+          searchEnabled={true}
+          hideSelectedItems={false}
+          multiline={true}
+          onValueChanged={handleViewFieldsChange}
+          stylingMode="outlined"
+          width="100%"
         />
 
         {viewFields.length > 0 && (

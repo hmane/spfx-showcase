@@ -1,7 +1,7 @@
 // src/webparts/showcase/components/CamlQueryBuilder/components/CAMLPreview.tsx
 
 import * as React from 'react';
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState, useEffect } from 'react';
 import { PrimaryButton, MessageBar, MessageBarType } from '@fluentui/react';
 import { CodeEditor } from '../../../../../components/CodeEditor';
 
@@ -19,6 +19,14 @@ export const CAMLPreview: React.FC<ICAMLPreviewProps> = ({
   validationErrors,
   onCopy,
 }) => {
+  // Use state to track version for forcing CodeEditor re-render when camlXML changes
+  const [editorVersion, setEditorVersion] = useState(0);
+
+  // Increment version when camlXML changes to force CodeEditor to re-render
+  useEffect(() => {
+    setEditorVersion(v => v + 1);
+  }, [camlXML]);
+
   // Line and character count
   const stats = useMemo(() => {
     if (!camlXML) return { lines: 0, characters: 0 };
@@ -101,6 +109,7 @@ export const CAMLPreview: React.FC<ICAMLPreviewProps> = ({
         </div>
       ) : (
         <CodeEditor
+          key={`caml-preview-${editorVersion}`}
           value={camlXML}
           language="xml"
           readOnly={true}
