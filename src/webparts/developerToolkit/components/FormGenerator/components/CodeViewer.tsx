@@ -10,8 +10,8 @@ export interface ICodeViewerProps {
 }
 
 /**
- * Code viewer component with MonacoEditor for professional syntax highlighting.
- * Now supports editing so users can experiment with generated code!
+ * Code viewer component with syntax highlighting.
+ * Supports editing so users can experiment with generated code!
  */
 export const CodeViewer: React.FC<ICodeViewerProps> = ({
   code,

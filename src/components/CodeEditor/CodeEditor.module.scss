@@ -82,14 +82,15 @@
   }
 }
 
-// Full Monaco editor mode
-.codeEditorContainer {
+// Dark theme editor
+.codeEditorDark {
   display: flex;
   flex-direction: column;
-  border: 1px solid #d1d1d1;
+  border: 1px solid #444;
   border-radius: 4px;
   overflow: hidden;
   background: #1e1e1e;
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
 
   .header {
     display: flex;
@@ -134,23 +135,152 @@
     }
   }
 
-  .editorWrapper {
-    flex: 1;
-    overflow: hidden;
+  .codeContent {
     position: relative;
+    overflow: auto;
+    background: #1e1e1e;
+  }
+
+  .codeTextarea {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    padding: 12px;
+    padding-left: 60px; // Account for line numbers
+    margin: 0;
+    border: none;
+    outline: none;
+    resize: none;
+    background: transparent;
+    color: transparent;
+    caret-color: #ffffff;
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+    font-size: 13px;
+    line-height: 21px;
+    white-space: pre;
+    overflow: hidden;
+    z-index: 1;
+
+    &::selection {
+      background: rgba(38, 79, 120, 0.8);
+    }
+  }
+
+  .codeBlock {
+    margin: 0;
+    padding: 12px 0;
+    background: #1e1e1e;
+    color: #d4d4d4;
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+    font-size: 13px;
+    line-height: 21px;
+    pointer-events: none;
+
+    .codeLine {
+      display: flex;
+      padding: 0 12px;
+      min-height: 21px;
+
+      &:hover {
+        background: #2a2a2a;
+      }
+
+      .lineNumber {
+        display: inline-block;
+        min-width: 40px;
+        padding-right: 16px;
+        text-align: right;
+        color: #858585;
+        user-select: none;
+        flex-shrink: 0;
+      }
+
+      .lineContent {
+        flex: 1;
+        white-space: pre;
+      }
+
+      // Syntax highlighting - Dark theme
+      .keyword {
+        color: #569cd6; // Blue
+        font-weight: 500;
+      }
+
+      .string {
+        color: #ce9178; // Orange-brown
+      }
+
+      .comment {
+        color: #6a9955; // Green
+        font-style: italic;
+      }
+
+      .number {
+        color: #b5cea8; // Light green
+      }
+
+      .boolean {
+        color: #569cd6; // Blue (same as keyword)
+      }
+
+      .tag {
+        color: #569cd6; // Blue for XML/HTML tags
+      }
+
+      .attribute {
+        color: #9cdcfe; // Light blue for attributes
+      }
+
+      .text {
+        color: #d4d4d4; // Default text
+      }
+    }
   }
 }
 
-// Light theme adjustments
-.codeEditorContainer:has([data-theme='vs']) {
+// Light theme editor
+.codeEditorLight {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #d1d1d1;
+  border-radius: 4px;
+  overflow: hidden;
   background: #ffffff;
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
 
   .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
     background: #f5f5f5;
     border-bottom: 1px solid #e0e0e0;
 
+    .headerLeft {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
     .fileName {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      font-size: 13px;
       color: #333333;
+      font-weight: 500;
+    }
+
+    .languageBadge {
+      font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+      font-size: 11px;
+      padding: 2px 8px;
+      background: #0078d4;
+      color: #ffffff;
+      border-radius: 3px;
+      text-transform: uppercase;
+      font-weight: 600;
+      letter-spacing: 0.5px;
     }
 
     .actionButton {
@@ -159,6 +289,110 @@
       &:hover {
         color: #000000;
         background: #e0e0e0;
+      }
+    }
+  }
+
+  .codeContent {
+    position: relative;
+    overflow: auto;
+    background: #ffffff;
+  }
+
+  .codeTextarea {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    padding: 12px;
+    padding-left: 60px; // Account for line numbers
+    margin: 0;
+    border: none;
+    outline: none;
+    resize: none;
+    background: transparent;
+    color: transparent;
+    caret-color: #000000;
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+    font-size: 13px;
+    line-height: 21px;
+    white-space: pre;
+    overflow: hidden;
+    z-index: 1;
+
+    &::selection {
+      background: rgba(173, 214, 255, 0.8);
+    }
+  }
+
+  .codeBlock {
+    margin: 0;
+    padding: 12px 0;
+    background: #ffffff;
+    color: #333333;
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+    font-size: 13px;
+    line-height: 21px;
+    pointer-events: none;
+
+    .codeLine {
+      display: flex;
+      padding: 0 12px;
+      min-height: 21px;
+
+      &:hover {
+        background: #f5f5f5;
+      }
+
+      .lineNumber {
+        display: inline-block;
+        min-width: 40px;
+        padding-right: 16px;
+        text-align: right;
+        color: #999999;
+        user-select: none;
+        flex-shrink: 0;
+      }
+
+      .lineContent {
+        flex: 1;
+        white-space: pre;
+      }
+
+      // Syntax highlighting - Light theme
+      .keyword {
+        color: #0000ff; // Blue
+        font-weight: 500;
+      }
+
+      .string {
+        color: #a31515; // Red-brown
+      }
+
+      .comment {
+        color: #008000; // Green
+        font-style: italic;
+      }
+
+      .number {
+        color: #098658; // Dark green
+      }
+
+      .boolean {
+        color: #0000ff; // Blue (same as keyword)
+      }
+
+      .tag {
+        color: #800000; // Maroon for XML/HTML tags
+      }
+
+      .attribute {
+        color: #ff0000; // Red for attributes
+      }
+
+      .text {
+        color: #333333; // Default text
       }
     }
   }

@@ -4,7 +4,6 @@ import { CodeEditor } from '../../../../../../components/CodeEditor';
 
 /**
  * Code block component with syntax highlighting and copy functionality.
- * Now uses MonacoEditor for professional VS Code-like syntax highlighting.
  * Supports compact mode for simple commands and config files.
  */
 export const CodeBlock: React.FC<ICodeBlockProps> = ({
@@ -12,7 +11,7 @@ export const CodeBlock: React.FC<ICodeBlockProps> = ({
   language,
   filename,
   showLineNumbers = true,
-  highlightLines = [], // Note: Line highlighting not yet implemented in MonacoEditor wrapper
+  highlightLines = [], // Note: Line highlighting not yet implemented
   showCopyButton = true,
   maxHeight,
   compact = false,

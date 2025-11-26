@@ -12,7 +12,7 @@ export interface ICAMLPreviewProps {
 }
 
 /**
- * CAML Query Preview component with MonacoEditor for professional XML syntax highlighting and validation.
+ * CAML Query Preview component with XML syntax highlighting.
  */
 export const CAMLPreview: React.FC<ICAMLPreviewProps> = ({
   camlXML,
@@ -90,7 +90,7 @@ export const CAMLPreview: React.FC<ICAMLPreviewProps> = ({
         </MessageBar>
       )}
 
-      {/* CAML XML Display with MonacoEditor */}
+      {/* CAML XML Display */}
       {isEmpty ? (
         <div
           style={{
