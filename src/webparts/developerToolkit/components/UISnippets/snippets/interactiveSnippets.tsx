@@ -437,4 +437,184 @@ const toggle = (id: string) => {
 </div>`,
     preview: <ToggleSwitchPreview />,
   },
+  {
+    id: 'context-menu',
+    title: 'Context Menu',
+    description: 'Right-click context menu pattern',
+    category: 'interactive',
+    code: `const [showMenu, setShowMenu] = useState(false);
+const [menuPos, setMenuPos] = useState({ x: 0, y: 0 });
+
+const handleContextMenu = (e: React.MouseEvent) => {
+  e.preventDefault();
+  setMenuPos({ x: e.clientX, y: e.clientY });
+  setShowMenu(true);
+};
+
+<div onContextMenu={handleContextMenu} style={{ position: 'relative', padding: '40px', background: '#f3f2f1', borderRadius: '4px' }}>
+  Right-click here for context menu
+
+  {showMenu && (
+    <div
+      style={{
+        position: 'fixed',
+        top: menuPos.y,
+        left: menuPos.x,
+        background: '#fff',
+        boxShadow: '0 4px 16px rgba(0,0,0,0.15)',
+        borderRadius: '4px',
+        zIndex: 1000,
+        minWidth: '160px',
+      }}
+    >
+      <div style={{ padding: '8px 16px', cursor: 'pointer' }} className="hover-highlight">
+        <Icon iconName="Edit" /> Edit
+      </div>
+      <div style={{ padding: '8px 16px', cursor: 'pointer' }} className="hover-highlight">
+        <Icon iconName="Copy" /> Copy
+      </div>
+      <div style={{ height: '1px', background: '#edebe9', margin: '4px 0' }} />
+      <div style={{ padding: '8px 16px', cursor: 'pointer', color: '#a80000' }} className="hover-highlight">
+        <Icon iconName="Delete" /> Delete
+      </div>
+    </div>
+  )}
+</div>`,
+    preview: (
+      <div style={{ position: 'relative', padding: '16px', background: '#f3f2f1', borderRadius: '4px', fontSize: '11px', textAlign: 'center' }}>
+        Right-click area
+        <div
+          style={{
+            position: 'absolute',
+            top: '40px',
+            left: '10px',
+            background: '#fff',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+            borderRadius: '4px',
+            minWidth: '100px',
+            zIndex: 10,
+          }}
+        >
+          <div style={{ padding: '6px 10px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '10px' }}>
+            <Icon iconName="Edit" style={{ fontSize: '10px' }} /> Edit
+          </div>
+          <div style={{ padding: '6px 10px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '10px' }}>
+            <Icon iconName="Copy" style={{ fontSize: '10px' }} /> Copy
+          </div>
+          <div style={{ height: '1px', background: '#edebe9' }} />
+          <div style={{ padding: '6px 10px', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '10px', color: '#a80000' }}>
+            <Icon iconName="Delete" style={{ fontSize: '10px' }} /> Delete
+          </div>
+        </div>
+      </div>
+    ),
+  },
+  {
+    id: 'popover-callout',
+    title: 'Popover/Callout',
+    description: 'Information callout with arrow',
+    category: 'interactive',
+    code: `const [showCallout, setShowCallout] = useState(false);
+const buttonRef = useRef(null);
+
+<div>
+  <IconButton
+    iconProps={{ iconName: 'Info' }}
+    ref={buttonRef}
+    onClick={() => setShowCallout(!showCallout)}
+  />
+  {showCallout && (
+    <Callout
+      target={buttonRef.current}
+      onDismiss={() => setShowCallout(false)}
+      directionalHint={DirectionalHint.bottomCenter}
+    >
+      <div style={{ padding: '16px', maxWidth: '300px' }}>
+        <h4 style={{ margin: '0 0 8px 0' }}>Helpful Information</h4>
+        <p style={{ margin: 0, fontSize: '13px', color: '#605e5c' }}>
+          This is additional context or help text that appears when you click the info icon.
+        </p>
+      </div>
+    </Callout>
+  )}
+</div>`,
+    preview: (
+      <div style={{ position: 'relative', padding: '10px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <span style={{ fontSize: '11px' }}>Click icon</span>
+          <IconButton iconProps={{ iconName: 'Info' }} styles={{ root: { width: 24, height: 24 }, icon: { fontSize: 14 } }} />
+        </div>
+        <div
+          style={{
+            position: 'absolute',
+            top: '36px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            background: '#fff',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+            borderRadius: '4px',
+            padding: '10px',
+            maxWidth: '160px',
+            zIndex: 10,
+          }}
+        >
+          <div style={{ position: 'absolute', top: '-6px', left: '50%', transform: 'translateX(-50%)', width: 0, height: 0, borderLeft: '6px solid transparent', borderRight: '6px solid transparent', borderBottom: '6px solid #fff' }} />
+          <h4 style={{ margin: '0 0 4px 0', fontSize: '10px' }}>Helpful Info</h4>
+          <p style={{ margin: 0, fontSize: '9px', color: '#605e5c' }}>
+            Additional context that appears on click.
+          </p>
+        </div>
+      </div>
+    ),
+  },
+  {
+    id: 'keyboard-shortcuts-helper',
+    title: 'Keyboard Shortcuts Helper',
+    description: 'Keyboard shortcut display component',
+    category: 'interactive',
+    code: `<div style={{ padding: '16px', background: '#faf9f8', borderRadius: '4px' }}>
+  <h4 style={{ margin: '0 0 12px 0' }}>Keyboard Shortcuts</h4>
+  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <span style={{ color: '#605e5c' }}>Save</span>
+      <div style={{ display: 'flex', gap: '4px' }}>
+        <kbd style={{ padding: '2px 6px', background: '#fff', border: '1px solid #c8c6c4', borderRadius: '3px', fontSize: '12px' }}>⌘</kbd>
+        <kbd style={{ padding: '2px 6px', background: '#fff', border: '1px solid #c8c6c4', borderRadius: '3px', fontSize: '12px' }}>S</kbd>
+      </div>
+    </div>
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <span style={{ color: '#605e5c' }}>Search</span>
+      <div style={{ display: 'flex', gap: '4px' }}>
+        <kbd style={{ padding: '2px 6px', background: '#fff', border: '1px solid #c8c6c4', borderRadius: '3px', fontSize: '12px' }}>⌘</kbd>
+        <kbd style={{ padding: '2px 6px', background: '#fff', border: '1px solid #c8c6c4', borderRadius: '3px', fontSize: '12px' }}>K</kbd>
+      </div>
+    </div>
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <span style={{ color: '#605e5c' }}>Close</span>
+      <kbd style={{ padding: '2px 6px', background: '#fff', border: '1px solid #c8c6c4', borderRadius: '3px', fontSize: '12px' }}>Esc</kbd>
+    </div>
+  </div>
+</div>`,
+    preview: (
+      <div style={{ padding: '10px', background: '#faf9f8', borderRadius: '4px' }}>
+        <h4 style={{ margin: '0 0 8px 0', fontSize: '11px' }}>Shortcuts</h4>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ color: '#605e5c', fontSize: '10px' }}>Save</span>
+            <div style={{ display: 'flex', gap: '2px' }}>
+              <kbd style={{ padding: '1px 4px', background: '#fff', border: '1px solid #c8c6c4', borderRadius: '2px', fontSize: '9px' }}>⌘</kbd>
+              <kbd style={{ padding: '1px 4px', background: '#fff', border: '1px solid #c8c6c4', borderRadius: '2px', fontSize: '9px' }}>S</kbd>
+            </div>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ color: '#605e5c', fontSize: '10px' }}>Search</span>
+            <div style={{ display: 'flex', gap: '2px' }}>
+              <kbd style={{ padding: '1px 4px', background: '#fff', border: '1px solid #c8c6c4', borderRadius: '2px', fontSize: '9px' }}>⌘</kbd>
+              <kbd style={{ padding: '1px 4px', background: '#fff', border: '1px solid #c8c6c4', borderRadius: '2px', fontSize: '9px' }}>K</kbd>
+            </div>
+          </div>
+        </div>
+      </div>
+    ),
+  },
 ];

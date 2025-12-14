@@ -11,7 +11,8 @@ import { SPFieldsShowcase } from './demos/SPFieldsShowcase';
 import { SPDynamicFormShowcase } from './demos/SPDynamicFormShowcase';
 import { VersionHistoryShowcase } from './demos/VersionHistoryShowcase';
 import { WorkflowStepperShowcase } from './demos/WorkflowStepperShowcase';
-// import { ConflictDetectorShowcase } from './demos/ConflictDetectorShowcase';
+import { ConflictDetectorShowcase } from './demos/ConflictDetectorShowcase';
+import { SPListItemAttachmentsShowcase } from './demos/SPListItemAttachmentsShowcase';
 import { WebPartContext } from '@microsoft/sp-webpart-base';
 import { GroupViewerShowcase } from './demos/GroupViewerShowcase';
 import { HooksShowcase } from './demos/HooksShowcase';
@@ -98,15 +99,24 @@ const showcases: ShowcaseItem[] = [
     status: 'Stable',
     category: 'UI Components',
   },
-  // Temporarily commented out - needs API fixes
-  // {
-  //   id: 'conflict-detector',
-  //   name: 'Conflict Detector',
-  //   component: ConflictDetectorShowcase,
-  //   description: 'Real-time concurrent editing conflict detection and resolution',
-  //   status: 'Stable',
-  //   category: 'UI Components',
-  // },
+  {
+    id: 'conflict-detector',
+    name: 'Conflict Detector',
+    component: ConflictDetectorShowcase,
+    description: 'Real-time concurrent editing conflict detection and resolution',
+    status: 'Stable',
+    category: 'SharePoint Integration',
+    requiresContext: true,
+  },
+  {
+    id: 'attachments',
+    name: 'List Item Attachments',
+    component: SPListItemAttachmentsShowcase,
+    description: 'Drag-and-drop file attachments with previews and validation',
+    status: 'New',
+    category: 'SharePoint Integration',
+    requiresContext: true,
+  },
 
   // SharePoint Integration Category
   {

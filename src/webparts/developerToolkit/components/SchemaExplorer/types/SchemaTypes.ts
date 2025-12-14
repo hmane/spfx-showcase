@@ -22,7 +22,8 @@ export type ExportFormat =
   | 'site-script'
   | 'pnp-powershell'
   | 'cli-m365'
-  | 'typescript';
+  | 'typescript'
+  | 'csharp-csom';
 
 /**
  * Category metadata

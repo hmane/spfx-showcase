@@ -10,16 +10,20 @@ import {
   DefaultButton,
 } from '@fluentui/react';
 import { TagBox } from 'devextreme-react/tag-box';
-import { IOrderByField, IFieldInfo } from '../types/CamlTypes';
+import { IOrderByField, IFieldInfo, ViewScope } from '../types/CamlTypes';
 
 export interface IAdvancedOptionsProps {
   fields: IFieldInfo[];
   orderBy: IOrderByField[];
   viewFields: string[];
   rowLimit: number | null;
+  scope?: ViewScope;
+  contentTypeId?: string;
   onOrderByChange: (orderBy: IOrderByField[]) => void;
   onViewFieldsChange: (viewFields: string[]) => void;
   onRowLimitChange: (rowLimit: number | null) => void;
+  onScopeChange?: (scope: ViewScope) => void;
+  onContentTypeIdChange?: (contentTypeId: string) => void;
 }
 
 export const AdvancedOptions: React.FC<IAdvancedOptionsProps> = ({
@@ -27,9 +31,13 @@ export const AdvancedOptions: React.FC<IAdvancedOptionsProps> = ({
   orderBy,
   viewFields,
   rowLimit,
+  scope = 'Default',
+  contentTypeId = '',
   onOrderByChange,
   onViewFieldsChange,
   onRowLimitChange,
+  onScopeChange,
+  onContentTypeIdChange,
 }) => {
   // Handle adding OrderBy field
   const handleAddOrderBy = useCallback((): void => {
@@ -238,7 +246,7 @@ export const AdvancedOptions: React.FC<IAdvancedOptionsProps> = ({
       </div>
 
       {/* RowLimit Section */}
-      <div>
+      <div style={{ marginBottom: '16px' }}>
         <TextField
           label="RowLimit (Max Results)"
           type="number"
@@ -250,6 +258,67 @@ export const AdvancedOptions: React.FC<IAdvancedOptionsProps> = ({
           description="Recommended: 100-1000. Max 5000 to avoid threshold. Leave empty to return all items."
         />
       </div>
+
+      {/* Scope Section (for document libraries) */}
+      {onScopeChange && (
+        <div style={{ marginBottom: '16px' }}>
+          <Dropdown
+            label="View Scope"
+            selectedKey={scope}
+            options={[
+              { key: 'Default', text: 'Default (Current folder only)' },
+              { key: 'Recursive', text: 'Recursive (All subfolders, files only)' },
+              { key: 'RecursiveAll', text: 'RecursiveAll (All items including folders)' },
+              { key: 'FilesOnly', text: 'FilesOnly (Files in current folder)' },
+            ]}
+            onChange={(e, option) => option && onScopeChange(option.key as ViewScope)}
+          />
+          <div style={{ fontSize: '11px', color: '#605e5c', marginTop: '4px' }}>
+            Use RecursiveAll to include items from all subfolders in document libraries.
+          </div>
+        </div>
+      )}
+
+      {/* ContentTypeId Filter */}
+      {onContentTypeIdChange && (
+        <div>
+          <TextField
+            label="Content Type ID Filter"
+            value={contentTypeId}
+            onChange={(e, value) => onContentTypeIdChange(value || '')}
+            placeholder="e.g., 0x0101 for Documents"
+            description="Filter by Content Type ID. Use BeginsWith matching (e.g., 0x0101 matches all document types)."
+          />
+          <div style={{ marginTop: '8px' }}>
+            <span style={{ fontSize: '11px', color: '#605e5c', marginRight: '8px' }}>Common types:</span>
+            {[
+              { id: '0x01', label: 'Item' },
+              { id: '0x0101', label: 'Document' },
+              { id: '0x0120', label: 'Folder' },
+              { id: '0x01010F', label: 'Link to Document' },
+            ].map(ct => (
+              <span
+                key={ct.id}
+                onClick={() => onContentTypeIdChange(ct.id)}
+                style={{
+                  display: 'inline-block',
+                  padding: '2px 8px',
+                  margin: '2px',
+                  background: contentTypeId === ct.id ? '#0078d4' : '#f3f2f1',
+                  color: contentTypeId === ct.id ? '#fff' : '#323130',
+                  border: '1px solid #edebe9',
+                  borderRadius: '12px',
+                  cursor: 'pointer',
+                  fontSize: '11px',
+                }}
+                title={`Content Type ID: ${ct.id}`}
+              >
+                {ct.label}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

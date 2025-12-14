@@ -87,6 +87,12 @@ export const OPERATOR_INFO: Record<CAMLOperator, IOperatorInfo> = {
     description: 'Check user group membership',
     requiresValue: true,
   },
+  DateRangesOverlap: {
+    value: 'DateRangesOverlap',
+    label: 'Date Ranges Overlap',
+    description: 'Check if date ranges overlap (for recurring events in calendars)',
+    requiresValue: true,
+  },
 };
 
 export const FIELD_TYPE_OPERATORS: Record<FieldType, CAMLOperator[]> = {
@@ -96,7 +102,7 @@ export const FIELD_TYPE_OPERATORS: Record<FieldType, CAMLOperator[]> = {
   Currency: ['Eq', 'Neq', 'Gt', 'Lt', 'Geq', 'Leq', 'IsNull', 'IsNotNull'],
   Integer: ['Eq', 'Neq', 'Gt', 'Lt', 'Geq', 'Leq', 'IsNull', 'IsNotNull'],
   Counter: ['Eq', 'Neq', 'Gt', 'Lt', 'Geq', 'Leq'],
-  DateTime: ['Eq', 'Neq', 'Gt', 'Lt', 'Geq', 'Leq', 'IsNull', 'IsNotNull'],
+  DateTime: ['Eq', 'Neq', 'Gt', 'Lt', 'Geq', 'Leq', 'IsNull', 'IsNotNull', 'DateRangesOverlap'],
   Boolean: ['Eq', 'Neq'],
   User: ['Eq', 'Neq', 'Contains', 'IsNull', 'IsNotNull', 'Membership'],
   Lookup: ['Eq', 'Neq', 'Contains', 'In', 'IsNull', 'IsNotNull'],

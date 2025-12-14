@@ -12,6 +12,7 @@ import '@pnp/sp/navigation';
 import '@pnp/sp/regional-settings';
 import '@pnp/sp/features';
 import '@pnp/sp/views';
+import '@pnp/sp/taxonomy';
 
 import {
   ISiteColumnSchema,
@@ -22,6 +23,9 @@ import {
   INavigationSchema,
   INavigationNode,
   ISiteSettingsSchema,
+  IBrandingSchema,
+  ITaxonomySchema,
+  ITerm,
   IFieldLink,
   IListFieldSchema,
   IViewSchema,
@@ -494,5 +498,141 @@ export class SchemaService {
       console.error('Error fetching list:', error);
       return null;
     }
+  }
+
+  /**
+   * Get branding/theme information
+   */
+  async getBranding(): Promise<IBrandingSchema[]> {
+    try {
+      const result: IBrandingSchema[] = [];
+
+      // Get current theme/composed look
+      try {
+        const web = await this.sp.web.select(
+          'ThemedCssFolderUrl', 'SiteLogoUrl', 'MasterUrl', 'CustomMasterUrl',
+          'HeaderLayout', 'FooterEnabled', 'HeaderEmphasis', 'MegaMenuEnabled'
+        )();
+
+        // Theme information
+        result.push({
+          id: 'theme',
+          title: 'Site Theme',
+          description: 'Current site theme and colors',
+          category: 'branding' as const,
+          selected: false,
+          brandingType: 'theme',
+          themeName: (web as any).ThemedCssFolderUrl ? 'Custom Theme' : 'Default',
+        });
+
+        // Logo
+        if (web.SiteLogoUrl) {
+          result.push({
+            id: 'logo',
+            title: 'Site Logo',
+            description: 'Site logo configuration',
+            category: 'branding' as const,
+            selected: false,
+            brandingType: 'logo',
+            logoUrl: web.SiteLogoUrl,
+          });
+        }
+
+        // Header configuration
+        result.push({
+          id: 'header',
+          title: 'Header Configuration',
+          description: 'Header layout and settings',
+          category: 'branding' as const,
+          selected: false,
+          brandingType: 'header',
+          headerLayout: (web as any).HeaderLayout?.toString() || 'Standard',
+        });
+
+        // Footer configuration
+        result.push({
+          id: 'footer',
+          title: 'Footer Configuration',
+          description: 'Footer settings',
+          category: 'branding' as const,
+          selected: false,
+          brandingType: 'footer',
+          footerEnabled: (web as any).FooterEnabled || false,
+        });
+      } catch (error) {
+        console.warn('Could not fetch all branding info:', error);
+      }
+
+      return result;
+    } catch (error) {
+      console.error('Error fetching branding:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get taxonomy/term sets
+   */
+  async getTaxonomy(): Promise<ITaxonomySchema[]> {
+    try {
+      const result: ITaxonomySchema[] = [];
+
+      // Get term store and term groups
+      try {
+        const store = await this.sp.termStore();
+        if (store) {
+          const groups = await this.sp.termStore.groups();
+
+          for (const group of groups) {
+            // Get term sets for each group
+            const sets = await this.sp.termStore.groups.getById(group.id).sets();
+
+            for (const set of sets) {
+              // Get terms for each set (first level only to avoid too many calls)
+              let terms: ITerm[] = [];
+              try {
+                const rawTerms = await this.sp.termStore.sets.getById(set.id).terms();
+                terms = this.mapTerms(rawTerms);
+              } catch {
+                // Terms might not be accessible
+              }
+
+              result.push({
+                id: set.id,
+                title: set.localizedNames?.[0]?.name || set.id,
+                internalName: set.id,
+                description: set.description || '',
+                category: 'taxonomy' as const,
+                selected: false,
+                termSetId: set.id,
+                termSetName: set.localizedNames?.[0]?.name || set.id,
+                termGroupId: group.id,
+                termGroupName: group.name || group.id,
+                isOpenForTermCreation: set.isOpen || false,
+                terms,
+              });
+            }
+          }
+        }
+      } catch (error) {
+        console.warn('Could not fetch taxonomy data:', error);
+        // Taxonomy service might not be available or accessible
+      }
+
+      return result;
+    } catch (error) {
+      console.error('Error fetching taxonomy:', error);
+      throw error;
+    }
+  }
+
+  private mapTerms(rawTerms: any[]): ITerm[] {
+    return rawTerms.map(term => ({
+      id: term.id,
+      name: term.labels?.[0]?.name || term.id,
+      description: term.descriptions?.[0]?.description || '',
+      children: term.children ? this.mapTerms(term.children) : [],
+      customProperties: term.properties || {},
+    }));
   }
 }

@@ -7,6 +7,10 @@ import { flexSnippets } from './flexSnippets';
 import { patternSnippets } from './patternSnippets';
 import { interactiveSnippets } from './interactiveSnippets';
 import { commonSnippets } from './commonSnippets';
+import { navigationSnippets } from './navigationSnippets';
+import { dataSnippets } from './dataSnippets';
+import { formsSnippets } from './formsSnippets';
+import { sharepointSnippets } from './sharepointSnippets';
 
 export const allSnippets: ISnippet[] = [
   ...feedbackSnippets,
@@ -15,6 +19,10 @@ export const allSnippets: ISnippet[] = [
   ...patternSnippets,
   ...commonSnippets,
   ...interactiveSnippets,
+  ...navigationSnippets,
+  ...dataSnippets,
+  ...formsSnippets,
+  ...sharepointSnippets,
 ];
 
 export {
@@ -24,4 +32,8 @@ export {
   patternSnippets,
   interactiveSnippets,
   commonSnippets,
+  navigationSnippets,
+  dataSnippets,
+  formsSnippets,
+  sharepointSnippets,
 };

@@ -66,7 +66,7 @@ export const ApprovalWorkflowStepper: React.FC = () => {
       steps={steps}
       mode="fullSteps"
       selectedStepId={selectedStepId}
-      onStepClick={stepId => setSelectedStepId(stepId)}
+      onStepClick={step => setSelectedStepId(step.id)}
       minStepWidth={160}
       showScrollHint={true}
     />
@@ -100,7 +100,7 @@ const WORKFLOW_FEATURES: ShowcaseFeature[] = [
   },
 ];
 
-const WORKFLOW_BADGES = ['Full + compact modes', 'Custom React content', 'Scroll aware UX'];
+const WORKFLOW_BADGES = ['Full + compact modes', 'Custom React content', 'Status indicators'];
 
 // Sample React component for interactive step content
 const InteractiveStepContent: React.FC<{ stepId: string; userName: string }> = ({

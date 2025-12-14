@@ -10,7 +10,7 @@ import {
   useTheme,
 } from '@fluentui/react';
 import * as React from 'react';
-import { useCallback, useState, useMemo } from 'react';
+import { useCallback, useState } from 'react';
 import { DocumentLink, IDocumentInfo, DocumentLinkLayout, SizePosition, ClickAction, PreviewMode, PreviewTarget, IDocumentLinkProps } from 'spfx-toolkit/lib/components/DocumentLink';
 import { SPContext } from 'spfx-toolkit/lib/utilities/context';
 // Import centralized PnP type augmentations
@@ -138,21 +138,12 @@ const ExampleWrapper: React.FC<{ title: string; children: React.ReactNode }> = (
 export const DocumentLinkShowcase: React.FC = () => {
   const theme = useTheme();
 
-  // Get current site URL dynamically
-  const currentSiteUrl = useMemo(() => {
-    try {
-      return SPContext.pageContext.web.absoluteUrl;
-    } catch {
-      return '';
-    }
-  }, []);
 
   // --- STATE MANAGEMENT ---
   // Document Library and Item Selection
   const [selectedLibraryId, setSelectedLibraryId] = useState<string>('');
-  const [selectedLibraryUrl, setSelectedLibraryUrl] = useState<string>('');
+  const [selectedLibraryName, setSelectedLibraryName] = useState<string>('');
   const [selectedDocumentId, setSelectedDocumentId] = useState<number | undefined>(undefined);
-  const [selectedDocumentUrl, setSelectedDocumentUrl] = useState<string>('');
 
   // Layout
   const [layout, setLayout] = useState<DocumentLinkLayout>('linkWithIconAndSize');
@@ -195,8 +186,8 @@ export const DocumentLinkShowcase: React.FC = () => {
   // --- DEMO UTILITIES ---
   const resetDemo = (): void => {
     setSelectedLibraryId('');
+    setSelectedLibraryName('');
     setSelectedDocumentId(undefined);
-    setSelectedDocumentUrl('');
     setLayout('linkWithIconAndSize');
     setSizePosition('inline');
     setOnClickBehavior('preview');
@@ -211,7 +202,8 @@ export const DocumentLinkShowcase: React.FC = () => {
 
   const getDocumentProps = (): Partial<IDocumentLinkProps> => {
     return {
-      documentUrl: selectedDocumentUrl,
+      documentId: selectedDocumentId,
+      libraryName: selectedLibraryName,
       layout,
       sizePosition,
       onClick: onClickBehavior,
@@ -333,33 +325,36 @@ export const DocumentLinkShowcase: React.FC = () => {
           </div>
 
           {/* Pre-configured Examples */}
-          {selectedDocumentUrl && (
+          {selectedDocumentId && selectedLibraryName && (
             <div style={sectionContainerStyle}>
               <h2 style={sectionHeaderStyle}>Layout & Feature Examples</h2>
               <Stack tokens={{ childrenGap: 16 }}>
                 <ExampleWrapper title='Layout: linkOnly'>
-                  <DocumentLink documentUrl={selectedDocumentUrl} layout='linkOnly' />
+                  <DocumentLink documentId={selectedDocumentId} libraryName={selectedLibraryName} layout='linkOnly' />
                 </ExampleWrapper>
                 <ExampleWrapper title='Layout: linkWithIcon'>
-                  <DocumentLink documentUrl={selectedDocumentUrl} layout='linkWithIcon' />
+                  <DocumentLink documentId={selectedDocumentId} libraryName={selectedLibraryName} layout='linkWithIcon' />
                 </ExampleWrapper>
                 <ExampleWrapper title='Layout: linkWithIconAndSize (inline)'>
                   <DocumentLink
-                    documentUrl={selectedDocumentUrl}
+                    documentId={selectedDocumentId}
+                    libraryName={selectedLibraryName}
                     layout='linkWithIconAndSize'
                     sizePosition='inline'
                   />
                 </ExampleWrapper>
                 <ExampleWrapper title='Layout: linkWithIconAndSize (below)'>
                   <DocumentLink
-                    documentUrl={selectedDocumentUrl}
+                    documentId={selectedDocumentId}
+                    libraryName={selectedLibraryName}
                     layout='linkWithIconAndSize'
                     sizePosition='below'
                   />
                 </ExampleWrapper>
                 <ExampleWrapper title='Action: Download on Click'>
                   <DocumentLink
-                    documentUrl={selectedDocumentUrl}
+                    documentId={selectedDocumentId}
+                    libraryName={selectedLibraryName}
                     onClick='download'
                     onAfterDownload={onAfterDownload}
                   />
@@ -397,16 +392,14 @@ export const DocumentLinkShowcase: React.FC = () => {
                   const libraryId = typeof lists === 'string' ? lists : (Array.isArray(lists) && lists.length > 0 ? lists[0] : '');
                   setSelectedLibraryId(libraryId);
                   setSelectedDocumentId(undefined);
-                  setSelectedDocumentUrl('');
 
-                  // Fetch the library server relative URL
+                  // Fetch the library title (name)
                   if (libraryId) {
                     try {
-                      const listInfo = await SPContext.sp.web.lists.getById(libraryId).select('RootFolder/ServerRelativeUrl').expand('RootFolder')();
-                      const libraryUrl = listInfo.RootFolder.ServerRelativeUrl;
-                      setSelectedLibraryUrl(libraryUrl);
-                      logMessage(`Document library selected: ${libraryId}`);
-                    } catch (error) {
+                      const listInfo = await SPContext.sp.web.lists.getById(libraryId).select('Title')();
+                      setSelectedLibraryName(listInfo.Title);
+                      logMessage(`Document library selected: ${listInfo.Title}`);
+                    } catch (error: any) {
                       logMessage(`Error fetching library info: ${error.message}`);
                     }
                   }
@@ -439,24 +432,20 @@ export const DocumentLinkShowcase: React.FC = () => {
                     if (items && items.length > 0) {
                       const itemId = parseInt(items[0].key, 10);
                       setSelectedDocumentId(itemId);
-                      // Construct document URL from site URL and library server relative URL
-                      const docUrl = `${currentSiteUrl}${selectedLibraryUrl}/${items[0].name}`;
-                      setSelectedDocumentUrl(docUrl);
                       logMessage(`Document selected: ${items[0].name} (ID: ${itemId})`);
                     } else {
                       setSelectedDocumentId(undefined);
-                      setSelectedDocumentUrl('');
                     }
                   }}
                 />
               </div>
             )}
 
-            {selectedLibraryId && selectedDocumentId && selectedDocumentUrl && (
+            {selectedLibraryId && selectedDocumentId && selectedLibraryName && (
               <MessageBar messageBarType={MessageBarType.success}>
                 <strong>Document selected:</strong>
                 <div style={{ fontFamily: 'monospace', fontSize: '11px', marginTop: '4px' }}>
-                  {selectedDocumentUrl}
+                  Library: {selectedLibraryName}, Document ID: {selectedDocumentId}
                 </div>
               </MessageBar>
             )}

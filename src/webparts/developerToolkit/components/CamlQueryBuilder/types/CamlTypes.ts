@@ -14,7 +14,8 @@ export type CAMLOperator =
   | 'In'
   | 'Includes'
   | 'NotIncludes'
-  | 'Membership';
+  | 'Membership'
+  | 'DateRangesOverlap';
 
 export type LogicalOperator = 'AND' | 'OR';
 
@@ -49,6 +50,8 @@ export type CAMLValueType =
   | 'Guid';
 
 export type ExportFormat = 'caml' | 'pnpjs' | 'pnppowershell' | 'rest';
+
+export type ViewScope = 'Default' | 'Recursive' | 'RecursiveAll' | 'FilesOnly';
 
 export interface IFieldInfo {
   internalName: string;
@@ -105,6 +108,8 @@ export interface ICAMLQuery {
   orderBy: IOrderByField[];
   viewFields: string[];
   rowLimit: number | null;
+  scope?: ViewScope;
+  contentTypeId?: string;
 }
 
 export interface ICAMLBuilderState {

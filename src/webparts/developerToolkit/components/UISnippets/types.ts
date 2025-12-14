@@ -8,7 +8,11 @@ export type SnippetCategory =
   | 'layout'
   | 'flex'
   | 'patterns'
-  | 'interactive';
+  | 'interactive'
+  | 'navigation'
+  | 'data'
+  | 'forms'
+  | 'sharepoint';
 
 /**
  * UI Snippet definition
@@ -44,4 +48,8 @@ export const CATEGORIES: ICategoryInfo[] = [
   { id: 'flex', title: 'Flexbox', icon: 'RowsChild', color: '#ca5010' },
   { id: 'patterns', title: 'Patterns', icon: 'Design', color: '#038387' },
   { id: 'interactive', title: 'Interactive', icon: 'Touch', color: '#c239b3' },
+  { id: 'navigation', title: 'Navigation', icon: 'Nav2DMapView', color: '#005a9e' },
+  { id: 'data', title: 'Data Display', icon: 'Table', color: '#498205' },
+  { id: 'forms', title: 'Forms', icon: 'EditNote', color: '#8e562e' },
+  { id: 'sharepoint', title: 'SharePoint', icon: 'SharepointLogo', color: '#038387' },
 ];

@@ -504,4 +504,174 @@ export const feedbackSnippets: ISnippet[] = [
       </div>
     ),
   },
+  {
+    id: 'progress-ring',
+    title: 'Progress Ring',
+    description: 'Circular progress indicator with percentage',
+    category: 'feedback',
+    code: `<div
+  style={{
+    display: 'flex',
+    alignItems: 'center',
+    gap: '16px',
+    padding: '16px',
+  }}
+>
+  <div style={{ position: 'relative', width: '60px', height: '60px' }}>
+    {/* Background circle */}
+    <svg width="60" height="60" viewBox="0 0 60 60">
+      <circle
+        cx="30"
+        cy="30"
+        r="26"
+        fill="none"
+        stroke="#edebe9"
+        strokeWidth="8"
+      />
+      {/* Progress circle */}
+      <circle
+        cx="30"
+        cy="30"
+        r="26"
+        fill="none"
+        stroke="#0078d4"
+        strokeWidth="8"
+        strokeLinecap="round"
+        strokeDasharray="163.36"
+        strokeDashoffset={163.36 * (1 - 0.75)}
+        transform="rotate(-90 30 30)"
+      />
+    </svg>
+    <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', fontWeight: 600, fontSize: '14px' }}>
+      75%
+    </div>
+  </div>
+  <div>
+    <div style={{ fontWeight: 600 }}>Uploading...</div>
+    <div style={{ fontSize: '13px', color: '#605e5c' }}>75% complete</div>
+  </div>
+</div>`,
+    preview: (
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px' }}>
+        <div style={{ position: 'relative', width: '40px', height: '40px' }}>
+          <svg width="40" height="40" viewBox="0 0 40 40">
+            <circle cx="20" cy="20" r="16" fill="none" stroke="#edebe9" strokeWidth="6" />
+            <circle cx="20" cy="20" r="16" fill="none" stroke="#0078d4" strokeWidth="6" strokeLinecap="round" strokeDasharray="100.53" strokeDashoffset={100.53 * 0.25} transform="rotate(-90 20 20)" />
+          </svg>
+          <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', fontWeight: 600, fontSize: '10px' }}>75%</div>
+        </div>
+        <div>
+          <div style={{ fontWeight: 600, fontSize: '11px' }}>Uploading...</div>
+          <div style={{ fontSize: '10px', color: '#605e5c' }}>75% complete</div>
+        </div>
+      </div>
+    ),
+  },
+  {
+    id: 'inline-notification',
+    title: 'Inline Notification',
+    description: 'Toast-style notification with dismiss',
+    category: 'feedback',
+    code: `<div
+  style={{
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+    padding: '12px 16px',
+    background: '#dff6dd',
+    border: '1px solid #107c10',
+    borderRadius: '4px',
+    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+  }}
+>
+  <Icon iconName="CheckMark" style={{ fontSize: '16px', color: '#107c10' }} />
+  <span style={{ flex: 1, color: '#107c10' }}>Changes saved successfully!</span>
+  <IconButton
+    iconProps={{ iconName: 'Cancel' }}
+    styles={{ root: { width: 24, height: 24 }, icon: { fontSize: 12 } }}
+    onClick={() => setShowNotification(false)}
+  />
+</div>`,
+    preview: (
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          padding: '8px 12px',
+          background: '#dff6dd',
+          border: '1px solid #107c10',
+          borderRadius: '4px',
+          boxShadow: '0 2px 6px rgba(0, 0, 0, 0.1)',
+        }}
+      >
+        <Icon iconName="CheckMark" style={{ fontSize: '12px', color: '#107c10' }} />
+        <span style={{ flex: 1, color: '#107c10', fontSize: '11px' }}>Changes saved!</span>
+        <Icon iconName="Cancel" style={{ fontSize: '10px', color: '#107c10', cursor: 'pointer' }} />
+      </div>
+    ),
+  },
+  {
+    id: 'validation-message',
+    title: 'Validation Message',
+    description: 'Field-level error/success validation',
+    category: 'feedback',
+    code: `{/* Error state */}
+<div style={{ marginBottom: '16px' }}>
+  <label style={{ display: 'block', fontWeight: 500, marginBottom: '4px' }}>Email</label>
+  <input
+    style={{
+      width: '100%',
+      padding: '8px 12px',
+      border: '1px solid #a80000',
+      borderRadius: '4px',
+      outline: 'none',
+    }}
+    value="invalid-email"
+  />
+  <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '4px', color: '#a80000', fontSize: '12px' }}>
+    <Icon iconName="ErrorBadge" style={{ fontSize: '12px' }} />
+    <span>Please enter a valid email address</span>
+  </div>
+</div>
+
+{/* Success state */}
+<div>
+  <label style={{ display: 'block', fontWeight: 500, marginBottom: '4px' }}>Username</label>
+  <input
+    style={{
+      width: '100%',
+      padding: '8px 12px',
+      border: '1px solid #107c10',
+      borderRadius: '4px',
+      outline: 'none',
+    }}
+    value="john_doe"
+  />
+  <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '4px', color: '#107c10', fontSize: '12px' }}>
+    <Icon iconName="CheckMark" style={{ fontSize: '12px' }} />
+    <span>Username is available</span>
+  </div>
+</div>`,
+    preview: (
+      <div style={{ padding: '8px' }}>
+        <div style={{ marginBottom: '10px' }}>
+          <label style={{ display: 'block', fontWeight: 500, marginBottom: '2px', fontSize: '10px' }}>Email</label>
+          <input style={{ width: '100%', padding: '4px 8px', border: '1px solid #a80000', borderRadius: '4px', fontSize: '10px', boxSizing: 'border-box' }} defaultValue="invalid" />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '2px', marginTop: '2px', color: '#a80000', fontSize: '9px' }}>
+            <Icon iconName="ErrorBadge" style={{ fontSize: '9px' }} />
+            <span>Invalid email</span>
+          </div>
+        </div>
+        <div>
+          <label style={{ display: 'block', fontWeight: 500, marginBottom: '2px', fontSize: '10px' }}>Username</label>
+          <input style={{ width: '100%', padding: '4px 8px', border: '1px solid #107c10', borderRadius: '4px', fontSize: '10px', boxSizing: 'border-box' }} defaultValue="john_doe" />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '2px', marginTop: '2px', color: '#107c10', fontSize: '9px' }}>
+            <Icon iconName="CheckMark" style={{ fontSize: '9px' }} />
+            <span>Available</span>
+          </div>
+        </div>
+      </div>
+    ),
+  },
 ];

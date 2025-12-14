@@ -3,11 +3,26 @@
 import * as React from 'react';
 import { useState, useCallback, useMemo, useEffect } from 'react';
 import { WebPartContext } from '@microsoft/sp-webpart-base';
-import { MessageBar, MessageBarType, TextField, PrimaryButton, Icon } from '@fluentui/react';
+import {
+  MessageBar,
+  MessageBarType,
+  TextField,
+  PrimaryButton,
+  DefaultButton,
+  Icon,
+  CommandBar,
+  ICommandBarItemProps,
+} from '@fluentui/react';
 
 import { CategoryNav, CATEGORIES } from './components/CategoryNav';
 import { ItemSelectionPanel } from './components/ItemSelectionPanel';
 import { SchemaPreviewPanel } from './components/SchemaPreviewPanel';
+import { SchemaComparison } from './components/SchemaComparison';
+import { ImportTemplate } from './components/ImportTemplate';
+import { SchemaValidation } from './components/SchemaValidation';
+import { SchemaPresets, ISchemaPreset } from './components/SchemaPresets';
+import { ListDetailsPanel } from './components/ListDetailsPanel';
+import { BatchSelection } from './components/BatchSelection';
 import { SchemaService } from './services/SchemaService';
 import { generateSchema, ISchemaGeneratorInput } from './utils/schemaGenerators';
 import {
@@ -21,6 +36,8 @@ import {
   IPermissionLevelSchema,
   INavigationSchema,
   ISiteSettingsSchema,
+  IBrandingSchema,
+  ITaxonomySchema,
 } from './types/SchemaTypes';
 
 export interface ISchemaExplorerProps {
@@ -43,6 +60,8 @@ export const SchemaExplorer: React.FC<ISchemaExplorerProps> = ({ context }) => {
   const [permissionLevels, setPermissionLevels] = useState<IPermissionLevelSchema[]>([]);
   const [navigation, setNavigation] = useState<INavigationSchema[]>([]);
   const [siteSettings, setSiteSettings] = useState<ISiteSettingsSchema[]>([]);
+  const [branding, setBranding] = useState<IBrandingSchema[]>([]);
+  const [taxonomy, setTaxonomy] = useState<ITaxonomySchema[]>([]);
 
   // UI state
   const [selectedCategories, setSelectedCategories] = useState<SchemaCategory[]>([]);
@@ -54,6 +73,14 @@ export const SchemaExplorer: React.FC<ISchemaExplorerProps> = ({ context }) => {
   const [generatedSchema, setGeneratedSchema] = useState<string>('');
   const [message, setMessage] = useState<string>('');
   const [isInitialized, setIsInitialized] = useState<boolean>(false);
+
+  // Modal states for new features
+  const [showComparison, setShowComparison] = useState<boolean>(false);
+  const [showImport, setShowImport] = useState<boolean>(false);
+  const [showValidation, setShowValidation] = useState<boolean>(false);
+  const [showPresets, setShowPresets] = useState<boolean>(false);
+  const [showBatchSelection, setShowBatchSelection] = useState<boolean>(false);
+  const [selectedListForDetails, setSelectedListForDetails] = useState<IListSchema | null>(null);
 
   // Load site columns by default on mount (to show current site is ready)
   useEffect(() => {
@@ -93,10 +120,14 @@ export const SchemaExplorer: React.FC<ISchemaExplorerProps> = ({ context }) => {
         return navigation;
       case 'siteSettings':
         return siteSettings;
+      case 'branding':
+        return branding;
+      case 'taxonomy':
+        return taxonomy;
       default:
         return [];
     }
-  }, [activeCategory, siteColumns, contentTypes, lists, groups, permissionLevels, navigation, siteSettings]);
+  }, [activeCategory, siteColumns, contentTypes, lists, groups, permissionLevels, navigation, siteSettings, branding, taxonomy]);
 
   // Get current selected items set
   const currentSelectedItems = useMemo((): Set<string> => {
@@ -112,10 +143,10 @@ export const SchemaExplorer: React.FC<ISchemaExplorerProps> = ({ context }) => {
       lists: lists.length,
       security: groups.length + permissionLevels.length,
       navigation: navigation.length,
-      branding: 0,
-      taxonomy: 0,
+      branding: branding.length,
+      taxonomy: taxonomy.length,
     };
-  }, [siteColumns, contentTypes, lists, groups, permissionLevels, navigation, siteSettings]);
+  }, [siteColumns, contentTypes, lists, groups, permissionLevels, navigation, siteSettings, branding, taxonomy]);
 
   // Calculate selected counts per category
   const selectedCounts = useMemo((): Record<SchemaCategory, number> => {
@@ -195,13 +226,25 @@ export const SchemaExplorer: React.FC<ISchemaExplorerProps> = ({ context }) => {
             setSiteSettings(settings);
           }
           break;
+        case 'branding':
+          if (branding.length === 0) {
+            const brand = await schemaService.getBranding();
+            setBranding(brand);
+          }
+          break;
+        case 'taxonomy':
+          if (taxonomy.length === 0) {
+            const tax = await schemaService.getTaxonomy();
+            setTaxonomy(tax);
+          }
+          break;
       }
-    } catch (err) {
+    } catch (err: any) {
       setError(`Failed to load ${category}: ${err.message}`);
     } finally {
       setLoadingCategories(prev => prev.filter(c => c !== category));
     }
-  }, [loadingCategories, siteColumns, contentTypes, lists, groups, permissionLevels, navigation, siteSettings, schemaService]);
+  }, [loadingCategories, siteColumns, contentTypes, lists, groups, permissionLevels, navigation, siteSettings, branding, taxonomy, schemaService]);
 
   // Handle category toggle
   const handleCategoryToggle = useCallback((category: SchemaCategory) => {
@@ -348,6 +391,8 @@ export const SchemaExplorer: React.FC<ISchemaExplorerProps> = ({ context }) => {
     setPermissionLevels([]);
     setNavigation([]);
     setSiteSettings([]);
+    setBranding([]);
+    setTaxonomy([]);
     setSelectedCategories([]);
     setSelectedItems(new Map());
 
@@ -377,6 +422,106 @@ export const SchemaExplorer: React.FC<ISchemaExplorerProps> = ({ context }) => {
     }
     return context.pageContext.web.absoluteUrl;
   }, [siteUrl, context.pageContext.web.absoluteUrl]);
+
+  // Handle applying a preset
+  const handleApplyPreset = useCallback((preset: ISchemaPreset) => {
+    const newSelectedItems = new Map<SchemaCategory, Set<string>>();
+    const categoriesToSelect: SchemaCategory[] = [];
+
+    Object.entries(preset.selections).forEach(([category, ids]) => {
+      if (ids.length > 0) {
+        newSelectedItems.set(category as SchemaCategory, new Set(ids));
+        categoriesToSelect.push(category as SchemaCategory);
+      }
+    });
+
+    setSelectedItems(newSelectedItems);
+    setSelectedCategories(categoriesToSelect);
+    setExportFormat(preset.exportFormat as ExportFormat);
+    setMessage(`Applied preset: ${preset.name}`);
+    setTimeout(() => setMessage(''), 3000);
+  }, []);
+
+  // Handle batch selection
+  const handleBatchSelectionChange = useCallback((selectedIds: string[]) => {
+    if (!activeCategory) return;
+
+    setSelectedItems(prev => {
+      const newMap = new Map(prev);
+      newMap.set(activeCategory, new Set(selectedIds));
+      return newMap;
+    });
+  }, [activeCategory]);
+
+  // Handle select missing items from validation
+  const handleSelectMissing = useCallback((category: 'siteColumns' | 'contentTypes', ids: string[]) => {
+    setSelectedItems(prev => {
+      const newMap = new Map(prev);
+      const existingSet = new Set(newMap.get(category) || []);
+      ids.forEach(id => existingSet.add(id));
+      newMap.set(category, existingSet);
+      return newMap;
+    });
+
+    // Ensure category is in selected categories
+    setSelectedCategories(prev => {
+      if (!prev.includes(category)) {
+        return [...prev, category];
+      }
+      return prev;
+    });
+
+    setMessage(`Added ${ids.length} missing ${category === 'siteColumns' ? 'columns' : 'content types'}`);
+    setTimeout(() => setMessage(''), 3000);
+  }, []);
+
+  // Handle list details click (can be used in ItemSelectionPanel)
+  const _handleListDetailsClick = useCallback((listId: string) => {
+    const list = lists.find(l => l.id === listId);
+    if (list) {
+      setSelectedListForDetails(list);
+    }
+  }, [lists]);
+  void _handleListDetailsClick; // Kept for future use
+
+  // Command bar items for new features
+  const commandBarItems: ICommandBarItemProps[] = useMemo(() => [
+    {
+      key: 'compare',
+      text: 'Compare Sites',
+      iconProps: { iconName: 'BranchCompare' },
+      onClick: () => setShowComparison(true),
+    },
+    {
+      key: 'import',
+      text: 'Import Template',
+      iconProps: { iconName: 'Upload' },
+      onClick: () => setShowImport(true),
+    },
+    {
+      key: 'presets',
+      text: 'Presets',
+      iconProps: { iconName: 'FavoriteList' },
+      onClick: () => setShowPresets(true),
+    },
+    {
+      key: 'validate',
+      text: 'Validate',
+      iconProps: { iconName: 'CheckList' },
+      onClick: () => setShowValidation(true),
+      disabled: totalSelectedItems === 0,
+    },
+  ], [totalSelectedItems]);
+
+  const commandBarFarItems: ICommandBarItemProps[] = useMemo(() => [
+    {
+      key: 'batchSelect',
+      text: 'Batch Select',
+      iconProps: { iconName: 'MultiSelect' },
+      onClick: () => setShowBatchSelection(true),
+      disabled: !activeCategory || currentItems.length === 0,
+    },
+  ], [activeCategory, currentItems.length]);
 
   return (
     <div
@@ -428,6 +573,15 @@ export const SchemaExplorer: React.FC<ISchemaExplorerProps> = ({ context }) => {
           <Icon iconName="CheckMark" />
           <span>Connected to: {currentSiteDisplay}</span>
         </div>
+
+        {/* Command bar for new features */}
+        <CommandBar
+          items={commandBarItems}
+          farItems={commandBarFarItems}
+          styles={{
+            root: { marginTop: '12px', padding: 0, background: 'transparent' },
+          }}
+        />
       </div>
 
       {/* Message bar */}
@@ -478,6 +632,105 @@ export const SchemaExplorer: React.FC<ISchemaExplorerProps> = ({ context }) => {
           isGenerating={false}
         />
       </div>
+
+      {/* Schema Comparison Modal */}
+      {showComparison && (
+        <SchemaComparison
+          context={context}
+          sourceSiteUrl={currentSiteDisplay}
+          onClose={() => setShowComparison(false)}
+        />
+      )}
+
+      {/* Import Template Modal */}
+      {showImport && (
+        <ImportTemplate
+          onClose={() => setShowImport(false)}
+        />
+      )}
+
+      {/* Schema Presets Modal */}
+      {showPresets && (
+        <SchemaPresets
+          currentSelections={selectedItems}
+          currentSiteUrl={currentSiteDisplay}
+          currentExportFormat={exportFormat}
+          onApplyPreset={handleApplyPreset}
+          onClose={() => setShowPresets(false)}
+        />
+      )}
+
+      {/* Batch Selection Modal */}
+      {showBatchSelection && activeCategory && (
+        <BatchSelection
+          activeCategory={activeCategory}
+          items={currentItems as (ISiteColumnSchema | IContentTypeSchema | IListSchema)[]}
+          selectedItems={currentSelectedItems}
+          onSelectionChange={handleBatchSelectionChange}
+          onClose={() => setShowBatchSelection(false)}
+        />
+      )}
+
+      {/* List Details Modal */}
+      {selectedListForDetails && (
+        <ListDetailsPanel
+          list={selectedListForDetails}
+          onClose={() => setSelectedListForDetails(null)}
+        />
+      )}
+
+      {/* Schema Validation Panel - shown inline when validation is triggered */}
+      {showValidation && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0, 0, 0, 0.4)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000,
+          }}
+          onClick={() => setShowValidation(false)}
+        >
+          <div
+            style={{
+              background: '#fff',
+              borderRadius: '8px',
+              maxWidth: '700px',
+              width: '95%',
+              maxHeight: '80vh',
+              overflow: 'auto',
+              padding: '24px',
+              boxShadow: '0 4px 16px rgba(0, 0, 0, 0.2)',
+            }}
+            onClick={e => e.stopPropagation()}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 600 }}>
+                <Icon iconName="CheckList" style={{ marginRight: '8px' }} />
+                Schema Validation
+              </h2>
+              <DefaultButton
+                iconProps={{ iconName: 'Cancel' }}
+                onClick={() => setShowValidation(false)}
+                styles={{ root: { minWidth: 'auto' } }}
+              />
+            </div>
+            <SchemaValidation
+              selectedSiteColumns={siteColumns.filter(col => selectedItems.get('siteColumns')?.has(col.id))}
+              selectedContentTypes={contentTypes.filter(ct => selectedItems.get('contentTypes')?.has(ct.id))}
+              selectedLists={lists.filter(list => selectedItems.get('lists')?.has(list.id))}
+              allSiteColumns={siteColumns}
+              allContentTypes={contentTypes}
+              onSelectMissing={handleSelectMissing}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };

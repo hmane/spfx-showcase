@@ -24,8 +24,11 @@ import {
   IOrderByField,
   ICAMLQuery,
   ExportFormat,
+  ViewScope,
 } from './types/CamlTypes';
 import { buildCAMLQuery, validateCAMLQuery, createEmptyGroup } from './utils/camlBuilder';
+import { ImportCAML } from './components/ImportCAML';
+import { QueryHistory, addQueryToHistory } from './components/QueryHistory';
 import styles from './CamlQueryBuilder.module.scss';
 
 export interface ICamlQueryBuilderProps {
@@ -48,12 +51,16 @@ export const CamlQueryBuilder: React.FC<ICamlQueryBuilderProps> = ({ context }) 
   const [orderBy, setOrderBy] = useState<IOrderByField[]>([]);
   const [viewFields, setViewFields] = useState<string[]>([]);
   const [rowLimit, setRowLimit] = useState<number | null>(null);
+  const [scope, setScope] = useState<ViewScope>('Default');
+  const [contentTypeId, setContentTypeId] = useState<string>('');
 
   // UI state
   const [generatedCAML, setGeneratedCAML] = useState<string>('');
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
   const [exportFormat, setExportFormat] = useState<ExportFormat>('caml');
   const [showTemplates, setShowTemplates] = useState<boolean>(false);
+  const [showImport, setShowImport] = useState<boolean>(false);
+  const [showHistory, setShowHistory] = useState<boolean>(false);
   const [showAdvancedOptions, setShowAdvancedOptions] = useState<boolean>(true);
   const [message, setMessage] = useState<string>('');
   const [isTestingQuery, setIsTestingQuery] = useState<boolean>(false);
@@ -66,6 +73,8 @@ export const CamlQueryBuilder: React.FC<ICamlQueryBuilderProps> = ({ context }) 
       orderBy,
       viewFields,
       rowLimit,
+      scope,
+      contentTypeId,
     };
 
     // Validate
@@ -75,7 +84,7 @@ export const CamlQueryBuilder: React.FC<ICamlQueryBuilderProps> = ({ context }) 
     // Generate CAML XML
     const caml = buildCAMLQuery(query);
     setGeneratedCAML(caml);
-  }, [rootGroup, orderBy, viewFields, rowLimit]);
+  }, [rootGroup, orderBy, viewFields, rowLimit, scope, contentTypeId]);
 
   // Handle list selection
   const handleListSelected = useCallback(
@@ -90,6 +99,8 @@ export const CamlQueryBuilder: React.FC<ICamlQueryBuilderProps> = ({ context }) 
       setOrderBy([]);
       setViewFields([]);
       setRowLimit(null);
+      setScope('Default');
+      setContentTypeId('');
       setTestResults(null);
     },
     []
@@ -121,9 +132,38 @@ export const CamlQueryBuilder: React.FC<ICamlQueryBuilderProps> = ({ context }) 
     setOrderBy([]);
     setViewFields([]);
     setRowLimit(null);
+    setScope('Default');
+    setContentTypeId('');
     setTestResults(null);
     setMessage('Query cleared');
     setTimeout(() => setMessage(''), 3000);
+  }, []);
+
+  // Handle import
+  const handleImport = useCallback(
+    (
+      group: IConditionGroup,
+      importOrderBy: IOrderByField[],
+      importViewFields: string[],
+      importRowLimit: number | null
+    ): void => {
+      setRootGroup(group);
+      setOrderBy(importOrderBy);
+      setViewFields(importViewFields);
+      setRowLimit(importRowLimit);
+      setMessage('CAML imported successfully');
+      setTimeout(() => setMessage(''), 3000);
+    },
+    []
+  );
+
+  // Count conditions for history
+  const countConditions = useCallback((group: IConditionGroup): number => {
+    let count = group.conditions.filter(c => c.fieldInternalName).length;
+    group.nestedGroups.forEach(ng => {
+      count += countConditions(ng);
+    });
+    return count;
   }, []);
 
   // Test query
@@ -140,13 +180,21 @@ export const CamlQueryBuilder: React.FC<ICamlQueryBuilderProps> = ({ context }) 
       const results = await spService.executeQuery(selectedListId, generatedCAML);
       setTestResults(results);
       setMessage(`Query executed successfully! Found ${results.count} item(s).`);
+
+      // Add to history
+      addQueryToHistory(
+        generatedCAML,
+        selectedListTitle,
+        siteUrl,
+        countConditions(rootGroup)
+      );
     } catch (error) {
       setMessage(`Query execution failed: ${error.message}`);
       setTestResults(null);
     } finally {
       setIsTestingQuery(false);
     }
-  }, [selectedListId, generatedCAML, spService]);
+  }, [selectedListId, selectedListTitle, siteUrl, generatedCAML, rootGroup, spService, countConditions]);
 
   // Show message handlers
   const handleCopyMessage = useCallback((msg: string): void => {
@@ -171,6 +219,18 @@ export const CamlQueryBuilder: React.FC<ICamlQueryBuilderProps> = ({ context }) 
         </div>
 
         <div className={styles.headerActions}>
+          <DefaultButton
+            text="Import"
+            iconProps={{ iconName: 'Import' }}
+            onClick={() => setShowImport(true)}
+            styles={{ root: { padding: '8px 16px' } }}
+          />
+          <DefaultButton
+            text="History"
+            iconProps={{ iconName: 'History' }}
+            onClick={() => setShowHistory(true)}
+            styles={{ root: { padding: '8px 16px' } }}
+          />
           <DefaultButton
             text="Templates"
             iconProps={{ iconName: 'Documentation' }}
@@ -243,9 +303,13 @@ export const CamlQueryBuilder: React.FC<ICamlQueryBuilderProps> = ({ context }) 
                 orderBy={orderBy}
                 viewFields={viewFields}
                 rowLimit={rowLimit}
+                scope={scope}
+                contentTypeId={contentTypeId}
                 onOrderByChange={setOrderBy}
                 onViewFieldsChange={setViewFields}
                 onRowLimitChange={setRowLimit}
+                onScopeChange={setScope}
+                onContentTypeIdChange={setContentTypeId}
               />
             )}
           </div>
@@ -352,6 +416,24 @@ export const CamlQueryBuilder: React.FC<ICamlQueryBuilderProps> = ({ context }) 
           onClose={() => setShowTemplates(false)}
           listBaseTemplate={selectedListBaseTemplate}
           availableFields={fields.map(f => f.internalName)}
+        />
+      )}
+
+      {/* Import CAML Modal */}
+      {showImport && (
+        <ImportCAML
+          onImport={handleImport}
+          onClose={() => setShowImport(false)}
+          availableFields={fields}
+        />
+      )}
+
+      {/* Query History Modal */}
+      {showHistory && (
+        <QueryHistory
+          onApply={handleImport}
+          onClose={() => setShowHistory(false)}
+          currentListTitle={selectedListTitle}
         />
       )}
     </div>

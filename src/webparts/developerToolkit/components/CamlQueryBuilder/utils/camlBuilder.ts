@@ -53,6 +53,19 @@ function buildConditionXML(condition: ICondition, indent: string = '  '): string
     return `${indent}<In>\n${indent}  <FieldRef Name="${fieldInternalName}"/>\n${indent}  <Values>\n${valuesXML}\n${indent}  </Values>\n${indent}</In>`;
   }
 
+  // Handle DateRangesOverlap operator (for recurring events)
+  if (operator === 'DateRangesOverlap') {
+    // DateRangesOverlap needs EventDate, EndDate, RecurrenceID fields and a comparison value
+    // The value should be either <Now/>, <Today/>, or a date range
+    const valueStr = value ?? '<Now/>';
+    return `${indent}<DateRangesOverlap>
+${indent}  <FieldRef Name="EventDate"/>
+${indent}  <FieldRef Name="EndDate"/>
+${indent}  <FieldRef Name="RecurrenceID"/>
+${indent}  <Value Type="DateTime">${valueStr}</Value>
+${indent}</DateRangesOverlap>`;
+  }
+
   // Build FieldRef with optional attributes
   let fieldRef = `<FieldRef Name="${fieldInternalName}"`;
   if (useLookupId) {
@@ -189,20 +202,51 @@ function buildViewFieldsXML(viewFields: string[], indent: string = '  '): string
  * Build complete CAML Query XML
  */
 export function buildCAMLQuery(query: ICAMLQuery): string {
-  const parts: string[] = ['<View>'];
+  // Build View tag with optional Scope attribute
+  let viewTag = '<View';
+  if (query.scope && query.scope !== 'Default') {
+    viewTag += ` Scope="${query.scope}"`;
+  }
+  viewTag += '>';
+  const parts: string[] = [viewTag];
 
   // Build Query section
   const queryParts: string[] = ['  <Query>'];
 
-  // Where clause - only add if there are valid (non-empty) conditions
-  if (query.where && hasValidConditions(query.where)) {
-    const whereXML = buildGroupXML(query.where, '      ');
-    // Only add Where clause if we have actual content
-    if (whereXML && whereXML.trim()) {
-      queryParts.push('    <Where>');
-      queryParts.push(whereXML);
-      queryParts.push('    </Where>');
+  // Where clause - only add if there are valid (non-empty) conditions or contentTypeId
+  const hasWhere = query.where && hasValidConditions(query.where);
+  const hasContentType = query.contentTypeId && query.contentTypeId.trim();
+
+  if (hasWhere || hasContentType) {
+    queryParts.push('    <Where>');
+
+    // If we have both content type and conditions, wrap in And
+    if (hasContentType && hasWhere) {
+      queryParts.push('      <And>');
+      queryParts.push(`        <BeginsWith>`);
+      queryParts.push(`          <FieldRef Name="ContentTypeId"/>`);
+      queryParts.push(`          <Value Type="ContentTypeId">${query.contentTypeId}</Value>`);
+      queryParts.push(`        </BeginsWith>`);
+      const whereXML = buildGroupXML(query.where!, '        ');
+      if (whereXML && whereXML.trim()) {
+        queryParts.push(whereXML);
+      }
+      queryParts.push('      </And>');
+    } else if (hasContentType) {
+      // Only content type filter
+      queryParts.push(`      <BeginsWith>`);
+      queryParts.push(`        <FieldRef Name="ContentTypeId"/>`);
+      queryParts.push(`        <Value Type="ContentTypeId">${query.contentTypeId}</Value>`);
+      queryParts.push(`      </BeginsWith>`);
+    } else if (hasWhere) {
+      // Only regular conditions
+      const whereXML = buildGroupXML(query.where!, '      ');
+      if (whereXML && whereXML.trim()) {
+        queryParts.push(whereXML);
+      }
     }
+
+    queryParts.push('    </Where>');
   }
 
   // OrderBy clause
