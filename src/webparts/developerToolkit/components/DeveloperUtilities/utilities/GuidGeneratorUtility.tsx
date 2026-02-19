@@ -10,7 +10,7 @@ import {
   TextField,
 } from '@fluentui/react';
 import * as React from 'react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Card, CardAction, Content, Header } from 'spfx-toolkit/lib/components/Card';
 import { useUtilityService } from '../context/UtilityContext';
 import { useClipboard } from '../hooks/useClipboard';
@@ -94,27 +94,13 @@ export const GuidGeneratorUtility: React.FC<BaseUtilityProps> = ({
     [formatGuid, copyToClipboard]
   );
 
-  const reapplyGuidWithCurrentPreferences = useCallback(() => {
-    if (isBulkResult) {
-      return;
-    }
-
-    if (lastRawGuid) {
-      applyGuid(lastRawGuid, { addToHistory: false, copy: false });
-    } else {
-      const freshRaw = createRawGuid();
-      applyGuid(freshRaw, { addToHistory: true, copy: false });
-    }
-  }, [applyGuid, createRawGuid, isBulkResult, lastRawGuid]);
-
   const handleBracketsChange = useCallback(
     (ev?: React.FormEvent<HTMLElement>, checked?: boolean): void => {
       const newValue = checked || false;
       setIncludeBrackets(newValue);
       utilityService.savePreference('guid', 'includeBrackets', newValue);
-      reapplyGuidWithCurrentPreferences();
     },
-    [utilityService, reapplyGuidWithCurrentPreferences]
+    [utilityService]
   );
 
   const handleUppercaseChange = useCallback(
@@ -122,9 +108,8 @@ export const GuidGeneratorUtility: React.FC<BaseUtilityProps> = ({
       const newValue = checked || false;
       setUseUppercase(newValue);
       utilityService.savePreference('guid', 'uppercase', newValue);
-      reapplyGuidWithCurrentPreferences();
     },
-    [utilityService, reapplyGuidWithCurrentPreferences]
+    [utilityService]
   );
 
   const handleHyphenChange = useCallback(
@@ -132,10 +117,15 @@ export const GuidGeneratorUtility: React.FC<BaseUtilityProps> = ({
       const newValue = checked || false;
       setOmitHyphens(newValue);
       utilityService.savePreference('guid', 'omitHyphens', newValue);
-      reapplyGuidWithCurrentPreferences();
     },
-    [utilityService, reapplyGuidWithCurrentPreferences]
+    [utilityService]
   );
+
+  // Re-format displayed GUID when formatting options change
+  useEffect(() => {
+    if (!lastRawGuid || isBulkResult) return;
+    setGeneratedGuid(formatGuid(lastRawGuid));
+  }, [formatGuid, lastRawGuid, isBulkResult]);
 
   const generateAndCopy = useCallback((): void => {
     const raw = createRawGuid();
@@ -198,8 +188,11 @@ export const GuidGeneratorUtility: React.FC<BaseUtilityProps> = ({
     return cleanup;
   }, [generateAndCopy, utilityService]);
 
-  // Generate initial GUID on mount
+  // Generate initial GUID on mount only
+  const hasGeneratedInitialRef = useRef(false);
   useEffect(() => {
+    if (hasGeneratedInitialRef.current) return;
+    hasGeneratedInitialRef.current = true;
     const initialRaw = createRawGuid();
     applyGuid(initialRaw, { addToHistory: true, copy: false, isBulk: false });
   }, [applyGuid, createRawGuid]);

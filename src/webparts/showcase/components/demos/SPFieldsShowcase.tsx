@@ -17,13 +17,13 @@ import {
   SPBooleanField,
   SPChoiceField,
   SPDateField,
-  SPLookupField,
   SPNumberField,
-  SPTaxonomyField,
   SPTextField,
   SPUrlField,
   SPUserField,
 } from 'spfx-toolkit/lib/components/spFields';
+import { SPLookupField } from 'spfx-toolkit/lib/components/spFields/SPLookupField';
+import { SPTaxonomyField } from 'spfx-toolkit/lib/components/spFields/SPTaxonomyField';
 import { SPBooleanDisplayType } from 'spfx-toolkit/lib/components/spFields/SPBooleanField';
 import { SPLookupDisplayMode } from 'spfx-toolkit/lib/components/spFields/SPLookupField';
 import { SPTextFieldMode } from 'spfx-toolkit/lib/components/spFields/SPTextField';

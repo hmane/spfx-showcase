@@ -32,7 +32,9 @@ export const TypeScriptStringUtility: React.FC<BaseUtilityProps> = ({
   // Load preferences on mount
   useEffect(() => {
     const savedVariableName = utilityService.getPreference('typescript', 'variableName');
-    setVariableName(savedVariableName);
+    if (typeof savedVariableName === 'string' && savedVariableName) {
+      setVariableName(savedVariableName);
+    }
   }, [utilityService]);
 
   // Save variable name preference

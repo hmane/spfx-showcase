@@ -329,8 +329,9 @@ export const JsonColumnFormatterUtility: React.FC<BaseUtilityProps> = ({
                     onClick={() => handleTemplateSelect(template)}
                     role="button"
                     tabIndex={0}
-                    onKeyPress={e => {
+                    onKeyDown={e => {
                       if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
                         handleTemplateSelect(template);
                       }
                     }}

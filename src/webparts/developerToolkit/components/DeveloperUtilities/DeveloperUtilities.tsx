@@ -9,7 +9,7 @@ import {
   Toggle,
 } from '@fluentui/react';
 import * as React from 'react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 // Import all utility components
 import { ColorConverterUtility } from './utilities/ColorConverterUtility';
@@ -26,6 +26,7 @@ import { PnpFieldSchemaUtility } from './utilities/PnpFieldSchemaUtility';
 import { QueryStringUtility } from './utilities/QueryStringUtility';
 import { TextEscapeUtility } from './utilities/TextEscapeUtility';
 import { TypeScriptStringUtility } from './utilities/TypeScriptStringUtility';
+import { UrlEncoderUtility } from './utilities/UrlEncoderUtility';
 import { XmlFormatterUtility } from './utilities/XmlFormatterUtility';
 // Context and Types
 import { UtilityProvider } from './context/UtilityContext';
@@ -132,6 +133,16 @@ const DeveloperUtilitiesContent: React.FC<DeveloperUtilitiesProps> = ({
         tags: ['url', 'querystring', 'parse', 'decode', 'sharepoint', 'parameters'],
         shortcut: 'Ctrl+Q',
         icon: 'Variable',
+      },
+      {
+        id: 'url-encoder',
+        component: UrlEncoderUtility,
+        title: 'URL Encoder/Decoder',
+        description: 'Encode and decode URLs with multiple encoding types',
+        category: 'Encoders',
+        tags: ['url', 'encode', 'decode', 'uri', 'component', 'form'],
+        shortcut: 'Ctrl+U',
+        icon: 'Link',
       },
       {
         id: 'color-converter',
@@ -256,13 +267,27 @@ const DeveloperUtilitiesContent: React.FC<DeveloperUtilitiesProps> = ({
   );
 
   // Show system message
+  const messageTimeoutRef = useRef<number>();
   const showMessage = useCallback((message: string): void => {
     setSystemMessage(message);
     setShowSystemMessage(true);
 
-    setTimeout(() => {
+    if (messageTimeoutRef.current !== undefined) {
+      window.clearTimeout(messageTimeoutRef.current);
+    }
+    messageTimeoutRef.current = window.setTimeout(() => {
       setShowSystemMessage(false);
+      messageTimeoutRef.current = undefined;
     }, 4000);
+  }, []);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (messageTimeoutRef.current !== undefined) {
+        window.clearTimeout(messageTimeoutRef.current);
+      }
+    };
   }, []);
 
   const categoriesWithCount = useMemo(() => {

@@ -86,7 +86,7 @@ function generatePnPJson(input: ISchemaGeneratorInput): string {
     template.lists = input.lists.map(list => {
       const listDef: any = {
         title: list.title,
-        url: `Lists/${list.title.replace(/\s+/g, '')}`,
+        url: list.baseTemplate === 101 ? list.title.replace(/\s+/g, '') : `Lists/${list.title.replace(/\s+/g, '')}`,
         templateType: list.baseTemplate,
       };
 
@@ -267,7 +267,8 @@ function generatePnPXml(input: ISchemaGeneratorInput): string {
   if (input.lists.length > 0) {
     xml += `      <pnp:Lists>\n`;
     input.lists.forEach(list => {
-      xml += `        <pnp:ListInstance Title="${escapeXml(list.title)}" Description="${escapeXml(list.description || '')}" TemplateType="${list.baseTemplate}" Url="Lists/${list.title.replace(/\s+/g, '')}"`;
+      const listUrl = list.baseTemplate === 101 ? list.title.replace(/\s+/g, '') : `Lists/${list.title.replace(/\s+/g, '')}`;
+      xml += `        <pnp:ListInstance Title="${escapeXml(list.title)}" Description="${escapeXml(list.description || '')}" TemplateType="${list.baseTemplate}" Url="${listUrl}"`;
       if (list.enableVersioning) xml += ` EnableVersioning="TRUE"`;
       if (list.contentTypesEnabled) xml += ` ContentTypesEnabled="TRUE"`;
       xml += `>\n`;
@@ -332,13 +333,28 @@ function generatePnPXml(input: ISchemaGeneratorInput): string {
   }
 
   // Security
-  if (input.groups.length > 0) {
+  if (input.groups.length > 0 || input.permissionLevels.length > 0) {
     xml += `      <pnp:Security>\n`;
-    xml += `        <pnp:SiteGroups>\n`;
-    input.groups.forEach(g => {
-      xml += `          <pnp:SiteGroup Title="${escapeXml(g.title)}" Description="${escapeXml(g.description || '')}" Owner="${escapeXml(g.ownerTitle || '')}" />\n`;
-    });
-    xml += `        </pnp:SiteGroups>\n`;
+
+    if (input.groups.length > 0) {
+      xml += `        <pnp:SiteGroups>\n`;
+      input.groups.forEach(g => {
+        xml += `          <pnp:SiteGroup Title="${escapeXml(g.title)}" Description="${escapeXml(g.description || '')}" Owner="${escapeXml(g.ownerTitle || '')}" />\n`;
+      });
+      xml += `        </pnp:SiteGroups>\n`;
+    }
+
+    const customPermissions = input.permissionLevels.filter(p => p.isCustom);
+    if (customPermissions.length > 0) {
+      xml += `        <pnp:Permissions>\n`;
+      xml += `          <pnp:RoleDefinitions>\n`;
+      customPermissions.forEach(p => {
+        xml += `            <pnp:RoleDefinition Name="${escapeXml(p.title)}" Description="${escapeXml(p.description || '')}" />\n`;
+      });
+      xml += `          </pnp:RoleDefinitions>\n`;
+      xml += `        </pnp:Permissions>\n`;
+    }
+
     xml += `      </pnp:Security>\n`;
   }
 
@@ -388,7 +404,7 @@ function generateSiteScript(input: ISchemaGeneratorInput): string {
       verb: 'createSPList',
       listName: list.title,
       templateType: list.baseTemplate,
-      subactions: list.fields.map(f => ({
+      subactions: list.fields.filter(f => !isSystemField(f.internalName)).map(f => ({
         verb: 'addSPField',
         fieldType: f.fieldType,
         displayName: f.title,
@@ -419,7 +435,7 @@ function generatePnPPowerShell(input: ISchemaGeneratorInput): string {
   if (input.siteColumns.length > 0) {
     lines.push('# Site Columns');
     input.siteColumns.forEach(col => {
-      lines.push(`Add-PnPField -DisplayName "${col.title}" -InternalName "${col.internalName}" -Type ${col.fieldType} -Group "${col.group}"`);
+      lines.push(`Add-PnPField -DisplayName "${col.title}" -InternalName "${col.internalName}" -Type ${col.fieldType} -Group "${col.group}"${col.required ? ' -Required' : ''}`);
     });
     lines.push('');
   }
@@ -441,8 +457,8 @@ function generatePnPPowerShell(input: ISchemaGeneratorInput): string {
       lines.push(`New-PnPList -Title "${list.title}" -Template ${template}`);
 
       // Add fields
-      list.fields.filter(f => !f.readOnly).forEach(f => {
-        lines.push(`Add-PnPField -List "${list.title}" -DisplayName "${f.title}" -InternalName "${f.internalName}" -Type ${f.fieldType}`);
+      list.fields.filter(f => !f.readOnly && !isSystemField(f.internalName)).forEach(f => {
+        lines.push(`Add-PnPField -List "${list.title}" -DisplayName "${f.title}" -InternalName "${f.internalName}" -Type ${f.fieldType}${f.required ? ' -Required' : ''}`);
       });
     });
     lines.push('');
@@ -500,8 +516,12 @@ function generateCliM365(input: ISchemaGeneratorInput): string {
   if (input.lists.length > 0) {
     lines.push('# Lists');
     input.lists.forEach(list => {
-      const template = list.baseTemplate === 101 ? 'DocumentLibrary' : 'GenericList';
-      lines.push(`m365 spo list add --webUrl "$SITE_URL" --title "${list.title}" --baseTemplate ${template}`);
+      lines.push(`m365 spo list add --webUrl "$SITE_URL" --title "${list.title}" --baseTemplate ${list.baseTemplate}`);
+
+      // Add fields
+      list.fields.filter(f => !isSystemField(f.internalName)).forEach(f => {
+        lines.push(`m365 spo field add --webUrl "$SITE_URL" --listTitle "${list.title}" --title "${f.title}" --internalName "${f.internalName}" --type ${f.fieldType}${f.required ? ' --required true' : ''}`);
+      });
     });
     lines.push('');
   }
@@ -534,7 +554,7 @@ function generateTypeScript(input: ISchemaGeneratorInput): string {
     lines.push(`export interface ${interfaceName} {`);
     lines.push(`  Id: number;`);
 
-    list.fields.forEach(f => {
+    list.fields.filter(f => !isSystemField(f.internalName)).forEach(f => {
       const tsType = mapFieldTypeToTs(f.fieldType);
       const optional = !f.required ? '?' : '';
       lines.push(`  ${f.internalName}${optional}: ${tsType};`);
@@ -784,16 +804,16 @@ function escapeCs(str: string): string {
 }
 
 function generateCsomFieldXml(col: ISiteColumnSchema): string {
-  let xml = `<Field ID=\\"{${col.id}}\\" Name=\\"${col.internalName}\\" DisplayName=\\"${escapeXml(col.title)}\\" Type=\\"${col.fieldType}\\" Group=\\"${escapeXml(col.group)}\\"`;
-  if (col.required) xml += ' Required=\\"TRUE\\"';
-  if (col.indexed) xml += ' Indexed=\\"TRUE\\"';
+  let xml = `<Field ID="{${col.id}}" Name="${col.internalName}" DisplayName="${escapeXml(col.title)}" Type="${col.fieldType}" Group="${escapeXml(col.group)}"`;
+  if (col.required) xml += ' Required="TRUE"';
+  if (col.indexed) xml += ' Indexed="TRUE"';
   xml += ' />';
   return xml;
 }
 
 function generateCsomListFieldXml(field: any): string {
-  let xml = `<Field Name=\\"${field.internalName}\\" DisplayName=\\"${escapeXml(field.title)}\\" Type=\\"${field.fieldType}\\"`;
-  if (field.required) xml += ' Required=\\"TRUE\\"';
+  let xml = `<Field Name="${field.internalName}" DisplayName="${escapeXml(field.title)}" Type="${field.fieldType}"`;
+  if (field.required) xml += ' Required="TRUE"';
   xml += ' />';
   return xml;
 }

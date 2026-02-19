@@ -20,6 +20,66 @@ import { useClipboard } from '../hooks/useClipboard';
 import { useDebounce } from '../hooks/useDebounce';
 import { BaseUtilityProps } from '../types/UtilityTypes';
 
+/**
+ * Extract original namespace prefix-to-URI mappings from an XML string.
+ * Returns a Map of URI -> original prefix (e.g., "http://...PnP..." -> "pnp")
+ */
+function extractNamespaceMappings(xml: string): Map<string, string> {
+  const mappings = new Map<string, string>();
+  const nsRegex = /xmlns:([a-zA-Z][a-zA-Z0-9_.-]*)=["']([^"']+)["']/g;
+  let match;
+  while ((match = nsRegex.exec(xml)) !== null) {
+    const prefix = match[1];
+    const uri = match[2];
+    if (!mappings.has(uri)) {
+      mappings.set(uri, prefix);
+    }
+  }
+  return mappings;
+}
+
+/**
+ * Restore original namespace prefixes after XMLSerializer renames them.
+ * XMLSerializer may replace prefixes like "pnp:" with "ns1:", "a0:", etc.
+ * This function maps them back using the URI as the key.
+ */
+function restoreNamespacePrefixes(serialized: string, originalMappings: Map<string, string>): string {
+  if (originalMappings.size === 0) return serialized;
+
+  let result = serialized;
+
+  // Find all namespace declarations in the serialized output
+  const nsRegex = /xmlns:([a-zA-Z][a-zA-Z0-9_.-]*)=["']([^"']+)["']/g;
+  const replacements: Array<[string, string]> = [];
+  let match;
+
+  while ((match = nsRegex.exec(serialized)) !== null) {
+    const currentPrefix = match[1];
+    const uri = match[2];
+    const originalPrefix = originalMappings.get(uri);
+
+    if (originalPrefix && originalPrefix !== currentPrefix) {
+      replacements.push([currentPrefix, originalPrefix]);
+    }
+  }
+
+  // Apply replacements (process longer prefixes first to avoid partial matches)
+  replacements.sort((a, b) => b[0].length - a[0].length);
+
+  for (const [from, to] of replacements) {
+    // Replace xmlns declaration
+    result = result.replace(new RegExp(`xmlns:${from}=`, 'g'), `xmlns:${to}=`);
+    // Replace opening tags
+    result = result.replace(new RegExp(`<${from}:`, 'g'), `<${to}:`);
+    // Replace closing tags
+    result = result.replace(new RegExp(`</${from}:`, 'g'), `</${to}:`);
+    // Replace namespaced attributes (space before prefix)
+    result = result.replace(new RegExp(`(\\s)${from}:`, 'g'), `$1${to}:`);
+  }
+
+  return result;
+}
+
 export const XmlFormatterUtility: React.FC<BaseUtilityProps> = ({
   id,
   title = 'XML Formatter (PnP Provisioning)',
@@ -82,20 +142,13 @@ export const XmlFormatterUtility: React.FC<BaseUtilityProps> = ({
       const newValue = checked || false;
       setAutoReorder(newValue);
       utilityService.savePreference('xml', 'autoReorder', newValue);
-
-      if (inputXml.trim()) {
-        // eslint-disable-next-line @typescript-eslint/no-use-before-define
-        processXml(inputXml, newValue);
-      }
     },
-    [inputXml, utilityService]
+    [utilityService]
   );
 
-  // Reorder attributes based on preference
+  // Reorder attributes based on preference (caller decides whether to invoke)
   const reorderAttributes = useCallback(
     (element: Element): void => {
-      if (!autoReorder) return;
-
       const attributes = Array.from(element.attributes);
       if (attributes.length <= 1) return;
 
@@ -125,7 +178,7 @@ export const XmlFormatterUtility: React.FC<BaseUtilityProps> = ({
         element.setAttribute(attr.name, attr.value);
       });
     },
-    [autoReorder, customPropertyOrder, defaultPropertyOrder]
+    [customPropertyOrder, defaultPropertyOrder]
   );
 
   // Minify XML
@@ -191,6 +244,10 @@ export const XmlFormatterUtility: React.FC<BaseUtilityProps> = ({
       if (!xmlString.trim()) return '';
 
       try {
+        // Capture original namespace prefix mappings before DOMParser/XMLSerializer
+        // can rename them (e.g., pnp: -> ns1:)
+        const originalNamespaces = extractNamespaceMappings(xmlString);
+
         const parser = new DOMParser();
         const doc = parser.parseFromString(xmlString, 'application/xml');
 
@@ -205,7 +262,10 @@ export const XmlFormatterUtility: React.FC<BaseUtilityProps> = ({
         }
 
         const serializer = new XMLSerializer();
-        const serialized = serializer.serializeToString(doc);
+        let serialized = serializer.serializeToString(doc);
+
+        // Restore original namespace prefixes that XMLSerializer may have renamed
+        serialized = restoreNamespacePrefixes(serialized, originalNamespaces);
 
         return formatXmlString(serialized, indentSize, shouldMinify);
       } catch (error) {
@@ -238,6 +298,14 @@ export const XmlFormatterUtility: React.FC<BaseUtilityProps> = ({
     },
     [formatXml, autoReorder]
   );
+
+  // Re-process when auto-reorder option changes
+  useEffect(() => {
+    if (inputXml.trim()) {
+      processXml(inputXml);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoReorder]);
 
   // Debounced input handler
   const debouncedProcess = useDebounce((value: string) => {

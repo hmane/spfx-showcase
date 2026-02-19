@@ -11,7 +11,7 @@ import {
   TextField,
 } from '@fluentui/react';
 import * as React from 'react';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Card, CardAction, Content, Header } from 'spfx-toolkit/lib/components/Card';
 import { useUtilityService } from '../context/UtilityContext';
 import { useClipboard } from '../hooks/useClipboard';
@@ -183,24 +183,24 @@ export const CssMinifierUtility: React.FC<BaseUtilityProps> = ({
   const handleRemoveCommentsChange = useCallback(
     (ev?: React.FormEvent<HTMLElement>, checked?: boolean): void => {
       setRemoveComments(!!checked);
-      if (inputCss.trim()) {
-        // Re-process with new option
-        setTimeout(() => processCss(inputCss), 0);
-      }
     },
-    [inputCss, processCss]
+    []
   );
 
   const handleRemoveDuplicatesChange = useCallback(
     (ev?: React.FormEvent<HTMLElement>, checked?: boolean): void => {
       setRemoveDuplicates(!!checked);
-      if (inputCss.trim()) {
-        // Re-process with new option
-        setTimeout(() => processCss(inputCss), 0);
-      }
     },
-    [inputCss, processCss]
+    []
   );
+
+  // Re-process when minification options change
+  useEffect(() => {
+    if (inputCss.trim()) {
+      processCss(inputCss);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [processCss]);
 
   // Set up keyboard shortcut
   React.useEffect(() => {

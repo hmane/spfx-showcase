@@ -54,6 +54,12 @@ const EXPORT_FORMATS: { key: ExportFormat; text: string; description: string; ic
     description: 'TypeScript type definitions for SPFx development',
     icon: 'TypeScriptLanguage',
   },
+  {
+    key: 'csharp-csom',
+    text: 'C# CSOM',
+    description: 'C# client-side object model provisioning code',
+    icon: 'CSharp',
+  },
 ];
 
 export interface ISchemaPreviewPanelProps {
@@ -114,6 +120,8 @@ export const SchemaPreviewPanel: React.FC<ISchemaPreviewPanelProps> = ({
         return 'shell';
       case 'typescript':
         return 'typescript';
+      case 'csharp-csom':
+        return 'csharp';
       default:
         return 'json';
     }
@@ -149,6 +157,10 @@ export const SchemaPreviewPanel: React.FC<ISchemaPreviewPanelProps> = ({
       case 'typescript':
         extension = 'ts';
         mimeType = 'text/typescript';
+        break;
+      case 'csharp-csom':
+        extension = 'cs';
+        mimeType = 'text/plain';
         break;
     }
 
@@ -527,6 +539,37 @@ import { IMyListItem } from './types';
 const items = await sp.web.lists
   .getByTitle("MyList")
   .items<IMyListItem[]>();`}
+            </pre>
+          </div>
+        </div>
+      );
+
+    case 'csharp-csom':
+      return (
+        <div>
+          <h4 style={{ margin: '0 0 12px 0' }}>Using C# CSOM Code</h4>
+          <MessageBar messageBarType={MessageBarType.info}>
+            Requires Microsoft.SharePointOnline.CSOM NuGet package
+          </MessageBar>
+          <div style={{ marginTop: '12px' }}>
+            <strong>Setup:</strong>
+            <pre
+              style={{
+                background: '#1e1e1e',
+                color: '#d4d4d4',
+                padding: '12px',
+                borderRadius: '4px',
+                fontSize: '12px',
+                overflow: 'auto',
+              }}
+            >
+{`// Install NuGet package
+Install-Package Microsoft.SharePointOnline.CSOM
+
+// Run provisioner
+var provisioner = new SchemaProvisioner(siteUrl, username, password);
+provisioner.ProvisionAll();
+provisioner.Dispose();`}
             </pre>
           </div>
         </div>

@@ -217,7 +217,7 @@ export class UtilityService {
     const handleKeyDown = (event: KeyboardEvent): void => {
       if (event.ctrlKey || event.metaKey) {
         const key = event.key.toLowerCase();
-        const shortcutKey = `ctrl+${key}`;
+        const shortcutKey = event.shiftKey ? `ctrl+shift+${key}` : `ctrl+${key}`;
 
         if (shortcuts.has(shortcutKey)) {
           event.preventDefault();
