@@ -16,19 +16,22 @@ import {
 } from '@fluentui/react';
 import * as React from 'react';
 import { useCallback, useMemo, useState } from 'react';
-import { Card, CardAction, Content, Header } from 'spfx-toolkit/lib/components/Card';
+import { Card, CardAction, Content, Header } from 'spfx-toolkit/components/Card';
+import {
+  buildEncodedQueryString,
+  buildJsonObjectFromParams,
+  extractQueryStringParts,
+  getDuplicateParameterNames,
+  IQueryParam,
+  isGuid,
+  isSharePointParam,
+  parseQueryString,
+  summarizeQueryParams,
+} from '../helpers/queryStringUtils';
 import { useUtilityService } from '../context/UtilityContext';
 import { useClipboard } from '../hooks/useClipboard';
 import { useDebounce } from '../hooks/useDebounce';
 import { BaseUtilityProps } from '../types/UtilityTypes';
-
-interface QueryParam {
-  key: string;
-  name: string;
-  value: string;
-  decodedName: string;
-  decodedValue: string;
-}
 
 export const QueryStringUtility: React.FC<BaseUtilityProps> = ({
   id,
@@ -38,134 +41,9 @@ export const QueryStringUtility: React.FC<BaseUtilityProps> = ({
   const utilityService = useUtilityService();
   const { copyToClipboard, copyMessage, showMessage, clearMessage } = useClipboard();
   const [inputText, setInputText] = useState<string>('');
-  const [queryParams, setQueryParams] = useState<QueryParam[]>([]);
+  const [queryParams, setQueryParams] = useState<IQueryParam[]>([]);
   const [encodedOutput, setEncodedOutput] = useState<string>('');
   const [baseUrl, setBaseUrl] = useState<string>('');
-
-  // Check if a value is a GUID
-  const isGuid = useCallback((value: string): boolean => {
-    const guidRegex = /^[{]?[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}[}]?$/;
-    return guidRegex.test(value);
-  }, []);
-
-  // Check if parameter is SharePoint-specific
-  const isSharePointParam = useCallback((name: string): boolean => {
-    const spParams = ['List', 'RootFolder', 'View', 'FilterField1', 'FilterValue1', 'FilterType1',
-                      'viewid', 'listid', 'id', 'ItemId', 'ID', 'SourceUrl'];
-    return spParams.some(p => p.toLowerCase() === name.toLowerCase());
-  }, []);
-
-  // Extract query string from various input formats
-  const extractQueryString = useCallback(
-    (input: string): { baseUrl: string; queryString: string } => {
-      if (!input.trim()) return { baseUrl: '', queryString: '' };
-
-      const trimmed = input.trim();
-
-      // Full URL with protocol
-      if (trimmed.match(/^https?:\/\//)) {
-        try {
-          const url = new URL(trimmed);
-          return {
-            baseUrl: url.origin + url.pathname,
-            queryString: url.search.startsWith('?') ? url.search.substring(1) : url.search,
-          };
-        } catch {
-          return { baseUrl: '', queryString: '' };
-        }
-      }
-
-      // Starts with ?
-      if (trimmed.startsWith('?')) {
-        return {
-          baseUrl: '',
-          queryString: trimmed.substring(1),
-        };
-      }
-
-      // Starts with &
-      if (trimmed.startsWith('&')) {
-        return {
-          baseUrl: '',
-          queryString: trimmed.substring(1),
-        };
-      }
-
-      // Contains ?
-      const questionIndex = trimmed.indexOf('?');
-      if (questionIndex !== -1) {
-        return {
-          baseUrl: trimmed.substring(0, questionIndex),
-          queryString: trimmed.substring(questionIndex + 1),
-        };
-      }
-
-      // Contains =
-      if (trimmed.includes('=')) {
-        return {
-          baseUrl: '',
-          queryString: trimmed,
-        };
-      }
-
-      // Plain URL without query string
-      return {
-        baseUrl: trimmed,
-        queryString: '',
-      };
-    },
-    []
-  );
-
-  // Parse query string into parameters
-  const parseQueryString = useCallback((queryString: string): QueryParam[] => {
-    if (!queryString.trim()) return [];
-
-    const params: QueryParam[] = [];
-    const pairs = queryString.split('&').filter(pair => pair.trim());
-
-    pairs.forEach((pair, index) => {
-      const equalIndex = pair.indexOf('=');
-      let name: string;
-      let value: string;
-
-      if (equalIndex === -1) {
-        name = pair;
-        value = '';
-      } else {
-        name = pair.substring(0, equalIndex);
-        value = pair.substring(equalIndex + 1);
-      }
-
-      const nameWithSpaces = name.replace(/\+/g, ' ');
-      const valueWithSpaces = value.replace(/\+/g, ' ');
-
-      let decodedName: string;
-      let decodedValue: string;
-
-      try {
-        decodedName = decodeURIComponent(nameWithSpaces);
-      } catch {
-        decodedName = nameWithSpaces;
-      }
-
-      try {
-        decodedValue = decodeURIComponent(valueWithSpaces);
-      } catch {
-        decodedValue = valueWithSpaces;
-      }
-
-      params.push({
-        key: `param-${index}`,
-        name,
-        value,
-        decodedName,
-        decodedValue,
-      });
-    });
-
-    return params;
-  }, []);
 
   // Memoized decoded query string
   const decodedQueryString = useMemo(() => {
@@ -173,23 +51,18 @@ export const QueryStringUtility: React.FC<BaseUtilityProps> = ({
     return queryParams.map(p => `${p.decodedName}=${p.decodedValue}`).join('&');
   }, [queryParams]);
 
-  // Build encoded query string from parameters
-  const buildEncodedQueryString = useCallback((params: QueryParam[]): string => {
-    if (params.length === 0) return '';
+  const duplicateParameterNames = useMemo(() => {
+    return getDuplicateParameterNames(queryParams);
+  }, [queryParams]);
 
-    const encodedPairs = params.map(param => {
-      const encodedName = encodeURIComponent(param.decodedName);
-      const encodedValue = encodeURIComponent(param.decodedValue);
-      return `${encodedName}=${encodedValue}`;
-    });
-
-    return encodedPairs.join('&');
-  }, []);
+  const queryStats = useMemo(() => {
+    return summarizeQueryParams(queryParams);
+  }, [queryParams]);
 
   // Process input
   const processInput = useCallback(
     (input: string): void => {
-      const { baseUrl: extractedBaseUrl, queryString } = extractQueryString(input);
+      const { baseUrl: extractedBaseUrl, queryString } = extractQueryStringParts(input);
       const params = parseQueryString(queryString);
       const encoded = buildEncodedQueryString(params);
 
@@ -197,7 +70,7 @@ export const QueryStringUtility: React.FC<BaseUtilityProps> = ({
       setQueryParams(params);
       setEncodedOutput(encoded);
     },
-    [extractQueryString, parseQueryString, buildEncodedQueryString]
+    []
   );
 
   // Debounced input processing
@@ -247,10 +120,7 @@ export const QueryStringUtility: React.FC<BaseUtilityProps> = ({
   // Copy as JSON
   const copyAsJson = useCallback(async (): Promise<void> => {
     if (queryParams.length > 0) {
-      const jsonObj: { [key: string]: string } = {};
-      queryParams.forEach(param => {
-        jsonObj[param.decodedName] = param.decodedValue;
-      });
+      const jsonObj = buildJsonObjectFromParams(queryParams);
       const jsonString = JSON.stringify(jsonObj, null, 2);
       await copyResult(jsonString, 'JSON object');
     }
@@ -317,7 +187,7 @@ export const QueryStringUtility: React.FC<BaseUtilityProps> = ({
         minWidth: 140,
         maxWidth: 200,
         isResizable: true,
-        onRender: (item: QueryParam) => {
+        onRender: (item: IQueryParam) => {
           const isSPParam = isSharePointParam(item.decodedName);
           return (
             <div>
@@ -354,7 +224,7 @@ export const QueryStringUtility: React.FC<BaseUtilityProps> = ({
         fieldName: 'value',
         minWidth: 200,
         isResizable: true,
-        onRender: (item: QueryParam) => {
+        onRender: (item: IQueryParam) => {
           const isGuidValue = isGuid(item.decodedValue);
           return (
             <div>
@@ -405,7 +275,7 @@ export const QueryStringUtility: React.FC<BaseUtilityProps> = ({
         name: 'Actions',
         minWidth: 100,
         maxWidth: 100,
-        onRender: (item: QueryParam) => (
+        onRender: (item: IQueryParam) => (
           <div style={{ display: 'flex', gap: '4px' }}>
             <IconButton
               iconProps={{ iconName: 'Copy' }}
@@ -630,9 +500,16 @@ export const QueryStringUtility: React.FC<BaseUtilityProps> = ({
                 borderRadius: '4px',
               }}
             >
-              <strong>Stats:</strong> {queryParams.length} parameters, {encodedOutput.length}{' '}
-              characters in encoded string
+              <strong>Stats:</strong> {queryStats.total} parameters, {queryStats.sharePointParams}{' '}
+              SharePoint-specific, {queryStats.guidValues} GUID values, {queryStats.duplicateCount}{' '}
+              duplicate keys, {encodedOutput.length} characters in encoded string
             </div>
+          )}
+
+          {duplicateParameterNames.length > 0 && (
+            <MessageBar messageBarType={MessageBarType.warning}>
+              Duplicate parameter names detected: {duplicateParameterNames.map(item => `${item.name} (${item.count})`).join(', ')}. JSON export groups duplicates into arrays.
+            </MessageBar>
           )}
 
           {/* Tips */}

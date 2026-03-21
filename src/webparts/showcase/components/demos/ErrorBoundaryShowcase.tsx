@@ -7,8 +7,8 @@ import {
   ERROR_BOUNDARY_CONFIGS,
   ErrorBoundary,
   useErrorHandler,
-} from 'spfx-toolkit/lib/components/ErrorBoundary';
-import type { IErrorDetails, IErrorInfo } from 'spfx-toolkit/lib/components/ErrorBoundary';
+} from 'spfx-toolkit/components/ErrorBoundary';
+import type { IErrorDetails, IErrorInfo } from 'spfx-toolkit/components/ErrorBoundary';
 import { ShowcaseCodeSample } from '../shared/ShowcaseCodeSample';
 import { ShowcaseHero } from '../shared/ShowcaseHero';
 import { ShowcaseFeature, ShowcaseKeyFeatures } from '../shared/ShowcaseKeyFeatures';
@@ -18,7 +18,7 @@ import {
   ErrorBoundary,
   ERROR_BOUNDARY_CONFIGS,
   useErrorHandler,
-} from 'spfx-toolkit/lib/components/ErrorBoundary';
+} from 'spfx-toolkit/components/ErrorBoundary';
 
 const RiskyWidget: React.FC = () => {
   const { captureError } = useErrorHandler();

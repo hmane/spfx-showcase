@@ -248,7 +248,7 @@ export const Debugging: React.FC<ITabComponentProps> = () => {
           </h4>
           <ul style={{ margin: '0 0 16px 0', paddingLeft: '20px', fontSize: '14px', color: '#323130' }}>
             <li style={{ marginBottom: '8px' }}>Check Network tab for HTTP status code</li>
-            <li style={{ marginBottom: '8px' }}>Verify SPContext.Init() was called in onInit()</li>
+            <li style={{ marginBottom: '8px' }}>Verify SPContext.smart() or SPContext.development() was awaited in onInit()</li>
             <li style={{ marginBottom: '8px' }}>Check if list/field names are correct</li>
             <li style={{ marginBottom: '8px' }}>Verify user has permissions to the resource</li>
           </ul>

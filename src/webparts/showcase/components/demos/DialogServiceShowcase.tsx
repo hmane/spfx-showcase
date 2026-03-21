@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { useState } from 'react';
-import { Card, Content, Header } from 'spfx-toolkit/lib/components/Card';
+import { Card, Content, Header } from 'spfx-toolkit/components/Card';
 import { ShowcaseHero } from '../shared/ShowcaseHero';
 import { ShowcaseKeyFeatures, ShowcaseFeature } from '../shared/ShowcaseKeyFeatures';
 import { ShowcaseCodeSample } from '../shared/ShowcaseCodeSample';
@@ -9,7 +9,7 @@ import {
   hideLoading,
   alert,
   confirm,
-} from 'spfx-toolkit/lib/utilities/dialogService';
+} from 'spfx-toolkit/utilities/dialogService';
 import {
   DefaultButton,
   PrimaryButton,
@@ -59,7 +59,7 @@ const FEATURES: ShowcaseFeature[] = [
   },
 ];
 
-const LOADING_BASIC_EXAMPLE = `import { showLoading, hideLoading } from 'spfx-toolkit/lib/utilities/dialogService';
+const LOADING_BASIC_EXAMPLE = `import { showLoading, hideLoading } from 'spfx-toolkit/utilities/dialogService';
 
 async function loadData() {
   try {
@@ -71,7 +71,7 @@ async function loadData() {
   }
 }`;
 
-const LOADING_JSX_EXAMPLE = `import { showLoading, hideLoading } from 'spfx-toolkit/lib/utilities/dialogService';
+const LOADING_JSX_EXAMPLE = `import { showLoading, hideLoading } from 'spfx-toolkit/utilities/dialogService';
 import * as React from 'react';
 
 async function uploadFiles() {
@@ -107,7 +107,7 @@ async function uploadFiles() {
   hideLoading();
 }`;
 
-const COMPONENT_LOADING_EXAMPLE = `import { showLoading, hideLoading } from 'spfx-toolkit/lib/utilities/dialogService';
+const COMPONENT_LOADING_EXAMPLE = `import { showLoading, hideLoading } from 'spfx-toolkit/utilities/dialogService';
 
 // Component-level loading (scoped to a specific container)
 function MyComponent() {
@@ -138,7 +138,7 @@ function MyComponent() {
   );
 }`;
 
-const MULTIPLE_LOADERS_EXAMPLE = `import { showLoading, hideLoading } from 'spfx-toolkit/lib/utilities/dialogService';
+const MULTIPLE_LOADERS_EXAMPLE = `import { showLoading, hideLoading } from 'spfx-toolkit/utilities/dialogService';
 
 // Multiple component-level loaders simultaneously
 async function loadDashboard() {
@@ -164,7 +164,7 @@ async function loadDashboard() {
   ]);
 }`;
 
-const CUSTOM_ICON_EXAMPLE = `import { showLoading, hideLoading } from 'spfx-toolkit/lib/utilities/dialogService';
+const CUSTOM_ICON_EXAMPLE = `import { showLoading, hideLoading } from 'spfx-toolkit/utilities/dialogService';
 import { Icon } from '@fluentui/react';
 import * as React from 'react';
 
@@ -198,7 +198,7 @@ showLoading('Loading data...', {
   customIcon: <BrandSpinner />
 });`;
 
-const CUSTOM_ICON_PROGRESS_EXAMPLE = `import { showLoading, hideLoading } from 'spfx-toolkit/lib/utilities/dialogService';
+const CUSTOM_ICON_PROGRESS_EXAMPLE = `import { showLoading, hideLoading } from 'spfx-toolkit/utilities/dialogService';
 import { Icon } from '@fluentui/react';
 import * as React from 'react';
 
@@ -228,7 +228,7 @@ async function uploadFiles() {
 // Without customIcon, the spinner would restart its animation
 // on each showLoading() call, causing a visual glitch`;
 
-const ALERT_BASIC_EXAMPLE = `import { alert } from 'spfx-toolkit/lib/utilities/dialogService';
+const ALERT_BASIC_EXAMPLE = `import { alert } from 'spfx-toolkit/utilities/dialogService';
 
 async function saveData() {
   await saveChanges();
@@ -243,7 +243,7 @@ async function saveData() {
   });
 }`;
 
-const ALERT_JSX_EXAMPLE = `import { alert } from 'spfx-toolkit/lib/utilities/dialogService';
+const ALERT_JSX_EXAMPLE = `import { alert } from 'spfx-toolkit/utilities/dialogService';
 import { MessageBar, MessageBarType } from '@fluentui/react';
 import * as React from 'react';
 
@@ -264,7 +264,7 @@ await alert(
   { title: 'Success', buttonText: 'Close' }
 );`;
 
-const CONFIRM_BASIC_EXAMPLE = `import { confirm } from 'spfx-toolkit/lib/utilities/dialogService';
+const CONFIRM_BASIC_EXAMPLE = `import { confirm } from 'spfx-toolkit/utilities/dialogService';
 
 async function deleteItem() {
   const result = await confirm('Are you sure you want to delete this item?');
@@ -278,7 +278,7 @@ async function deleteItem() {
   }
 }`;
 
-const CONFIRM_CUSTOM_EXAMPLE = `import { confirm } from 'spfx-toolkit/lib/utilities/dialogService';
+const CONFIRM_CUSTOM_EXAMPLE = `import { confirm } from 'spfx-toolkit/utilities/dialogService';
 
 async function handleDocumentAction() {
   const choice = await confirm('Choose an option:', {
@@ -309,7 +309,7 @@ async function handleDocumentAction() {
   }
 }`;
 
-const CONFIRM_JSX_EXAMPLE = `import { confirm } from 'spfx-toolkit/lib/utilities/dialogService';
+const CONFIRM_JSX_EXAMPLE = `import { confirm } from 'spfx-toolkit/utilities/dialogService';
 import { Icon } from '@fluentui/react';
 import * as React from 'react';
 
@@ -359,7 +359,7 @@ const result = await confirm(
   }
 );`;
 
-const ISDISMISSABLE_EXAMPLE = `import { alert, confirm } from 'spfx-toolkit/lib/utilities/dialogService';
+const ISDISMISSABLE_EXAMPLE = `import { alert, confirm } from 'spfx-toolkit/utilities/dialogService';
 
 // Dismissable (default behavior)
 await alert('This can be dismissed with ESC or backdrop click', {

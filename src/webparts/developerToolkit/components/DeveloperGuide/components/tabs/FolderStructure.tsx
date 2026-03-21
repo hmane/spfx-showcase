@@ -155,7 +155,7 @@ export const FolderStructure: React.FC<ITabComponentProps> = () => {
       },
       { name: '.gitignore', type: 'file', description: 'Git ignore rules' },
       { name: '.npmrc', type: 'file', description: 'npm configuration' },
-      { name: 'copilot-instructions.md', type: 'file', description: 'GitHub Copilot instructions' },
+      { name: '.github/copilot-instructions.md', type: 'file', description: 'GitHub Copilot instructions' },
       { name: 'gulpfile.js', type: 'file', description: 'Gulp build tasks' },
       { name: 'package.json', type: 'file', description: 'Dependencies & scripts' },
       { name: 'README.md', type: 'file', description: 'Project documentation' },
@@ -477,7 +477,7 @@ export const FolderStructure: React.FC<ITabComponentProps> = () => {
             </li>
             <li style={{ marginBottom: '8px' }}>
               <strong>Import spfx-toolkit:</strong>{' '}
-              <code>import {`{ Card }`} from 'spfx-toolkit/lib/components'</code>
+              <code>import {`{ Card, Header, Content }`} from 'spfx-toolkit/components/Card'</code>
             </li>
             <li style={{ marginBottom: '8px' }}>
               <strong>Group imports:</strong> Third-party, SPFx, local (in that order)

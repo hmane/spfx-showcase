@@ -45,6 +45,99 @@
     }
   }
 
+  .resultsPanel {
+    margin-top: 12px;
+  }
+
+  .resultsToolbar {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    align-items: flex-start;
+    margin-top: 12px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+  }
+
+  .resultStatGrid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(110px, 1fr));
+    gap: 10px;
+    flex: 1;
+    min-width: 320px;
+  }
+
+  .resultStatCard {
+    background: linear-gradient(180deg, #ffffff 0%, #f7fafc 100%);
+    border: 1px solid #dbe7f3;
+    border-radius: 10px;
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+
+    strong {
+      font-size: 18px;
+      color: #0f172a;
+    }
+  }
+
+  .resultStatLabel {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #486581;
+    font-weight: 700;
+  }
+
+  .resultsActions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .resultsMeta {
+    margin-bottom: 10px;
+    font-size: 12px;
+    color: #605e5c;
+  }
+
+  .resultTableWrapper,
+  .rawResultsWrapper {
+    background: #fff;
+    border: 1px solid #d8dde6;
+    border-radius: 10px;
+    overflow: auto;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  }
+
+  .resultTableWrapper {
+    max-height: 420px;
+  }
+
+  .resultCell {
+    display: inline-block;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 12px;
+    color: #1f2937;
+  }
+
+  .emptyResultsState {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 18px;
+    border: 1px dashed #cbd5e1;
+    border-radius: 10px;
+    background: #ffffff;
+    color: #475569;
+    font-size: 13px;
+  }
+
   .emptyState {
     display: flex;
     align-items: center;
@@ -89,11 +182,25 @@
 
       .headerActions {
         width: 100%;
+        flex-wrap: wrap;
 
         button {
           flex: 1;
         }
       }
+    }
+
+    .resultsToolbar {
+      flex-direction: column;
+    }
+
+    .resultStatGrid {
+      min-width: 100%;
+      grid-template-columns: 1fr;
+    }
+
+    .resultsActions {
+      width: 100%;
     }
   }
 }

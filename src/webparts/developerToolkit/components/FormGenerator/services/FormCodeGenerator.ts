@@ -55,7 +55,7 @@ export class FormCodeGenerator {
     if (spFieldComponents.length > 0) {
       imports.push(`import {
   ${spFieldComponents.join(',\n  ')}
-} from 'spfx-toolkit/lib/components/spFields';`);
+} from 'spfx-toolkit/components/spFields';`);
     }
 
     // SPForm field enums/types
@@ -84,7 +84,7 @@ export class FormCodeGenerator {
 
     imports.push(`import {
   ${layoutComponents.join(',\n  ')}
-} from 'spfx-toolkit/lib/components/spForm';`);
+} from 'spfx-toolkit/components/spForm';`);
 
     // Fluent UI imports
     imports.push(`import { PrimaryButton, Stack } from '@fluentui/react';`);
@@ -112,11 +112,11 @@ export class FormCodeGenerator {
     const hasBoolean = fields.some(f => f.componentType === 'SPBooleanField');
 
     if (hasTextField) {
-      imports.push(`import { SPTextFieldMode } from 'spfx-toolkit/lib/components/spFields/SPTextField';`);
+      imports.push(`import { SPTextFieldMode } from 'spfx-toolkit/components/spFields';`);
     }
 
     if (hasBoolean) {
-      imports.push(`import { SPBooleanDisplayType } from 'spfx-toolkit/lib/components/spFields/SPBooleanField';`);
+      imports.push(`import { SPBooleanDisplayType } from 'spfx-toolkit/components/spFields';`);
     }
 
     return imports;

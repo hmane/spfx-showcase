@@ -4,12 +4,16 @@ import * as React from 'react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { WebPartContext } from '@microsoft/sp-webpart-base';
 import {
+  DetailsList,
+  DetailsListLayoutMode,
   DefaultButton,
+  IColumn,
   PrimaryButton,
   MessageBar,
   MessageBarType,
   Spinner,
   SpinnerSize,
+  Toggle,
 } from '@fluentui/react';
 import { SharePointService } from './services/SharePointService';
 import { SiteListSelector } from './components/SiteListSelector';
@@ -18,6 +22,7 @@ import { AdvancedOptions } from './components/AdvancedOptions';
 import { CAMLPreview } from './components/CAMLPreview';
 import { ExportPanel } from './components/ExportPanel';
 import { QueryTemplates } from './components/QueryTemplates';
+import { CodeEditor } from '../../../../components/CodeEditor';
 import {
   IFieldInfo,
   IConditionGroup,
@@ -65,6 +70,7 @@ export const CamlQueryBuilder: React.FC<ICamlQueryBuilderProps> = ({ context }) 
   const [message, setMessage] = useState<string>('');
   const [isTestingQuery, setIsTestingQuery] = useState<boolean>(false);
   const [testResults, setTestResults] = useState<{ count: number; items: any[] } | null>(null);
+  const [showRawResults, setShowRawResults] = useState<boolean>(false);
 
   // Generate CAML whenever query changes
   useEffect(() => {
@@ -201,6 +207,140 @@ export const CamlQueryBuilder: React.FC<ICamlQueryBuilderProps> = ({ context }) 
     setMessage(msg);
     setTimeout(() => setMessage(''), 3000);
   }, []);
+
+  const formatResultValue = useCallback((value: unknown): string => {
+    if (value === null || value === undefined) {
+      return '—';
+    }
+
+    if (typeof value === 'string') {
+      return value.trim() ? value : '—';
+    }
+
+    if (typeof value === 'number' || typeof value === 'boolean') {
+      return String(value);
+    }
+
+    if (Array.isArray(value)) {
+      if (value.length === 0) {
+        return '—';
+      }
+
+      return value
+        .map(item => {
+          if (item && typeof item === 'object') {
+            const record = item as Record<string, unknown>;
+            return String(record.Title ?? record.title ?? record.Label ?? record.Name ?? JSON.stringify(item));
+          }
+          return String(item);
+        })
+        .join(', ');
+    }
+
+    if (typeof value === 'object') {
+      const record = value as Record<string, unknown>;
+      if (typeof record.Url === 'string') {
+        return typeof record.Description === 'string' && record.Description
+          ? `${record.Description} (${record.Url})`
+          : record.Url;
+      }
+
+      return String(
+        record.Title ??
+          record.title ??
+          record.Label ??
+          record.Name ??
+          record.LookupValue ??
+          JSON.stringify(value)
+      );
+    }
+
+    return String(value);
+  }, []);
+
+  const resultColumns = useMemo<IColumn[]>(() => {
+    if (!testResults?.items?.length) {
+      return [];
+    }
+
+    const preferredKeys = ['ID', 'Id', 'Title', 'FileLeafRef', 'Modified', 'Created', 'Author', 'Editor'];
+    const discoveredKeys = new Set<string>();
+
+    testResults.items.slice(0, 10).forEach(item => {
+      Object.keys(item).forEach(key => {
+        if (!key.startsWith('_')) {
+          discoveredKeys.add(key);
+        }
+      });
+    });
+
+    const orderedKeys = [
+      ...preferredKeys.filter(key => discoveredKeys.has(key)),
+      ...Array.from(discoveredKeys)
+        .filter(key => !preferredKeys.includes(key))
+        .sort((left, right) => left.localeCompare(right)),
+    ].slice(0, 8);
+
+    return orderedKeys.map(key => ({
+      key,
+      name: key,
+      fieldName: key,
+      minWidth: key.length > 18 ? 180 : 120,
+      maxWidth: 260,
+      isResizable: true,
+      onRender: (item?: Record<string, unknown>) => (
+        <span className={styles.resultCell} title={formatResultValue(item?.[key])}>
+          {formatResultValue(item?.[key])}
+        </span>
+      ),
+    }));
+  }, [formatResultValue, testResults]);
+
+  const previewItems = useMemo(() => testResults?.items.slice(0, 25) ?? [], [testResults]);
+
+  const resultStats = useMemo(() => {
+    if (!testResults) {
+      return null;
+    }
+
+    const ids = testResults.items
+      .map(item => item.ID ?? item.Id)
+      .filter((value): value is string | number => value !== null && value !== undefined);
+
+    return {
+      previewCount: previewItems.length,
+      totalCount: testResults.count,
+      columnCount: resultColumns.length,
+      ids,
+    };
+  }, [previewItems.length, resultColumns.length, testResults]);
+
+  const copyResultsAsJson = useCallback(async (): Promise<void> => {
+    if (!testResults) {
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(JSON.stringify(testResults.items, null, 2));
+      handleCopyMessage('Query results copied as formatted JSON');
+    } catch (error) {
+      setMessage(`Failed to copy results: ${(error as Error).message}`);
+    }
+  }, [handleCopyMessage, testResults]);
+
+  const copyResultIds = useCallback(async (): Promise<void> => {
+    if (!resultStats?.ids.length) {
+      setMessage('No item IDs were returned in this result set');
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(resultStats.ids.join(', '));
+      handleCopyMessage(`Copied ${resultStats.ids.length} item ID(s)`);
+    } catch (error) {
+      setMessage(`Failed to copy item IDs: ${(error as Error).message}`);
+    }
+  }, [handleCopyMessage, resultStats]);
 
 
   const hasQuery =
@@ -362,30 +502,90 @@ export const CamlQueryBuilder: React.FC<ICamlQueryBuilderProps> = ({ context }) 
               )}
 
               {testResults && (
-                <div>
+                <div className={styles.resultsPanel}>
                   <MessageBar messageBarType={MessageBarType.success}>
                     Query returned {testResults.count} item(s)
                   </MessageBar>
 
-                  {testResults.items.length > 0 && (
-                    <div style={{ marginTop: '12px' }}>
-                      <strong>First {testResults.items.length} items:</strong>
-                      <div
-                        style={{
-                          marginTop: '8px',
-                          background: '#fff',
-                          border: '1px solid #edebe9',
-                          borderRadius: '4px',
-                          padding: '12px',
-                          maxHeight: '200px',
-                          overflow: 'auto',
-                        }}
-                      >
-                        <pre style={{ margin: 0, fontSize: '11px' }}>
-                          {JSON.stringify(testResults.items, null, 2)}
-                        </pre>
+                  <div className={styles.resultsToolbar}>
+                    <div className={styles.resultStatGrid}>
+                      <div className={styles.resultStatCard}>
+                        <span className={styles.resultStatLabel}>Returned</span>
+                        <strong>{resultStats?.totalCount ?? 0}</strong>
+                      </div>
+                      <div className={styles.resultStatCard}>
+                        <span className={styles.resultStatLabel}>Preview Rows</span>
+                        <strong>{resultStats?.previewCount ?? 0}</strong>
+                      </div>
+                      <div className={styles.resultStatCard}>
+                        <span className={styles.resultStatLabel}>Visible Columns</span>
+                        <strong>{resultStats?.columnCount ?? 0}</strong>
                       </div>
                     </div>
+
+                    <div className={styles.resultsActions}>
+                      <Toggle
+                        inlineLabel
+                        label="Raw JSON"
+                        checked={showRawResults}
+                        onChange={(_, checked) => setShowRawResults(!!checked)}
+                      />
+                      <DefaultButton
+                        text="Copy JSON"
+                        iconProps={{ iconName: 'Copy' }}
+                        onClick={() => {
+                          copyResultsAsJson().catch(() => undefined);
+                        }}
+                        disabled={!testResults.items.length}
+                      />
+                      <DefaultButton
+                        text="Copy IDs"
+                        iconProps={{ iconName: 'NumberedListText' }}
+                        onClick={() => {
+                          copyResultIds().catch(() => undefined);
+                        }}
+                        disabled={!resultStats?.ids.length}
+                      />
+                    </div>
+                  </div>
+
+                  {testResults.items.length === 0 ? (
+                    <div className={styles.emptyResultsState}>
+                      <strong>No items matched this query.</strong>
+                      <span>Try relaxing a filter, changing scope, or increasing row limit.</span>
+                    </div>
+                  ) : showRawResults ? (
+                    <div className={styles.rawResultsWrapper}>
+                      <CodeEditor
+                        value={JSON.stringify(testResults.items, null, 2)}
+                        language="json"
+                        readOnly={true}
+                        showLineNumbers={true}
+                        showMiniMap={false}
+                        showCopyButton={false}
+                        showDownloadButton={false}
+                        theme="vs"
+                        autoHeight={true}
+                        minHeight={180}
+                        maxHeight={420}
+                      />
+                    </div>
+                  ) : (
+                    <>
+                      <div className={styles.resultsMeta}>
+                        Showing the first {previewItems.length} row{previewItems.length !== 1 ? 's' : ''} in a table preview.
+                        {testResults.count > previewItems.length ? ` ${testResults.count - previewItems.length} more item(s) returned.` : ''}
+                      </div>
+                      <div className={styles.resultTableWrapper}>
+                        <DetailsList
+                          items={previewItems}
+                          columns={resultColumns}
+                          compact={true}
+                          selectionMode={0}
+                          layoutMode={DetailsListLayoutMode.justified}
+                        />
+                      </div>
+                    </>
                   )}
                 </div>
               )}

@@ -1,6 +1,6 @@
 import { WebPartContext } from '@microsoft/sp-webpart-base';
 import { SPFI } from '@pnp/sp';
-import SPContext from 'spfx-toolkit/lib/utilities/context';
+import SPContext from 'spfx-toolkit/utilities/context';
 import { ISPField, ISPList } from '../types/SPFormBuilderTypes';
 
 /**

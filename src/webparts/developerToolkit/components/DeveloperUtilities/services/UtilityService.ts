@@ -24,13 +24,12 @@ export class UtilityService {
       if (navigator.clipboard && navigator.clipboard.writeText) {
         await navigator.clipboard.writeText(text);
         return { success: true, message: 'Copied to clipboard!' };
-      } else {
-        // Fallback for older browsers
-        return this.fallbackCopy(text);
       }
+
+      return this.fallbackCopy(text);
     } catch (error) {
-      console.error('Failed to copy text:', error);
-      return { success: false, message: 'Failed to copy to clipboard' };
+      console.warn('Clipboard API failed, using fallback copy:', error);
+      return this.fallbackCopy(text);
     }
   }
 
@@ -151,7 +150,7 @@ export class UtilityService {
 
   // Utility functions
   public generateId(): string {
-    return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    return `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
   }
 
   public debounce<T extends (...args: unknown[]) => void>(

@@ -21,13 +21,10 @@ import {
   SPTextField,
   SPUrlField,
   SPUserField,
-} from 'spfx-toolkit/lib/components/spFields';
-import { SPLookupField } from 'spfx-toolkit/lib/components/spFields/SPLookupField';
+} from 'spfx-toolkit/components/spFields';
+import { SPBooleanDisplayType, SPTextFieldMode, SPUserFieldDisplayMode } from 'spfx-toolkit/components/spFields';
+import { SPLookupField, SPLookupDisplayMode } from 'spfx-toolkit/lib/components/spFields/SPLookupField';
 import { SPTaxonomyField } from 'spfx-toolkit/lib/components/spFields/SPTaxonomyField';
-import { SPBooleanDisplayType } from 'spfx-toolkit/lib/components/spFields/SPBooleanField';
-import { SPLookupDisplayMode } from 'spfx-toolkit/lib/components/spFields/SPLookupField';
-import { SPTextFieldMode } from 'spfx-toolkit/lib/components/spFields/SPTextField';
-import { SPUserFieldDisplayMode } from 'spfx-toolkit/lib/components/spFields/SPUserField';
 import {
   FormContainer,
   FormDescription,
@@ -39,8 +36,8 @@ import {
   FormValue,
   useScrollToError,
   useZustandFormSync,
-} from 'spfx-toolkit/lib/components/spForm';
-import SPContext from 'spfx-toolkit/lib/utilities/context';
+} from 'spfx-toolkit/components/spForm';
+import SPContext from 'spfx-toolkit/utilities/context';
 import { z } from 'zod';
 import { ShowcaseCodeSample } from '../shared/ShowcaseCodeSample';
 import { ShowcaseHero } from '../shared/ShowcaseHero';
@@ -215,7 +212,7 @@ const features: ShowcaseFeature[] = [
 ];
 
 // Code samples
-const BASIC_USAGE = `import { SPTextField, SPChoiceField, SPUserField } from 'spfx-toolkit/lib/components/spFields';
+const BASIC_USAGE = `import { SPTextField, SPChoiceField, SPUserField } from 'spfx-toolkit/components/spFields';
 import { FormProvider, useForm } from 'react-hook-form';
 
 export const MyForm: React.FC = () => {
@@ -248,7 +245,7 @@ export const MyForm: React.FC = () => {
   );
 };`;
 
-const TEXT_FIELD_SAMPLE = `import { SPTextField, SPTextFieldMode } from 'spfx-toolkit/lib/components/spFields';
+const TEXT_FIELD_SAMPLE = `import { SPTextField, SPTextFieldMode } from 'spfx-toolkit/components/spFields';
 
 // Single-line text field
 <SPTextField
@@ -299,7 +296,7 @@ const CHOICE_FIELD_SAMPLE = `// Load from SharePoint list
   }}
 />`;
 
-const USER_FIELD_SAMPLE = `import { SPUserField, SPUserFieldDisplayMode } from 'spfx-toolkit/lib/components/spFields';
+const USER_FIELD_SAMPLE = `import { SPUserField, SPUserFieldDisplayMode } from 'spfx-toolkit/components/spFields';
 
 // People Picker mode (default) - full search experience
 <SPUserField
@@ -343,7 +340,7 @@ const USER_FIELD_SAMPLE = `import { SPUserField, SPUserFieldDisplayMode } from '
   suggestionLimit={10}
 />`;
 
-const DATE_FIELD_SAMPLE = `import { SPDateField } from 'spfx-toolkit/lib/components/spFields';
+const DATE_FIELD_SAMPLE = `import { SPDateField } from 'spfx-toolkit/components/spFields';
 
 // DateTime picker with time
 <SPDateField
@@ -396,7 +393,7 @@ const NUMBER_FIELD_SAMPLE = `<SPNumberField
   }}
 />`;
 
-const BOOLEAN_FIELD_SAMPLE = `import { SPBooleanDisplayType } from 'spfx-toolkit/lib/components/spFields';
+const BOOLEAN_FIELD_SAMPLE = `import { SPBooleanDisplayType } from 'spfx-toolkit/components/spFields';
 
 <SPBooleanField
   name="isActive"
@@ -412,7 +409,7 @@ const URL_FIELD_SAMPLE = `<SPUrlField
   placeholder="https://example.com"
 />`;
 
-const LOOKUP_FIELD_SAMPLE = `import { SPLookupField, SPLookupDisplayMode } from 'spfx-toolkit/lib/components/spFields';
+const LOOKUP_FIELD_SAMPLE = `import { SPLookupField, SPLookupDisplayMode } from 'spfx-toolkit/components/spFields';
 
 // Auto-switching lookup (dropdown/searchable based on item count)
 <SPLookupField
@@ -471,7 +468,7 @@ const LOOKUP_FIELD_SAMPLE = `import { SPLookupField, SPLookupDisplayMode } from 
   }}
 />`;
 
-const TAXONOMY_FIELD_SAMPLE = `import { SPTaxonomyField } from 'spfx-toolkit/lib/components/spFields';
+const TAXONOMY_FIELD_SAMPLE = `import { SPTaxonomyField } from 'spfx-toolkit/components/spFields';
 
 // Single-select taxonomy field
 <SPTaxonomyField
@@ -503,7 +500,7 @@ const TAXONOMY_FIELD_SAMPLE = `import { SPTaxonomyField } from 'spfx-toolkit/lib
   useCache={true}
 />`;
 
-const SPFIELD_UNIVERSAL_SAMPLE = `import { SPField } from 'spfx-toolkit/lib/components/spFields';
+const SPFIELD_UNIVERSAL_SAMPLE = `import { SPField } from 'spfx-toolkit/components/spFields';
 
 // Smart config - auto-load field configuration from SharePoint
 <SPField
@@ -604,7 +601,7 @@ const APPEND_ONLY_SAMPLE = `// Append-only mode with note history
 />`;
 
 const LIST_CREATION_SAMPLE = `// Comprehensive list creation utility using PnPjs
-import SPContext from 'spfx-toolkit/lib/utilities/context';
+import SPContext from 'spfx-toolkit/utilities/context';
 import { FieldUserSelectionMode } from '@pnp/sp/fields';
 
 const ensureTestLists = async (): Promise<void> => {

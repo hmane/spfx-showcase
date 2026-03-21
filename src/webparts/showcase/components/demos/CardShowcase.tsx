@@ -10,13 +10,13 @@ import {
   LoadingType,
   SearchableAccordion,
   useCardController,
-} from 'spfx-toolkit/lib/components/Card';
+} from 'spfx-toolkit/components/Card';
 import { ShowcaseCodeSample } from '../shared/ShowcaseCodeSample';
 import { ShowcaseHero } from '../shared/ShowcaseHero';
 import { ShowcaseFeature, ShowcaseKeyFeatures } from '../shared/ShowcaseKeyFeatures';
 
 const CARD_USAGE_SAMPLE = `import * as React from 'react';
-import { Card, Header, Content, Footer } from 'spfx-toolkit/lib/components/Card';
+import { Card, Header, Content, Footer } from 'spfx-toolkit/components/Card';
 
 export const ProjectSummaryCard: React.FC = () => {
   return (

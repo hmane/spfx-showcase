@@ -4,6 +4,7 @@ import * as React from 'react';
 import { useState, useCallback, useMemo, useEffect } from 'react';
 import { WebPartContext } from '@microsoft/sp-webpart-base';
 import {
+  Stack,
   MessageBar,
   MessageBarType,
   TextField,
@@ -82,26 +83,33 @@ export const SchemaExplorer: React.FC<ISchemaExplorerProps> = ({ context }) => {
   const [showBatchSelection, setShowBatchSelection] = useState<boolean>(false);
   const [selectedListForDetails, setSelectedListForDetails] = useState<IListSchema | null>(null);
 
+  const clearTransientMessage = useCallback(() => {
+    setTimeout(() => setMessage(''), 3000);
+  }, []);
+
+  const loadInitialCategory = useCallback(async (): Promise<void> => {
+    setActiveCategory('lists');
+    setSelectedCategories(['lists']);
+    setLoadingCategories(['lists']);
+    setError(null);
+
+    try {
+      const ls = await schemaService.getLists();
+      setLists(ls);
+    } catch (err: any) {
+      setError(`Failed to load lists: ${err.message}`);
+    } finally {
+      setLoadingCategories([]);
+    }
+  }, [schemaService]);
+
   // Load site columns by default on mount (to show current site is ready)
   useEffect(() => {
     if (!isInitialized) {
       setIsInitialized(true);
-      // Set Lists as default active category and load it
-      setActiveCategory('lists');
-      setSelectedCategories(['lists']);
-      void (async () => {
-        setLoadingCategories(['lists']);
-        try {
-          const ls = await schemaService.getLists();
-          setLists(ls);
-        } catch (err: any) {
-          setError(`Failed to load lists: ${err.message}`);
-        } finally {
-          setLoadingCategories([]);
-        }
-      })();
+      void loadInitialCategory();
     }
-  }, [isInitialized, schemaService]);
+  }, [isInitialized, loadInitialCategory]);
 
   // Get items for current active category
   const currentItems = useMemo((): SchemaItem[] => {
@@ -347,9 +355,9 @@ export const SchemaExplorer: React.FC<ISchemaExplorerProps> = ({ context }) => {
       });
 
       setMessage(`Added ${matchingColumns.length} site columns as dependencies`);
-      setTimeout(() => setMessage(''), 3000);
+      clearTransientMessage();
     }
-  }, [contentTypes, siteColumns]);
+  }, [clearTransientMessage, contentTypes, siteColumns]);
 
   // Generate schema when selection or format changes
   useEffect(() => {
@@ -378,8 +386,8 @@ export const SchemaExplorer: React.FC<ISchemaExplorerProps> = ({ context }) => {
   // Handle copy success
   const handleCopySuccess = useCallback(() => {
     setMessage('Schema copied to clipboard');
-    setTimeout(() => setMessage(''), 3000);
-  }, []);
+    clearTransientMessage();
+  }, [clearTransientMessage]);
 
   // Handle site URL change and connect
   const handleConnectToSite = useCallback(async () => {
@@ -397,8 +405,9 @@ export const SchemaExplorer: React.FC<ISchemaExplorerProps> = ({ context }) => {
     setSelectedItems(new Map());
 
     if (!siteUrl.trim()) {
+      await loadInitialCategory();
       setMessage('Connected to current site');
-      setTimeout(() => setMessage(''), 3000);
+      clearTransientMessage();
       return;
     }
 
@@ -406,14 +415,15 @@ export const SchemaExplorer: React.FC<ISchemaExplorerProps> = ({ context }) => {
     setError(null);
 
     try {
+      await loadInitialCategory();
       setMessage(`Connected to ${siteUrl}`);
-      setTimeout(() => setMessage(''), 3000);
+      clearTransientMessage();
     } catch (err: any) {
       setError(`Failed to connect: ${err.message}`);
     } finally {
       setIsConnecting(false);
     }
-  }, [siteUrl]);
+  }, [clearTransientMessage, loadInitialCategory, siteUrl]);
 
   // Get current site display name
   const currentSiteDisplay = useMemo(() => {
@@ -422,6 +432,44 @@ export const SchemaExplorer: React.FC<ISchemaExplorerProps> = ({ context }) => {
     }
     return context.pageContext.web.absoluteUrl;
   }, [siteUrl, context.pageContext.web.absoluteUrl]);
+
+  const loadedCategoryCount = useMemo(() => {
+    return Object.values(itemCounts).filter(count => count > 0).length;
+  }, [itemCounts]);
+
+  const activeCategoryInfo = useMemo(() => {
+    return CATEGORIES.find(category => category.id === activeCategory) || null;
+  }, [activeCategory]);
+
+  const applyQuickPreset = useCallback((preset: 'foundation' | 'informationArchitecture' | 'listsOnly') => {
+    let categories: SchemaCategory[];
+
+    switch (preset) {
+      case 'foundation':
+        categories = ['siteSettings', 'navigation', 'security'];
+        break;
+      case 'informationArchitecture':
+        categories = ['siteColumns', 'contentTypes', 'lists'];
+        break;
+      case 'listsOnly':
+      default:
+        categories = ['lists'];
+        break;
+    }
+
+    setSelectedCategories(categories);
+    setActiveCategory(categories[0]);
+    categories.forEach(category => void loadCategory(category));
+
+    setMessage(
+      preset === 'foundation'
+        ? 'Loaded foundation categories: site settings, navigation, and security'
+        : preset === 'informationArchitecture'
+          ? 'Loaded information architecture categories: columns, content types, and lists'
+          : 'Focused explorer on lists and libraries'
+    );
+    clearTransientMessage();
+  }, [clearTransientMessage, loadCategory]);
 
   // Handle applying a preset
   const handleApplyPreset = useCallback((preset: ISchemaPreset) => {
@@ -437,10 +485,11 @@ export const SchemaExplorer: React.FC<ISchemaExplorerProps> = ({ context }) => {
 
     setSelectedItems(newSelectedItems);
     setSelectedCategories(categoriesToSelect);
+    setActiveCategory(categoriesToSelect[0] || 'lists');
     setExportFormat(preset.exportFormat as ExportFormat);
     setMessage(`Applied preset: ${preset.name}`);
-    setTimeout(() => setMessage(''), 3000);
-  }, []);
+    clearTransientMessage();
+  }, [clearTransientMessage]);
 
   // Handle batch selection
   const handleBatchSelectionChange = useCallback((selectedIds: string[]) => {
@@ -472,8 +521,8 @@ export const SchemaExplorer: React.FC<ISchemaExplorerProps> = ({ context }) => {
     });
 
     setMessage(`Added ${ids.length} missing ${category === 'siteColumns' ? 'columns' : 'content types'}`);
-    setTimeout(() => setMessage(''), 3000);
-  }, []);
+    clearTransientMessage();
+  }, [clearTransientMessage]);
 
   // Handle list details click (can be used in ItemSelectionPanel)
   const _handleListDetailsClick = useCallback((listId: string) => {
@@ -574,6 +623,48 @@ export const SchemaExplorer: React.FC<ISchemaExplorerProps> = ({ context }) => {
           <span>Connected to: {currentSiteDisplay}</span>
         </div>
 
+        <Stack horizontal wrap tokens={{ childrenGap: 10 }} style={{ marginTop: '14px' }}>
+          {[
+            { label: 'Loaded Categories', value: loadedCategoryCount, accent: '#2563eb' },
+            { label: 'Selected Categories', value: selectedCategories.length, accent: '#7c3aed' },
+            { label: 'Selected Items', value: totalSelectedItems, accent: '#047857' },
+            { label: 'Export Format', value: exportFormat, accent: '#b45309' },
+          ].map(card => (
+            <div
+              key={card.label}
+              style={{
+                minWidth: '150px',
+                padding: '10px 12px',
+                borderRadius: '10px',
+                background: `${card.accent}12`,
+                border: `1px solid ${card.accent}30`,
+              }}
+            >
+              <div style={{ fontSize: '11px', fontWeight: 700, color: card.accent, textTransform: 'uppercase' }}>
+                {card.label}
+              </div>
+              <div style={{ marginTop: '6px', fontSize: '18px', fontWeight: 600, color: '#1f2937' }}>
+                {card.value}
+              </div>
+            </div>
+          ))}
+        </Stack>
+
+        <div
+          style={{
+            marginTop: '14px',
+            display: 'flex',
+            gap: '8px',
+            flexWrap: 'wrap',
+            alignItems: 'center',
+          }}
+        >
+          <span style={{ fontSize: '12px', fontWeight: 600, color: '#323130' }}>Quick Start:</span>
+          <DefaultButton text="Lists Only" onClick={() => applyQuickPreset('listsOnly')} />
+          <DefaultButton text="Info Architecture" onClick={() => applyQuickPreset('informationArchitecture')} />
+          <DefaultButton text="Foundation" onClick={() => applyQuickPreset('foundation')} />
+        </div>
+
         {/* Command bar for new features */}
         <CommandBar
           items={commandBarItems}
@@ -608,17 +699,55 @@ export const SchemaExplorer: React.FC<ISchemaExplorerProps> = ({ context }) => {
         />
 
         {/* Center: Item Selection */}
-        <ItemSelectionPanel
-          activeCategory={activeCategory}
-          items={currentItems}
-          selectedItems={currentSelectedItems}
-          onItemToggle={handleItemToggle}
-          onSelectAll={handleSelectAllItems}
-          onClearAll={handleClearAllItems}
-          onSelectDependencies={handleSelectDependencies}
-          isLoading={activeCategory ? loadingCategories.includes(activeCategory) : false}
-          error={error}
-        />
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+          {activeCategoryInfo && (
+            <div
+              style={{
+                padding: '12px 16px',
+                borderBottom: '1px solid #edebe9',
+                background: '#fcfcfb',
+                display: 'flex',
+                justifyContent: 'space-between',
+                gap: '12px',
+                flexWrap: 'wrap',
+              }}
+            >
+              <div>
+                <div style={{ fontSize: '14px', fontWeight: 600, color: '#323130' }}>
+                  {activeCategoryInfo.title}
+                </div>
+                <div style={{ fontSize: '12px', color: '#605e5c', marginTop: '4px' }}>
+                  {activeCategoryInfo.description}
+                </div>
+              </div>
+              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                <span style={{ padding: '6px 10px', borderRadius: '999px', background: '#eef2ff', fontSize: '12px', color: '#4338ca', fontWeight: 600 }}>
+                  {currentItems.length} loaded
+                </span>
+                <span style={{ padding: '6px 10px', borderRadius: '999px', background: '#ecfdf5', fontSize: '12px', color: '#047857', fontWeight: 600 }}>
+                  {currentSelectedItems.size} selected
+                </span>
+                {activeCategory === 'contentTypes' && (
+                  <span style={{ padding: '6px 10px', borderRadius: '999px', background: '#fff7ed', fontSize: '12px', color: '#c2410c', fontWeight: 600 }}>
+                    Tip: use dependency selection for linked site columns
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
+
+          <ItemSelectionPanel
+            activeCategory={activeCategory}
+            items={currentItems}
+            selectedItems={currentSelectedItems}
+            onItemToggle={handleItemToggle}
+            onSelectAll={handleSelectAllItems}
+            onClearAll={handleClearAllItems}
+            onSelectDependencies={handleSelectDependencies}
+            isLoading={activeCategory ? loadingCategories.includes(activeCategory) : false}
+            error={error}
+          />
+        </div>
 
         {/* Right: Schema Preview */}
         <SchemaPreviewPanel

@@ -38,7 +38,7 @@ export class SPInterfaceGenerator {
 
     if (spfxTypes.length > 0) {
       importLines.push(
-        `import { ${spfxTypes.join(', ')} } from 'spfx-toolkit/lib/types';`
+        `import { ${spfxTypes.join(', ')} } from 'spfx-toolkit/types';`
       );
     }
 

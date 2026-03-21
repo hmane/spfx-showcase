@@ -55,117 +55,89 @@
 }
 
 .dev-utilities-hero {
-  position: relative;
-  padding: 32px;
-  border-radius: 20px;
-  margin-bottom: 32px;
-  color: #ffffff;
-  box-shadow: var(--du-shadow-md);
-  overflow: hidden;
-  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-}
-
-.dev-utilities-hero::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(circle at top right, rgba(255, 255, 255, 0.18), transparent 55%),
-    radial-gradient(circle at bottom left, rgba(0, 0, 0, 0.18), transparent 45%);
-  pointer-events: none;
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  padding: 16px 18px;
+  margin-bottom: 24px;
+  border: 1px solid var(--du-border-light);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(10px);
+  box-shadow: var(--du-shadow-sm);
 }
 
 .dev-utilities-heroTop {
-  position: relative;
   display: flex;
   flex-wrap: wrap;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
-  gap: 24px;
+  gap: 12px;
 }
 
 .dev-utilities-heroTitle {
-  max-width: 540px;
-  z-index: 1;
+  min-width: 0;
 }
 
 .dev-utilities-heroTitle h1 {
   margin: 0;
-  font-size: 32px;
-  font-weight: 700;
+  font-size: 22px;
+  font-weight: 650;
   letter-spacing: -0.02em;
+  color: var(--du-text-primary);
 }
 
 .dev-utilities-heroTitle p {
-  margin: 12px 0 0 0;
-  font-size: 16px;
-  opacity: 0.9;
-  line-height: 1.6;
-}
-
-.dev-utilities-heroStats {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: 16px;
-  min-width: 280px;
-  z-index: 1;
-}
-
-.dev-utilities-heroStat {
-  background: rgba(255, 255, 255, 0.18);
-  border-radius: 16px;
-  padding: 16px;
-  backdrop-filter: blur(8px);
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  min-height: 92px;
-}
-
-.dev-utilities-heroStatValue {
-  font-size: 26px;
-  font-weight: 700;
-  line-height: 1.1;
-}
-
-.dev-utilities-heroStatLabel {
+  margin: 4px 0 0 0;
   font-size: 13px;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  opacity: 0.75;
+  color: var(--du-text-secondary);
+  line-height: 1.4;
 }
 
-.dev-utilities-heroStatCaption {
+.dev-utilities-heroMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.dev-utilities-heroMeta span {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: var(--du-bg-secondary);
+  border: 1px solid var(--du-border-light);
   font-size: 12px;
-  opacity: 0.65;
+  color: var(--du-text-secondary);
+  font-weight: 600;
 }
 
 .dev-utilities-heroControls {
-  margin-top: 28px;
-  z-index: 1;
+  margin-top: 14px;
 }
 
 .dev-utilities-heroControlCard {
-  background: rgba(255, 255, 255, 0.9);
+  background: transparent;
   color: var(--du-text-primary);
-  padding: 20px;
-  border-radius: 16px;
-  box-shadow: var(--du-shadow-md);
+  padding: 0;
+  border-radius: 0;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 18px;
+  gap: 14px;
 }
 
 .dev-utilities-heroControlSearch {
   flex: 1;
-  min-width: 260px;
-  max-width: 460px;
+  min-width: 240px;
+  max-width: 420px;
 }
 
 .dev-utilities-heroControlGroup {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
   flex-wrap: wrap;
 }
 
@@ -174,28 +146,46 @@
   font-weight: 600;
 }
 
-.dev-utilities-heroFilters {
-  margin-top: 18px;
+.dev-utilities-heroSummary {
+  margin-top: 12px;
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
-  z-index: 1;
+  gap: 8px;
+}
+
+.dev-utilities-heroSummary span {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--du-bg-tertiary);
+  font-size: 12px;
+  color: var(--du-text-secondary);
+}
+
+.dev-utilities-heroFilters {
+  margin-top: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  max-height: 128px;
+  overflow-y: auto;
+  padding-right: 4px;
 }
 
 .dev-utilities-filterChip {
-  border: none;
+  border: 1px solid var(--du-border-light);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.22);
-  color: #ffffff;
-  padding: 8px 16px;
+  background: var(--du-bg-primary);
+  color: var(--du-text-secondary);
+  padding: 7px 14px;
   display: inline-flex;
   align-items: center;
-  gap: 10px;
-  font-size: 13px;
+  gap: 8px;
+  font-size: 12px;
   font-weight: 500;
   cursor: pointer;
-  transition: background 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
-  backdrop-filter: blur(6px);
+  transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .dev-utilities-filterChip span {
@@ -205,29 +195,31 @@
   min-width: 20px;
   padding: 2px 8px;
   border-radius: 999px;
-  background: rgba(0, 0, 0, 0.18);
+  background: var(--du-bg-secondary);
   font-size: 11px;
   font-weight: 600;
 }
 
 .dev-utilities-filterChip:hover {
-  background: rgba(255, 255, 255, 0.32);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.18);
-  transform: translateY(-1px);
+  background: var(--du-bg-secondary);
+  border-color: #c8d4df;
+  box-shadow: var(--du-shadow-sm);
 }
 
 .dev-utilities-filterChip:focus {
-  outline: 2px solid rgba(255, 255, 255, 0.6);
+  outline: 2px solid rgba(0, 120, 212, 0.35);
   outline-offset: 2px;
 }
 
 .dev-utilities-filterChip--active {
-  background: rgba(255, 255, 255, 0.38);
-  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.22);
+  background: #edf4ff;
+  border-color: rgba(0, 120, 212, 0.3);
+  color: #0f548c;
+  box-shadow: inset 0 0 0 1px rgba(0, 120, 212, 0.08);
 }
 
 .dev-utilities-filterChip--active span {
-  background: rgba(0, 0, 0, 0.28);
+  background: rgba(0, 120, 212, 0.12);
 }
 
 .dev-utilities-filterChip--inactive span {
@@ -236,15 +228,25 @@
 
 @media (max-width: 768px) {
   .dev-utilities-hero {
-    padding: 24px;
+    position: static;
+    padding: 14px;
   }
 
   .dev-utilities-heroControlCard {
-    padding: 16px;
+    align-items: stretch;
   }
 
-  .dev-utilities-heroStats {
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  .dev-utilities-heroControlSearch {
+    max-width: none;
+  }
+
+  .dev-utilities-heroMeta {
+    justify-content: flex-start;
+  }
+
+  .dev-utilities-heroFilters {
+    max-height: none;
+    overflow: visible;
   }
 }
 

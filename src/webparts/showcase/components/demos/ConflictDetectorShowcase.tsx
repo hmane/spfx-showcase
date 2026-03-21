@@ -6,8 +6,8 @@ import {
   ConflictResolutionDialog,
   ConflictInfo,
   ConflictResolutionAction,
-} from 'spfx-toolkit/lib/components/ConflictDetector';
-import { SPContext } from 'spfx-toolkit/lib/utilities/context';
+} from 'spfx-toolkit/components/ConflictDetector';
+import { SPContext } from 'spfx-toolkit/utilities/context';
 import { ListPicker } from '@pnp/spfx-controls-react/lib/ListPicker';
 import { ListItemPicker } from '@pnp/spfx-controls-react/lib/ListItemPicker';
 import { ShowcaseCodeSample } from '../shared/ShowcaseCodeSample';
@@ -15,8 +15,8 @@ import { ShowcaseHero } from '../shared/ShowcaseHero';
 import { ShowcaseFeature, ShowcaseKeyFeatures } from '../shared/ShowcaseKeyFeatures';
 
 const CONFLICT_HOOK_SAMPLE = `import * as React from 'react';
-import { useConflictDetection, ConflictNotificationBar } from 'spfx-toolkit/lib/components/ConflictDetector';
-import { SPContext } from 'spfx-toolkit/lib/utilities/context';
+import { useConflictDetection, ConflictNotificationBar } from 'spfx-toolkit/components/ConflictDetector';
+import { SPContext } from 'spfx-toolkit/utilities/context';
 
 export const EditForm: React.FC<{ listId: string; itemId: number }> = ({ listId, itemId }) => {
   const {
@@ -69,7 +69,7 @@ export const EditForm: React.FC<{ listId: string; itemId: number }> = ({ listId,
 };`;
 
 const CONFLICT_DIALOG_SAMPLE = `import * as React from 'react';
-import { ConflictResolutionDialog, ConflictInfo, ConflictResolutionAction } from 'spfx-toolkit/lib/components/ConflictDetector';
+import { ConflictResolutionDialog, ConflictInfo, ConflictResolutionAction } from 'spfx-toolkit/components/ConflictDetector';
 
 export const ConflictDialogDemo: React.FC<{
   conflictInfo: ConflictInfo;
@@ -96,7 +96,7 @@ export const ConflictDialogDemo: React.FC<{
 };`;
 
 const CONFLICT_NOTIFICATION_SAMPLE = `import * as React from 'react';
-import { ConflictNotificationBar, ConflictInfo } from 'spfx-toolkit/lib/components/ConflictDetector';
+import { ConflictNotificationBar, ConflictInfo } from 'spfx-toolkit/components/ConflictDetector';
 
 export const NotificationDemo: React.FC<{ conflictInfo: ConflictInfo }> = ({ conflictInfo }) => {
   return (

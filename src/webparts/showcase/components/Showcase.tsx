@@ -18,6 +18,7 @@ import { GroupViewerShowcase } from './demos/GroupViewerShowcase';
 import { HooksShowcase } from './demos/HooksShowcase';
 import { UserPersonaShowcase } from './demos/UserPersonaShowcase';
 import { DialogServiceShowcase } from './demos/DialogServiceShowcase';
+import { CommentsShowcase } from './demos/CommentsShowcase';
 
 // Define the structure for a showcase item
 interface ShowcaseItem {
@@ -113,6 +114,15 @@ const showcases: ShowcaseItem[] = [
     name: 'List Item Attachments',
     component: SPListItemAttachmentsShowcase,
     description: 'Drag-and-drop file attachments with previews and validation',
+    status: 'New',
+    category: 'SharePoint Integration',
+    requiresContext: true,
+  },
+  {
+    id: 'comments',
+    name: 'Comments',
+    component: CommentsShowcase,
+    description: 'SharePoint list item comments with mentions, file links, search, and timeline layouts',
     status: 'New',
     category: 'SharePoint Integration',
     requiresContext: true,

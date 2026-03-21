@@ -4,12 +4,13 @@ import * as React from 'react';
 import { useCallback, useMemo } from 'react';
 import {
   ChoiceGroup,
-  IChoiceGroupOption,
-  PrimaryButton,
   DefaultButton,
+  IChoiceGroupOption,
   MessageBar,
   MessageBarType,
+  PrimaryButton,
 } from '@fluentui/react';
+import { CodeDisplay } from '../../../../../components/CodeDisplay';
 import { ExportFormat } from '../types/CamlTypes';
 import {
   generateExportCode,
@@ -40,6 +41,25 @@ export const ExportPanel: React.FC<IExportPanelProps> = ({
     if (!camlXML || !listTitle) return '';
     return generateExportCode(camlXML, exportFormat, listTitle, siteUrl);
   }, [camlXML, exportFormat, listTitle, siteUrl]);
+
+  const fileExtension = useMemo(() => getExportFileExtension(exportFormat), [exportFormat]);
+
+  const codeLanguage = useMemo<
+    'xml' | 'typescript' | 'javascript' | 'powershell'
+  >(() => {
+    switch (exportFormat) {
+      case 'caml':
+        return 'xml';
+      case 'pnpjs':
+        return 'typescript';
+      case 'pnppowershell':
+        return 'powershell';
+      case 'rest':
+        return 'javascript';
+      default:
+        return 'xml';
+    }
+  }, [exportFormat]);
 
   // Format options
   const formatOptions: IChoiceGroupOption[] = useMemo(
@@ -133,14 +153,55 @@ export const ExportPanel: React.FC<IExportPanelProps> = ({
       <div
         style={{
           marginBottom: '12px',
-          padding: '8px',
-          background: '#f3f2f1',
-          borderRadius: '4px',
-          fontSize: '12px',
-          color: '#323130',
+          padding: '12px',
+          background: 'linear-gradient(180deg, #f8fbff 0%, #eef6fc 100%)',
+          border: '1px solid #d6e9f8',
+          borderRadius: '8px',
         }}
       >
-        {getExportFormatDescription(exportFormat)}
+        <div style={{ fontSize: '13px', fontWeight: 600, color: '#0f172a', marginBottom: '4px' }}>
+          {getExportFormatLabel(exportFormat)}
+        </div>
+        <div style={{ fontSize: '12px', color: '#334155', lineHeight: 1.5 }}>
+          {getExportFormatDescription(exportFormat)}
+        </div>
+        {isReady && (
+          <div
+            style={{
+              display: 'flex',
+              gap: '8px',
+              flexWrap: 'wrap',
+              marginTop: '10px',
+            }}
+          >
+            <span
+              style={{
+                padding: '4px 8px',
+                borderRadius: '999px',
+                background: '#ffffff',
+                border: '1px solid #c7ddf2',
+                fontSize: '11px',
+                color: '#1d4d72',
+                fontWeight: 600,
+              }}
+            >
+              File: `caml-query.{fileExtension}`
+            </span>
+            <span
+              style={{
+                padding: '4px 8px',
+                borderRadius: '999px',
+                background: '#ffffff',
+                border: '1px solid #c7ddf2',
+                fontSize: '11px',
+                color: '#1d4d72',
+                fontWeight: 600,
+              }}
+            >
+              List: {listTitle}
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Warning if list not selected */}
@@ -152,7 +213,15 @@ export const ExportPanel: React.FC<IExportPanelProps> = ({
 
       {/* Action Buttons */}
       {isReady && (
-        <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
+        <div
+          style={{
+            display: 'flex',
+            gap: '8px',
+            marginBottom: '16px',
+            flexWrap: 'wrap',
+            alignItems: 'center',
+          }}
+        >
           <PrimaryButton
             text="Copy Code"
             iconProps={{ iconName: 'Copy' }}
@@ -167,29 +236,26 @@ export const ExportPanel: React.FC<IExportPanelProps> = ({
             disabled={isEmpty}
             styles={{ root: { padding: '8px 16px' } }}
           />
+          <span style={{ fontSize: '12px', color: '#605e5c' }}>
+            Ready to paste into your project or save as a reusable snippet.
+          </span>
         </div>
       )}
 
       {/* Code Preview */}
       {isReady && (
-        <div
-          style={{
-            background: '#1e1e1e',
-            border: '1px solid #3c3c3c',
-            borderRadius: '4px',
-            padding: '12px',
-            fontFamily: 'Consolas, "Courier New", monospace',
-            fontSize: '12px',
-            lineHeight: '1.5',
-            overflow: 'auto',
-            maxHeight: '300px',
-            color: '#d4d4d4',
-            whiteSpace: 'pre-wrap',
-            wordBreak: 'break-all',
-          }}
-        >
-          <code>{generatedCode}</code>
-        </div>
+        <CodeDisplay
+          code={generatedCode}
+          language={codeLanguage}
+          fileName={`caml-query.${fileExtension}`}
+          title="Code Preview"
+          showLineNumbers={true}
+          showCopyButton={true}
+          collapsible={false}
+          theme="dark"
+          maxHeight={420}
+          description="Generated from the current CAML query and list context."
+        />
       )}
 
       {/* Usage Instructions */}

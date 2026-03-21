@@ -73,7 +73,7 @@ build.configureWebpack.mergeConfig({
       test: /\\.tsx?$/,
       exclude: [
         /node_modules\\/@pnp/,
-        /node_modules\\/spfx-toolkit\\/lib\\/utilities\\/context\\/pnpImports/
+        /node_modules\\/spfx-toolkit\\/(lib\\/)?utilities\\/context\\/pnpImports/
       ],
       sideEffects: false,
     });
@@ -179,9 +179,9 @@ task('analyze-bundle', done => {
 build.initialize(require('gulp'));`;
 
   const tsconfigPaths = `{
-  "extends": "./node_modules/@microsoft/rush-stack-compiler-4.5/includes/tsconfig-web.json",
+  "extends": "./node_modules/@microsoft/rush-stack-compiler-5.3/includes/tsconfig-web.json",
   "compilerOptions": {
-    "target": "es2019",
+    "target": "es5",
     "forceConsistentCasingInFileNames": true,
     "module": "esnext",
     "moduleResolution": "node",
@@ -192,12 +192,10 @@ build.initialize(require('gulp'));`;
     "skipLibCheck": true,
     "outDir": "lib",
     "inlineSources": false,
-    "strictNullChecks": false,
-    "esModuleInterop": true,
-    "noUnusedLocals": false,
+    "noImplicitAny": true,
     "typeRoots": ["./node_modules/@types", "./node_modules/@microsoft"],
     "types": ["webpack-env"],
-    "lib": ["es2019", "dom", "dom.iterable"],
+    "lib": ["es5", "dom", "es2015.collection", "es2015.promise", "es2020"],
 
     // Path aliases for cleaner imports
     "baseUrl": "./src",
@@ -224,11 +222,12 @@ build.initialize(require('gulp'));`;
   "scripts": {
     "build": "gulp bundle",
     "serve": "fast-serve",
-    "debug": "gulp clean && gulp bundle && gulp package-solution",
-    "release": "gulp clean && gulp bundle --ship && gulp package-solution --ship",
-    "clean": "gulp clean && gulp clean-cache",
-    "stats": "gulp bundle --ship && gulp analyze-bundle",
-    "type-check": "tsc --noEmit"
+    "debug": "npm run clean && gulp bundle --ship=false && gulp package-solution --ship=false",
+    "release": "npm run clean && gulp bundle --ship && gulp package-solution --ship",
+    "clean": "gulp clean",
+    "analyze": "gulp bundle --ship && echo '\\nBundle analysis complete. Check temp/stats.json for details.\\nPackage size:' && ls -lh sharepoint/solution/*.sppkg | awk '{print $5, $9}'",
+    "type-check": "tsc --noEmit",
+    "test:utilities": "tsc -p tsconfig.tests.json && node --test temp/test-build/tests/**/*.test.js"
   },
   "dependencies": {
     "@microsoft/sp-core-library": "1.21.1",
@@ -238,25 +237,28 @@ build.initialize(require('gulp'));`;
     "@microsoft/sp-webpart-base": "1.21.1",
     "react": "17.0.1",
     "react-dom": "17.0.1",
-    "spfx-toolkit": "^2.x.x"
+    "spfx-toolkit": "file:../spfx-toolkit"
   },
   "devDependencies": {
     "@microsoft/eslint-config-spfx": "1.21.1",
     "@microsoft/eslint-plugin-spfx": "1.21.1",
-    "@microsoft/rush-stack-compiler-4.5": "0.5.0",
+    "@microsoft/rush-stack-compiler-5.3": "0.1.0",
     "@microsoft/sp-build-web": "1.21.1",
     "@microsoft/sp-module-interfaces": "1.21.1",
-    "@rushstack/eslint-config": "2.5.1",
+    "@rushstack/eslint-config": "4.0.1",
+    "@types/node": "^18.15.0",
     "@types/react": "17.0.45",
     "@types/react-dom": "17.0.17",
     "@types/webpack-env": "~1.15.2",
     "ajv": "^6.12.5",
-    "eslint": "8.7.0",
+    "del": "^6.1.1",
+    "eslint": "8.57.1",
     "eslint-plugin-react-hooks": "4.3.0",
     "gulp": "4.0.2",
+    "open": "10.2.0",
     "spfx-fast-serve-helpers": "~1.21.0",
-    "typescript": "4.7.4",
-    "webpack-bundle-analyzer": "^4.10.1"
+    "typescript": "~5.3.3",
+    "webpack-bundle-analyzer": "4.10.2"
   }
 }`;
 
@@ -268,84 +270,84 @@ build.initialize(require('gulp'));`;
         webpack optimization, and useful npm scripts.
       </MessageBar>
 
-      {/* Azure Artifacts Setup */}
-      <Section title="Azure Artifacts Setup (spfx-toolkit)" icon="Package" defaultExpanded={true}>
+      {/* Toolkit dependency setup */}
+      <Section title="Toolkit Dependency Setup" icon="Package" defaultExpanded={true}>
         <div style={{ marginBottom: '16px' }}>
           <p style={{ margin: '0 0 16px 0', fontSize: '14px', color: '#323130' }}>
-            The <strong>spfx-toolkit</strong> package is hosted in our Azure Artifacts feed. Follow these
-            steps to configure authentication:
+            This application currently consumes <strong>spfx-toolkit</strong> through a local file
+            dependency. That is the preferred workflow when you are updating both the toolkit and
+            the demo solution together.
           </p>
 
           <h4 style={{ margin: '0 0 12px 0', fontSize: '14px', fontWeight: 600 }}>
-            1. Create .npmrc File
+            1. Local linked workflow (current repo setup)
           </h4>
           <p style={{ margin: '0 0 12px 0', fontSize: '14px', color: '#323130' }}>
-            Create a <code>.npmrc</code> file in your project root with the Azure Artifacts registry URL:
+            Keep the toolkit repo beside this solution and rebuild it when entrypoints or generated
+            output change:
           </p>
           <CodeBlock
-            code={`# Public npm registry (default)
-registry=https://registry.npmjs.org/
+            code={`cd ../spfx-toolkit
+npm install
+npm run build
 
-# Azure Artifacts registry for @your-org scoped packages
-@your-org:registry=https://pkgs.dev.azure.com/your-org/_packaging/your-feed/npm/registry/
-
-# Always authenticate for private feeds
-always-auth=true`}
+cd ../spfx-showcase
+npm install`}
             language="bash"
-            filename=".npmrc"
+            filename="Local toolkit workflow"
             showLineNumbers={false}
           />
 
           <MessageBar messageBarType={MessageBarType.info} styles={{ root: { marginTop: '12px', marginBottom: '16px' } }}>
-            <strong>Important:</strong> Replace <code>@your-org</code>, <code>your-org</code>, and{' '}
-            <code>your-feed</code> with your actual Azure DevOps organization and feed name. Get these
-            values from your team lead or DevOps admin.
+            <strong>Important:</strong> This is the recommended path for this application because it
+            lets you validate current public imports such as <code>spfx-toolkit/components/...</code>
+            immediately.
           </MessageBar>
 
           <h4 style={{ margin: '16px 0 12px 0', fontSize: '14px', fontWeight: 600 }}>
-            2. Authenticate with vsts-npm-auth
+            2. Optional package feed workflow
           </h4>
           <p style={{ margin: '0 0 12px 0', fontSize: '14px', color: '#323130' }}>
-            Install and run the authentication tool to generate a token:
+            If your team consumes a published internal toolkit package instead of the sibling repo,
+            configure Azure Artifacts before installing packages:
           </p>
           <CodeBlock
-            code={`# Install vsts-npm-auth globally (one-time)
+            code={`# Example only - replace with your team's real feed values
+registry=https://registry.npmjs.org/
+@your-org:registry=https://pkgs.dev.azure.com/your-org/_packaging/your-feed/npm/registry/
+always-auth=true
+
+# Install vsts-npm-auth globally (one-time)
 npm install -g vsts-npm-auth
 
 # Run authentication in your project directory
 vsts-npm-auth -config .npmrc
 
-# The tool will:
-# 1. Open your browser for Azure DevOps login
-# 2. Generate a Personal Access Token (PAT)
-# 3. Write the token to your .npmrc file`}
+# Then install dependencies
+npm install`}
             language="bash"
+            filename=".npmrc + auth flow"
             showLineNumbers={false}
           />
 
           <h4 style={{ margin: '16px 0 12px 0', fontSize: '14px', fontWeight: 600 }}>
-            3. Install Dependencies
+            3. Validate the local setup
           </h4>
           <p style={{ margin: '0 0 12px 0', fontSize: '14px', color: '#323130' }}>
-            After authentication, install all project dependencies:
+            Once dependencies are installed, verify the repo against the current toolkit output:
           </p>
           <CodeBlock
-            code={`npm install`}
+            code={`npx tsc --noEmit
+npm run test:utilities
+npm run build`}
             language="bash"
             showLineNumbers={false}
           />
 
           <MessageBar messageBarType={MessageBarType.severeWarning} styles={{ root: { marginTop: '16px', marginBottom: '16px' } }}>
-            <strong>CRITICAL SECURITY WARNING:</strong>
-            <br />
-            <br />
-            <strong>NEVER commit .npmrc to Git!</strong>
-            <br />
-            The .npmrc file contains your authentication token with access to Azure Artifacts. Committing
-            this file exposes your credentials and is a serious security violation.
-            <br />
-            <br />
-            Always verify .npmrc is in .gitignore before committing any changes.
+            <strong>Important:</strong> If the app shows missing subpath exports or stale generated
+            code, rebuild <code>../spfx-toolkit</code> first. If you use the package-feed workflow,
+            never commit <code>.npmrc</code> with an auth token.
           </MessageBar>
 
           <h4 style={{ margin: '16px 0 12px 0', fontSize: '14px', fontWeight: 600 }}>
@@ -375,7 +377,7 @@ credentials.json
             Token Expiration & Renewal
           </h4>
           <p style={{ margin: '0 0 12px 0', fontSize: '14px', color: '#323130' }}>
-            Azure DevOps PATs typically expire after 90 days. When your token expires:
+            This only applies if you use the package-feed fallback. When the token expires:
           </p>
           <ul style={{ margin: '0 0 16px 0', paddingLeft: '20px', fontSize: '14px', color: '#323130' }}>
             <li style={{ marginBottom: '8px' }}>

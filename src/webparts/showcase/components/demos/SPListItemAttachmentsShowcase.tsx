@@ -1,7 +1,7 @@
 import { DefaultButton, Dropdown, IDropdownOption, Toggle } from '@fluentui/react';
 import * as React from 'react';
-import { SPListItemAttachments, AttachmentDisplayMode } from 'spfx-toolkit/lib/components/SPListItemAttachments';
-import { SPContext } from 'spfx-toolkit/lib/utilities/context';
+import { SPListItemAttachments, AttachmentDisplayMode } from 'spfx-toolkit/components/SPListItemAttachments';
+import { SPContext } from 'spfx-toolkit/utilities/context';
 import { ListPicker } from '@pnp/spfx-controls-react/lib/ListPicker';
 import { ListItemPicker } from '@pnp/spfx-controls-react/lib/ListItemPicker';
 import { ShowcaseCodeSample } from '../shared/ShowcaseCodeSample';
@@ -9,7 +9,7 @@ import { ShowcaseHero } from '../shared/ShowcaseHero';
 import { ShowcaseFeature, ShowcaseKeyFeatures } from '../shared/ShowcaseKeyFeatures';
 
 const ATTACHMENTS_BASIC_SAMPLE = `import * as React from 'react';
-import { SPListItemAttachments, AttachmentDisplayMode } from 'spfx-toolkit/lib/components/SPListItemAttachments';
+import { SPListItemAttachments, AttachmentDisplayMode } from 'spfx-toolkit/components/SPListItemAttachments';
 
 export const AttachmentsDemo: React.FC = () => {
   return (
@@ -34,7 +34,7 @@ export const AttachmentsDemo: React.FC = () => {
 };`;
 
 const ATTACHMENTS_NEW_ITEM_SAMPLE = `import * as React from 'react';
-import { SPListItemAttachments } from 'spfx-toolkit/lib/components/SPListItemAttachments';
+import { SPListItemAttachments } from 'spfx-toolkit/components/SPListItemAttachments';
 
 export const NewItemAttachments: React.FC = () => {
   const [stagedFiles, setStagedFiles] = React.useState<File[]>([]);
@@ -61,7 +61,7 @@ export const NewItemAttachments: React.FC = () => {
 };`;
 
 const ATTACHMENTS_VIEW_MODE_SAMPLE = `import * as React from 'react';
-import { SPListItemAttachments, AttachmentDisplayMode } from 'spfx-toolkit/lib/components/SPListItemAttachments';
+import { SPListItemAttachments, AttachmentDisplayMode } from 'spfx-toolkit/components/SPListItemAttachments';
 
 export const ViewOnlyAttachments: React.FC<{ listId: string; itemId: number }> = ({ listId, itemId }) => {
   return (

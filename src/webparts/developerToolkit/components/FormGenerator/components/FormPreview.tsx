@@ -10,16 +10,16 @@ import {
   FormLabel,
   FormProvider,
   FormValue,
-} from 'spfx-toolkit/lib/components/spForm';
+} from 'spfx-toolkit/components/spForm';
 import {
+  SPBooleanDisplayType,
   SPBooleanField,
   SPChoiceField,
   SPDateField,
   SPNumberField,
   SPTextField,
-} from 'spfx-toolkit/lib/components/spFields';
-import { SPBooleanDisplayType } from 'spfx-toolkit/lib/components/spFields/SPBooleanField';
-import { SPTextFieldMode } from 'spfx-toolkit/lib/components/spFields/SPTextField';
+  SPTextFieldMode,
+} from 'spfx-toolkit/components/spFields';
 import { z } from 'zod';
 import { FieldConfiguration } from '../types/FormGeneratorTypes';
 

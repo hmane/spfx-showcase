@@ -1,10 +1,10 @@
 import * as React from 'react';
 import { useCallback, useState } from 'react';
-import { Card, Content, Header } from 'spfx-toolkit/lib/components/Card';
-import { GroupViewer } from 'spfx-toolkit/lib/components/GroupViewer/GroupViewer';
-import { ManageAccessComponent } from 'spfx-toolkit/lib/components/ManageAccess/ManageAccessComponent';
-import { IPermissionPrincipal } from 'spfx-toolkit/lib/components/ManageAccess/types';
-import { SPContext } from 'spfx-toolkit/lib/utilities/context';
+import { Card, Content, Header } from 'spfx-toolkit/components/Card';
+import { GroupViewer } from 'spfx-toolkit/components/GroupViewer';
+import { ManageAccessComponent } from 'spfx-toolkit/components/ManageAccess';
+import type { IPermissionPrincipal } from 'spfx-toolkit/lib/components/ManageAccess/types';
+import { SPContext } from 'spfx-toolkit/utilities/context';
 import { ShowcaseCodeSample } from '../shared/ShowcaseCodeSample';
 import { ShowcaseHero } from '../shared/ShowcaseHero';
 import { ShowcaseFeature, ShowcaseKeyFeatures } from '../shared/ShowcaseKeyFeatures';
@@ -13,11 +13,11 @@ import { ListItemPicker } from '@pnp/spfx-controls-react/lib/ListItemPicker';
 
 const MANAGE_ACCESS_SAMPLE = `import * as React from 'react';
 import { useState } from 'react';
-import { ManageAccessComponent } from 'spfx-toolkit/lib/components/ManageAccess/ManageAccessComponent';
-import { IPermissionPrincipal } from 'spfx-toolkit/lib/components/ManageAccess/types';
+import { ManageAccessComponent } from 'spfx-toolkit/components/ManageAccess';
+import type { IPermissionPrincipal } from 'spfx-toolkit/lib/components/ManageAccess/types';
 import { ListPicker } from '@pnp/spfx-controls-react/lib/ListPicker';
 import { ListItemPicker } from '@pnp/spfx-controls-react/lib/ListItemPicker';
-import { SPContext } from 'spfx-toolkit/lib/utilities/context';
+import { SPContext } from 'spfx-toolkit/utilities/context';
 
 export const DocumentPermissions: React.FC = () => {
   const [selectedListId, setSelectedListId] = useState<string>('');

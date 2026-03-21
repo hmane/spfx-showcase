@@ -60,7 +60,7 @@ export class SPZodSchemaGenerator {
       fields.filter(f => f.isIncluded && f.spfxType).forEach(f => {
         if (f.spfxType) spfxTypes.add(f.spfxType);
       });
-      imports.push(`import type { ${Array.from(spfxTypes).join(', ')} } from 'spfx-toolkit/lib/types';`);
+      imports.push(`import type { ${Array.from(spfxTypes).join(', ')} } from 'spfx-toolkit/types';`);
     }
 
     return imports.join('\n');

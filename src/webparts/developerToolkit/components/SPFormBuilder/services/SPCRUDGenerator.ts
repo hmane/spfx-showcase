@@ -41,8 +41,8 @@ ${deleteFunc}`;
    */
   private static generateImports(fields: IConfiguredField[]): string {
     const imports: string[] = [
-      "import { SPContext } from 'spfx-toolkit/lib/utilities/context';",
-      "import { createSPExtractor, createSPUpdater } from 'spfx-toolkit/lib/utilities/listItemHelper';"
+      "import { SPContext } from 'spfx-toolkit/utilities/context';",
+      "import { createSPExtractor, createSPUpdater } from 'spfx-toolkit/utilities/listItemHelper';"
     ];
 
     // Add spfx-toolkit type imports
@@ -52,7 +52,7 @@ ${deleteFunc}`;
     });
 
     if (spfxTypes.size > 0) {
-      imports.push(`import { ${Array.from(spfxTypes).join(', ')} } from 'spfx-toolkit/lib/types';`);
+      imports.push(`import { ${Array.from(spfxTypes).join(', ')} } from 'spfx-toolkit/types';`);
     }
 
     return imports.join('\n');

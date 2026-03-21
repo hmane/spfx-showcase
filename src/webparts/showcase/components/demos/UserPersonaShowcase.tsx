@@ -1,10 +1,10 @@
 import * as React from 'react';
-import { Card, Content, Header } from 'spfx-toolkit/lib/components/Card';
+import { Card, Content, Header } from 'spfx-toolkit/components/Card';
 import { ShowcaseHero } from '../shared/ShowcaseHero';
 import { ShowcaseKeyFeatures, ShowcaseFeature } from '../shared/ShowcaseKeyFeatures';
 import { ShowcaseCodeSample } from '../shared/ShowcaseCodeSample';
-import { UserPersona, UserPersonaSize, UserPersonaDisplayMode } from 'spfx-toolkit/lib/components/UserPersona';
-import { SPContext } from 'spfx-toolkit/lib/utilities/context';
+import { UserPersona, UserPersonaSize, UserPersonaDisplayMode } from 'spfx-toolkit/components/UserPersona';
+import { SPContext } from 'spfx-toolkit/utilities/context';
 import { Dropdown, IDropdownOption, Toggle } from '@fluentui/react';
 import { PeoplePicker, PrincipalType } from '@pnp/spfx-controls-react/lib/PeoplePicker';
 
@@ -47,7 +47,7 @@ const FEATURES: ShowcaseFeature[] = [
   }
 ];
 
-const BASIC_EXAMPLE = `import { UserPersona } from 'spfx-toolkit/lib/components/UserPersona';
+const BASIC_EXAMPLE = `import { UserPersona } from 'spfx-toolkit/components/UserPersona';
 
 function MyComponent() {
   return (
@@ -61,7 +61,7 @@ function MyComponent() {
   );
 }`;
 
-const ADVANCED_EXAMPLE = `import { UserPersona, UserPersonaSize } from 'spfx-toolkit/lib/components/UserPersona';
+const ADVANCED_EXAMPLE = `import { UserPersona, UserPersonaSize } from 'spfx-toolkit/components/UserPersona';
 
 function AdvancedPersona() {
   return (
@@ -77,7 +77,7 @@ function AdvancedPersona() {
   );
 }`;
 
-const SIZES_EXAMPLE = `import { UserPersona, UserPersonaSize } from 'spfx-toolkit/lib/components/UserPersona';
+const SIZES_EXAMPLE = `import { UserPersona, UserPersonaSize } from 'spfx-toolkit/components/UserPersona';
 
 // Available sizes: 24, 28, 32, 40, 48, 56, 72, 100
 const sizes: UserPersonaSize[] = [24, 28, 32, 40, 48, 56, 72, 100];
@@ -97,7 +97,7 @@ function SizeDemo() {
   );
 }`;
 
-const DISPLAY_MODES_EXAMPLE = `import { UserPersona, UserPersonaDisplayMode } from 'spfx-toolkit/lib/components/UserPersona';
+const DISPLAY_MODES_EXAMPLE = `import { UserPersona, UserPersonaDisplayMode } from 'spfx-toolkit/components/UserPersona';
 
 function DisplayModeDemo() {
   const modes: UserPersonaDisplayMode[] = ['avatar', 'nameOnly', 'avatarAndName'];

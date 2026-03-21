@@ -9,7 +9,7 @@ import * as React from 'react';
 import * as ReactDom from 'react-dom';
 
 import * as strings from 'ShowcaseWebPartStrings';
-import { SPContext } from 'spfx-toolkit/lib/utilities/context';
+import { SPContext } from 'spfx-toolkit/utilities/context';
 
 import Showcase from './components/Showcase';
 

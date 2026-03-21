@@ -29,6 +29,7 @@ import {
   IFieldLink,
   IListFieldSchema,
   IViewSchema,
+  IRoleAssignmentSchema,
 } from '../types/SchemaTypes';
 
 export class SchemaService {
@@ -131,8 +132,26 @@ export class SchemaService {
           'ItemCount', 'Hidden', 'EnableVersioning', 'EnableMinorVersions',
           'EnableModeration', 'ForceCheckout', 'EnableAttachments',
           'EnableFolderCreation', 'ContentTypesEnabled', 'ValidationFormula',
-          'ValidationMessage'
-        )();
+          'ValidationMessage', 'HasUniqueRoleAssignments'
+        )() as Array<{
+          Id: string;
+          Title: string;
+          Description?: string;
+          BaseTemplate: number;
+          BaseType: number;
+          ItemCount: number;
+          Hidden?: boolean;
+          EnableVersioning?: boolean;
+          EnableMinorVersions?: boolean;
+          EnableModeration?: boolean;
+          ForceCheckout?: boolean;
+          EnableAttachments?: boolean;
+          EnableFolderCreation?: boolean;
+          ContentTypesEnabled?: boolean;
+          ValidationFormula?: string;
+          ValidationMessage?: string;
+          HasUniqueRoleAssignments?: boolean;
+        }>;
 
       const listsWithDetails: IListSchema[] = [];
 
@@ -162,6 +181,10 @@ export class SchemaService {
           .contentTypes
           .select('Id', 'Name')();
 
+        const roleAssignments = list.HasUniqueRoleAssignments
+          ? await this.getListRoleAssignments(list.Id)
+          : [];
+
         listsWithDetails.push({
           id: list.Id,
           title: list.Title,
@@ -181,6 +204,8 @@ export class SchemaService {
           enableAttachments: list.EnableAttachments || false,
           enableFolderCreation: list.EnableFolderCreation || false,
           contentTypesEnabled: list.ContentTypesEnabled || false,
+          hasUniqueRoleAssignments: list.HasUniqueRoleAssignments || false,
+          roleAssignments,
           validationFormula: list.ValidationFormula,
           validationMessage: list.ValidationMessage,
           fields: fields.map(f => ({
@@ -278,6 +303,44 @@ export class SchemaService {
     } catch (error) {
       console.error('Error fetching groups:', error);
       throw error;
+    }
+  }
+
+  private async getListRoleAssignments(listId: string): Promise<IRoleAssignmentSchema[]> {
+    try {
+      const roleAssignments = await this.sp.web.lists.getById(listId).roleAssignments.expand(
+        'Member',
+        'RoleDefinitionBindings'
+      )() as Array<{
+        Member: {
+          Id: number;
+          Title: string;
+          PrincipalType: number;
+        };
+        RoleDefinitionBindings: Array<{
+          Id: number;
+          Name: string;
+        }>;
+      }>;
+
+      return roleAssignments
+        .map(assignment => {
+          const roleDefinitionBindings = (assignment.RoleDefinitionBindings || []).filter(
+            role => role.Name !== 'Limited Access'
+          );
+
+          return {
+            principalId: assignment.Member?.Id,
+            principalType: assignment.Member?.PrincipalType === 8 ? 'group' : 'user',
+            principalName: assignment.Member?.Title || 'Unknown Principal',
+            roleDefinitionIds: roleDefinitionBindings.map(role => role.Id),
+            roleDefinitionNames: roleDefinitionBindings.map(role => role.Name),
+          } as IRoleAssignmentSchema;
+        })
+        .filter(assignment => assignment.roleDefinitionNames.length > 0);
+    } catch (error) {
+      console.warn(`Failed to load list role assignments for list ${listId}:`, error);
+      return [];
     }
   }
 
@@ -433,8 +496,26 @@ export class SchemaService {
           'ItemCount', 'Hidden', 'EnableVersioning', 'EnableMinorVersions',
           'EnableModeration', 'ForceCheckout', 'EnableAttachments',
           'EnableFolderCreation', 'ContentTypesEnabled', 'ValidationFormula',
-          'ValidationMessage'
-        )();
+          'ValidationMessage', 'HasUniqueRoleAssignments'
+        )() as {
+          Id: string;
+          Title: string;
+          Description?: string;
+          BaseTemplate: number;
+          BaseType: number;
+          ItemCount: number;
+          Hidden?: boolean;
+          EnableVersioning?: boolean;
+          EnableMinorVersions?: boolean;
+          EnableModeration?: boolean;
+          ForceCheckout?: boolean;
+          EnableAttachments?: boolean;
+          EnableFolderCreation?: boolean;
+          ContentTypesEnabled?: boolean;
+          ValidationFormula?: string;
+          ValidationMessage?: string;
+          HasUniqueRoleAssignments?: boolean;
+        };
 
       const fields = await this.sp.web.lists.getById(listId)
         .fields
@@ -450,6 +531,10 @@ export class SchemaService {
       const contentTypes = await this.sp.web.lists.getById(listId)
         .contentTypes
         .select('Id', 'Name')();
+
+      const roleAssignments = list.HasUniqueRoleAssignments
+        ? await this.getListRoleAssignments(listId)
+        : [];
 
       return {
         id: list.Id,
@@ -470,6 +555,8 @@ export class SchemaService {
         enableAttachments: list.EnableAttachments || false,
         enableFolderCreation: list.EnableFolderCreation || false,
         contentTypesEnabled: list.ContentTypesEnabled || false,
+        hasUniqueRoleAssignments: list.HasUniqueRoleAssignments || false,
+        roleAssignments,
         validationFormula: list.ValidationFormula,
         validationMessage: list.ValidationMessage,
         fields: fields.map(f => ({

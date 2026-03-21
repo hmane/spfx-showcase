@@ -188,6 +188,16 @@ export const ItemSelectionPanel: React.FC<IItemSelectionPanelProps> = ({
             <span style={{ fontSize: '10px', padding: '2px 6px', background: '#dff6dd', borderRadius: '3px', color: '#107c10' }}>
               {list.itemCount} items
             </span>
+            {list.hasUniqueRoleAssignments && (
+              <span style={{ fontSize: '10px', padding: '2px 6px', background: '#fee2e2', borderRadius: '3px', color: '#b91c1c' }}>
+                Unique permissions
+              </span>
+            )}
+            {list.roleAssignments.length > 0 && (
+              <span style={{ fontSize: '10px', padding: '2px 6px', background: '#eff6ff', borderRadius: '3px', color: '#1d4ed8' }}>
+                {list.roleAssignments.length} assignments
+              </span>
+            )}
           </div>
         );
       }

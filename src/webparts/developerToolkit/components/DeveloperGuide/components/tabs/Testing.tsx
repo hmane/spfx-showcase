@@ -8,44 +8,68 @@ export const Testing: React.FC<ITabComponentProps> = () => {
   return (
     <Stack tokens={{ childrenGap: 16 }}>
       <MessageBar messageBarType={MessageBarType.info}>
-        Write tests to ensure code quality and prevent regressions. Aim for &gt;75% code coverage.
+        Test deterministic logic first. In this solution, lightweight helper tests plus TypeScript
+        and bundle validation give the best return for most developer utilities and generators.
       </MessageBar>
 
-      <Section title="Unit Testing with Jest" icon="TestBeaker" defaultExpanded={true}>
+      <Section title="Current Repo Workflow" icon="TestBeaker" defaultExpanded={true}>
         <div style={{ marginBottom: '16px' }}>
           <p style={{ margin: '0 0 16px 0', fontSize: '14px', color: '#323130' }}>
-            Test utility functions and business logic:
+            Prefer pure helper modules for parsing, formatting, and schema generation logic. This
+            repo already uses a lightweight Node test runner flow for that kind of code:
           </p>
           <CodeBlock
-            code={`// src/utils/formatters.test.ts
-import { formatCurrency, formatDate } from './formatters';
+            code={`// tests/developer-utilities/queryStringUtils.test.ts
+import test = require('node:test');
+import assert = require('node:assert/strict');
+import {
+  buildEncodedQueryString,
+  parseQueryString,
+  summarizeQueryParams,
+} from '../../src/webparts/developerToolkit/components/DeveloperUtilities/helpers/queryStringUtils';
 
-describe('formatCurrency', () => {
-  it('formats USD correctly', () => {
-    expect(formatCurrency(1234.56, 'USD')).toBe('$1,234.56');
-  });
+test('buildEncodedQueryString encodes decoded values consistently', () => {
+  const params = parseQueryString('RootFolder=Shared+Documents/Team A&FilterValue1=Active Items');
+  const encoded = buildEncodedQueryString(params);
 
-  it('handles zero', () => {
-    expect(formatCurrency(0, 'USD')).toBe('$0.00');
-  });
+  assert.equal(
+    encoded,
+    'RootFolder=Shared%20Documents%2FTeam%20A&FilterValue1=Active%20Items'
+  );
 });
 
-describe('formatDate', () => {
-  it('formats date in MM/DD/YYYY', () => {
-    const date = new Date('2024-01-15');
-    expect(formatDate(date)).toBe('01/15/2024');
-  });
+test('summarizeQueryParams counts SharePoint params', () => {
+  const params = parseQueryString('List=%7Bguid%7D&ID=5&tag=one&tag=two');
+  const stats = summarizeQueryParams(params);
+
+  assert.equal(stats.sharePointParams, 2);
+  assert.equal(stats.duplicateCount, 1);
 });`}
             language="typescript"
+            showLineNumbers={false}
+          />
+
+          <CodeBlock
+            code={`# Fast validation loop
+npx tsc --noEmit
+npm run test:utilities
+npm run build`}
+            language="bash"
+            filename="Validation Commands"
             showLineNumbers={false}
           />
         </div>
       </Section>
 
-      <Section title="Component Testing with React Testing Library" icon="TestPlan" defaultExpanded={true}>
+      <Section title="Component Testing" icon="TestPlan" defaultExpanded={true}>
         <div>
+          <p style={{ margin: '0 0 16px 0', fontSize: '14px', color: '#323130' }}>
+            For UI-heavy flows, keep the logic outside the component where possible and test the
+            rendering layer separately with your preferred React test stack.
+          </p>
           <CodeBlock
-            code={`// src/components/MyButton.test.tsx
+            code={`// Example only - use your team's preferred React test setup
+// src/components/MyButton.test.tsx
 import { render, screen, fireEvent } from '@testing-library/react';
 import { MyButton } from './MyButton';
 
@@ -77,19 +101,25 @@ describe('MyButton', () => {
       <Section title="Mocking SharePoint APIs" icon="CloudAdd" defaultExpanded={true}>
         <div>
           <CodeBlock
-            code={`// __mocks__/SPContext.ts
+            code={`// Example only - adjust the mock shape to the API you use
+// __mocks__/SPContext.ts
 export const SPContext = {
-  Init: jest.fn(),
-  GetItems: jest.fn(),
-  CreateItem: jest.fn(),
-  UpdateItem: jest.fn(),
-  DeleteItem: jest.fn(),
+  smart: jest.fn(),
+  development: jest.fn(),
+  production: jest.fn(),
+  sp: {
+    web: {
+      lists: {
+        getByTitle: jest.fn(),
+      },
+    },
+  },
 };
 
 // In your test file
-import { SPContext } from 'spfx-toolkit';
+import { SPContext } from 'spfx-toolkit/utilities/context';
 
-jest.mock('spfx-toolkit');
+jest.mock('spfx-toolkit/utilities/context');
 
 describe('MyService', () => {
   beforeEach(() => {
@@ -98,14 +128,13 @@ describe('MyService', () => {
 
   it('fetches items from SharePoint', async () => {
     const mockItems = [{ id: 1, title: 'Test' }];
-    (SPContext.GetItems as jest.Mock).mockResolvedValue(mockItems);
+    const items = { select: jest.fn().mockReturnThis(), top: jest.fn().mockResolvedValue(mockItems) };
+    const list = { items };
+    (SPContext.sp.web.lists.getByTitle as jest.Mock).mockReturnValue(list);
 
     const result = await MyService.getItems();
     expect(result).toEqual(mockItems);
-    expect(SPContext.GetItems).toHaveBeenCalledWith({
-      listTitle: 'My List',
-      fields: ['Id', 'Title'],
-    });
+    expect(SPContext.sp.web.lists.getByTitle).toHaveBeenCalledWith('My List');
   });
 });`}
             language="typescript"

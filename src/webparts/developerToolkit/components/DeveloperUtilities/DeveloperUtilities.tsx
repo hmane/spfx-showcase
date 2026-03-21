@@ -346,6 +346,7 @@ const DeveloperUtilitiesContent: React.FC<DeveloperUtilitiesProps> = ({
 
   const totalUtilities = utilities.length;
   const hasActiveFilters = selectedCategory !== 'all' || Boolean(searchTerm);
+  const visibleUtilityCount = filteredUtilities.length;
 
   return (
     <div className={styles['dev-utilities-container']}>
@@ -355,14 +356,17 @@ const DeveloperUtilitiesContent: React.FC<DeveloperUtilitiesProps> = ({
 
       <section
         className={styles['dev-utilities-hero']}
-        style={{
-          background: 'linear-gradient(135deg, #2234AE 0%, #191714 100%)',
-        }}
       >
         <div className={styles['dev-utilities-heroTop']}>
           <div className={styles['dev-utilities-heroTitle']}>
             <h1>{title}</h1>
             <p>{description}</p>
+          </div>
+
+          <div className={styles['dev-utilities-heroMeta']}>
+            <span>{visibleUtilityCount} visible</span>
+            <span>{totalUtilities} total</span>
+            <span>Ctrl+F search</span>
           </div>
         </div>
 
@@ -396,6 +400,16 @@ const DeveloperUtilitiesContent: React.FC<DeveloperUtilitiesProps> = ({
               />
             </div>
           </div>
+        </div>
+
+        <div className={styles['dev-utilities-heroSummary']}>
+          <span>
+            Showing {visibleUtilityCount} of {totalUtilities} utilities
+          </span>
+          <span>
+            Category: {selectedCategory === 'all' ? 'All' : selectedCategory}
+          </span>
+          {searchTerm && <span>Search: "{searchTerm}"</span>}
         </div>
 
         <div

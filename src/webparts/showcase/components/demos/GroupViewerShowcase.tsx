@@ -1,10 +1,10 @@
 import * as React from 'react';
-import { Card, Content, Header } from 'spfx-toolkit/lib/components/Card';
+import { Card, Content, Header } from 'spfx-toolkit/components/Card';
 import { ShowcaseHero } from '../shared/ShowcaseHero';
 import { ShowcaseKeyFeatures, ShowcaseFeature } from '../shared/ShowcaseKeyFeatures';
 import { ShowcaseCodeSample } from '../shared/ShowcaseCodeSample';
-import { GroupViewer } from 'spfx-toolkit/lib/components/GroupViewer';
-import SPContext from 'spfx-toolkit/lib/utilities/context';
+import { GroupViewer } from 'spfx-toolkit/components/GroupViewer';
+import SPContext from 'spfx-toolkit/utilities/context';
 import { Dropdown, IDropdownOption, TextField, MessageBar, MessageBarType, Spinner } from '@fluentui/react';
 
 const FEATURES: ShowcaseFeature[] = [
@@ -46,7 +46,7 @@ const FEATURES: ShowcaseFeature[] = [
   }
 ];
 
-const BASIC_EXAMPLE = `import { GroupViewer } from 'spfx-toolkit/lib/components/GroupViewer';
+const BASIC_EXAMPLE = `import { GroupViewer } from 'spfx-toolkit/components/GroupViewer';
 
 function MyComponent() {
   return (
@@ -59,7 +59,7 @@ function MyComponent() {
   );
 }`;
 
-const ADVANCED_EXAMPLE = `import { GroupViewer } from 'spfx-toolkit/lib/components/GroupViewer';
+const ADVANCED_EXAMPLE = `import { GroupViewer } from 'spfx-toolkit/components/GroupViewer';
 
 function AdvancedGroupViewer() {
   return (
@@ -81,7 +81,7 @@ function AdvancedGroupViewer() {
   );
 }`;
 
-const DISPLAY_MODES_EXAMPLE = `import { GroupViewer } from 'spfx-toolkit/lib/components/GroupViewer';
+const DISPLAY_MODES_EXAMPLE = `import { GroupViewer } from 'spfx-toolkit/components/GroupViewer';
 
 function DisplayModes() {
   return (
@@ -112,7 +112,7 @@ function DisplayModes() {
   );
 }`;
 
-const NESTED_EXAMPLE = `import { GroupViewer } from 'spfx-toolkit/lib/components/GroupViewer';
+const NESTED_EXAMPLE = `import { GroupViewer } from 'spfx-toolkit/components/GroupViewer';
 
 function NestedGroups() {
   return (

@@ -214,7 +214,7 @@ const displayRichText = (htmlContent: string): string => {
           </p>
 
           <CodeBlock
-            code={`import { SPContext } from 'spfx-toolkit';
+            code={`import { SPContext } from 'spfx-toolkit/utilities/context';
 
 // Check if user has edit permissions
 export const canUserEdit = async (listTitle: string): Promise<boolean> => {

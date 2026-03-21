@@ -1,7 +1,7 @@
 import { DefaultButton, PrimaryButton } from '@fluentui/react';
 import * as React from 'react';
-import { IVersionInfo, VersionHistory } from 'spfx-toolkit/lib/components/VersionHistory';
-import { SPContext } from 'spfx-toolkit/lib/utilities/context';
+import { IVersionInfo, VersionHistory } from 'spfx-toolkit/components/VersionHistory';
+import { SPContext } from 'spfx-toolkit/utilities/context';
 import { ListPicker } from '@pnp/spfx-controls-react/lib/ListPicker';
 import { ListItemPicker } from '@pnp/spfx-controls-react/lib/ListItemPicker';
 import { ShowcaseCodeSample } from '../shared/ShowcaseCodeSample';
@@ -11,10 +11,10 @@ import { ShowcaseFeature, ShowcaseKeyFeatures } from '../shared/ShowcaseKeyFeatu
 const VERSION_HISTORY_SAMPLE = `import * as React from 'react';
 import { useState } from 'react';
 import { PrimaryButton } from '@fluentui/react';
-import { VersionHistory } from 'spfx-toolkit/lib/components/VersionHistory';
+import { VersionHistory } from 'spfx-toolkit/components/VersionHistory';
 import { ListPicker } from '@pnp/spfx-controls-react/lib/ListPicker';
 import { ListItemPicker } from '@pnp/spfx-controls-react/lib/ListItemPicker';
-import { SPContext } from 'spfx-toolkit/lib/utilities/context';
+import { SPContext } from 'spfx-toolkit/utilities/context';
 
 export const VersionHistoryTrigger: React.FC = () => {
   const [showHistory, setShowHistory] = useState(false);

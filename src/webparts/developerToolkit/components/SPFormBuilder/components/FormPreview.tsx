@@ -11,19 +11,19 @@ import {
   FormLabel,
   FormProvider,
   FormValue,
-} from 'spfx-toolkit/lib/components/spForm';
+} from 'spfx-toolkit/components/spForm';
 import {
+  SPBooleanDisplayType,
   SPBooleanField,
+  SPChoiceDisplayType,
   SPChoiceField,
   SPDateField,
   SPNumberField,
   SPTextField,
+  SPTextFieldMode,
   SPUrlField,
   SPUserField,
-} from 'spfx-toolkit/lib/components/spFields';
-import { SPBooleanDisplayType } from 'spfx-toolkit/lib/components/spFields/SPBooleanField';
-import { SPTextFieldMode } from 'spfx-toolkit/lib/components/spFields/SPTextField';
-import { SPChoiceDisplayType } from 'spfx-toolkit/lib/components/spFields/types';
+} from 'spfx-toolkit/components/spFields';
 import { z } from 'zod';
 import { IConfiguredField } from '../types/SPFormBuilderTypes';
 

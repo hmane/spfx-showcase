@@ -14,7 +14,7 @@ import {
 } from '@fluentui/react';
 import * as React from 'react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Card, CardAction, Content, Header } from 'spfx-toolkit/lib/components/Card';
+import { Card, CardAction, Content, Header } from 'spfx-toolkit/components/Card';
 import { useUtilityService } from '../context/UtilityContext';
 import { useClipboard } from '../hooks/useClipboard';
 import { useDebounce } from '../hooks/useDebounce';
@@ -132,8 +132,12 @@ export const XmlFormatterUtility: React.FC<BaseUtilityProps> = ({
   useEffect(() => {
     const savedAutoReorder = utilityService.getPreference('xml', 'autoReorder');
     const savedPropertyOrder = utilityService.getPreference('xml', 'propertyOrder');
+    const savedIndentSize = utilityService.getPreference('json', 'indentSize');
     setAutoReorder(typeof savedAutoReorder === 'boolean' ? savedAutoReorder : true);
     setCustomPropertyOrder(Array.isArray(savedPropertyOrder) ? savedPropertyOrder : []);
+    if (savedIndentSize === 2 || savedIndentSize === 4) {
+      setIndentSize(savedIndentSize);
+    }
   }, [utilityService]);
 
   // Save preferences
@@ -480,7 +484,9 @@ export const XmlFormatterUtility: React.FC<BaseUtilityProps> = ({
                 selectedKey={indentSize}
                 onChange={(ev, option) => {
                   if (option) {
-                    setIndentSize(option.key as number);
+                    const nextIndent = option.key as number;
+                    setIndentSize(nextIndent);
+                    utilityService.savePreference('json', 'indentSize', nextIndent);
                   }
                 }}
                 styles={{ dropdown: { minWidth: '100px' } }}

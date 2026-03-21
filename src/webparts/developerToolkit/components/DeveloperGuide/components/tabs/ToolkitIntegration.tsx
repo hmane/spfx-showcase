@@ -10,15 +10,15 @@ import { Section } from '../shared/Section';
 export const ToolkitIntegration: React.FC<ITabComponentProps> = () => {
   const pnpImportsGuide = `// src/webparts/pnpImports.ts
 // Imported once per web part entry point (e.g., ShowcaseWebPart.ts)
-import 'spfx-toolkit/lib/utilities/context/pnpImports/core';
-import 'spfx-toolkit/lib/utilities/context/pnpImports/lists';
-import 'spfx-toolkit/lib/utilities/context/pnpImports/content';
+import 'spfx-toolkit/utilities/context/pnpImports/core';
+import 'spfx-toolkit/utilities/context/pnpImports/lists';
+import 'spfx-toolkit/utilities/context/pnpImports/content';
 
 // Optional bundles – add only what you need
-// import 'spfx-toolkit/lib/utilities/context/pnpImports/files';
-// import 'spfx-toolkit/lib/utilities/context/pnpImports/search';
-// import 'spfx-toolkit/lib/utilities/context/pnpImports/taxonomy';
-// import 'spfx-toolkit/lib/utilities/context/pnpImports/security';
+// import 'spfx-toolkit/utilities/context/pnpImports/files';
+// import 'spfx-toolkit/utilities/context/pnpImports/search';
+// import 'spfx-toolkit/utilities/context/pnpImports/taxonomy';
+// import 'spfx-toolkit/utilities/context/pnpImports/security';
 `;
 
   const pnpAugmentationsGuide = `/**
@@ -66,43 +66,34 @@ import '@pnp/sp/security';
 import '@pnp/sp/sharing';
 `;
 
-  const spContextInitDev = `import { SPContext } from 'spfx-toolkit';
+  const spContextInitDev = `import { SPContext } from 'spfx-toolkit/utilities/context';
 
 // In your web part class (MyWebPart.ts)
 protected async onInit(): Promise<void> {
   await super.onInit();
 
-  // Development mode - Initialize with web part context
-  SPContext.Init(this.context);
+  // Development preset - verbose logging, friendly for workbench
+  await SPContext.development(this.context, 'MyWebPart');
 }`;
 
-  const spContextInitProd = `import { SPContext } from 'spfx-toolkit';
+  const spContextInitProd = `import { SPContext } from 'spfx-toolkit/utilities/context';
 
 // In your web part class (MyWebPart.ts)
 protected async onInit(): Promise<void> {
   await super.onInit();
 
-  // Production mode - Initialize with context and site URL
-  SPContext.Init(this.context, this.context.pageContext.web.absoluteUrl);
+  // Production preset - optimized logging and caching behavior
+  await SPContext.production(this.context, 'MyWebPart');
 }`;
 
-  const spContextInitSmart = `import { SPContext } from 'spfx-toolkit';
+  const spContextInitSmart = `import { SPContext } from 'spfx-toolkit/utilities/context';
 
 // In your web part class (MyWebPart.ts)
 protected async onInit(): Promise<void> {
   await super.onInit();
 
-  // Smart mode - Auto-detect environment
-  const siteUrl = this.context.pageContext.web.absoluteUrl;
-  const isDevelopment = siteUrl.includes('localhost') || siteUrl.includes('workbench');
-
-  if (isDevelopment) {
-    // Development: Use context only
-    SPContext.Init(this.context);
-  } else {
-    // Production: Use context + site URL for better performance
-    SPContext.Init(this.context, siteUrl);
-  }
+  // Smart preset - recommended default
+  await SPContext.smart(this.context, 'MyWebPart');
 }`;
 
   const formExample = `import { useForm } from 'react-hook-form';
@@ -116,14 +107,14 @@ import {
   FormValue,
   FormError,
   FormErrorSummary
-} from 'spfx-toolkit/lib/components/spForm';
+} from 'spfx-toolkit/components/spForm';
 import {
   SPTextField,
   SPUserField,
   SPDateField,
   SPNumberField,
   SPChoiceField
-} from 'spfx-toolkit/lib/components/spFields';
+} from 'spfx-toolkit/components/spFields';
 
 // Define validation schema
 const schema = z.object({
@@ -219,18 +210,14 @@ export const MyForm: React.FC = () => {
   );
 };`;
 
-  const cardExample = `import { Card, CardHeader, CardContent, CardFooter } from 'spfx-toolkit/lib/components';
+  const cardExample = `import { Card, Header, Content, Footer } from 'spfx-toolkit/components/Card';
 import { PrimaryButton, DefaultButton } from '@fluentui/react';
 
 export const MyCard: React.FC = () => {
   return (
-    <Card elevated>
-      <CardHeader
-        title="Project Status"
-        subtitle="Last updated: Today"
-        iconName="ProjectCollection"
-      />
-      <CardContent>
+    <Card title="Project Status" allowExpand>
+      <Header>Project Status</Header>
+      <Content>
         <div>
           <p>Project is on track and progressing well.</p>
           <ul>
@@ -238,17 +225,17 @@ export const MyCard: React.FC = () => {
             <li>Next milestone: End of month</li>
           </ul>
         </div>
-      </CardContent>
-      <CardFooter>
+      </Content>
+      <Footer>
         <PrimaryButton text="View Details" />
         <DefaultButton text="Edit" />
-      </CardFooter>
+      </Footer>
     </Card>
   );
 };`;
 
-  const crudExample = `import { createSPExtractor, createSPUpdater } from 'spfx-toolkit';
-import { SPContext } from 'spfx-toolkit';
+  const crudExample = `import { SPContext } from 'spfx-toolkit/utilities/context';
+import { createSPExtractor, createSPUpdater } from 'spfx-toolkit/utilities/listItemHelper';
 
 interface IProject {
   id: number;
@@ -259,103 +246,101 @@ interface IProject {
   owner: { id: string; title: string };
 }
 
-// Create extractor for reading data
-const extractProject = createSPExtractor<IProject>({
-  id: 'number',
-  title: 'string',
-  description: 'string',
-  status: 'string',
-  startDate: 'date',
-  owner: 'user',
-});
-
-// Create updater for writing data
-const updateProject = createSPUpdater<IProject>({
-  title: 'string',
-  description: 'string',
-  status: 'string',
-  startDate: 'date',
-  owner: 'user',
-});
-
-// Get items
 export const getProjects = async (): Promise<IProject[]> => {
-  const items = await SPContext.GetItems({
-    listTitle: 'Projects',
-    fields: ['Id', 'Title', 'Description', 'Status', 'StartDate', 'Owner'],
-    filter: "Status eq 'Active'",
-    orderBy: 'StartDate desc',
-    top: 50,
-  });
+  const items = await SPContext.sp.web.lists
+    .getByTitle('Projects')
+    .items.select('Id', 'Title', 'Description', 'Status', 'StartDate', 'Owner/Id', 'Owner/Title')
+    .expand('Owner')();
 
-  return items.map(item => extractProject(item));
+  return items.map(item => {
+    const extractor = createSPExtractor(item);
+
+    return {
+      id: extractor.number('Id'),
+      title: extractor.text('Title'),
+      description: extractor.text('Description'),
+      status: extractor.text('Status', 'Active') as IProject['status'],
+      startDate: extractor.date('StartDate'),
+      owner: extractor.user('Owner'),
+    };
+  });
 };
 
 // Create item
 export const createProject = async (project: Omit<IProject, 'id'>): Promise<number> => {
-  const payload = updateProject(project);
+  const updater = createSPUpdater();
+  updater.set('Title', project.title);
+  updater.set('Description', project.description);
+  updater.set('Status', project.status);
+  updater.set('StartDate', project.startDate);
+  updater.set('OwnerId', project.owner?.id);
 
-  const result = await SPContext.CreateItem({
-    listTitle: 'Projects',
-    data: payload,
-  });
+  const result = await SPContext.sp.web.lists
+    .getByTitle('Projects')
+    .items.add(updater.getUpdates());
 
-  return result.Id;
+  return result.data.Id;
 };
 
 // Update item
-export const updateProjectItem = async (id: number, updates: Partial<IProject>): Promise<void> => {
-  const payload = updateProject(updates);
+export const updateProjectItem = async (
+  id: number,
+  updates: Partial<IProject>,
+  original?: IProject
+): Promise<void> => {
+  const updater = createSPUpdater();
+  updater.set('Title', updates.title, original?.title);
+  updater.set('Description', updates.description, original?.description);
+  updater.set('Status', updates.status, original?.status);
+  updater.set('StartDate', updates.startDate, original?.startDate);
+  updater.set('OwnerId', updates.owner?.id, original?.owner?.id);
 
-  await SPContext.UpdateItem({
-    listTitle: 'Projects',
-    itemId: id,
-    data: payload,
-  });
+  if (!updater.hasChanges()) {
+    return;
+  }
+
+  await SPContext.sp.web.lists
+    .getByTitle('Projects')
+    .items.getById(id)
+    .update(updater.getUpdates());
 };
 
 // Delete item
 export const deleteProject = async (id: number): Promise<void> => {
-  await SPContext.DeleteItem({
-    listTitle: 'Projects',
-    itemId: id,
-  });
+  await SPContext.sp.web.lists.getByTitle('Projects').items.getById(id).delete();
 };`;
 
-  const batchExample = `import { createBatchBuilder, SPContext } from 'spfx-toolkit';
+  const batchExample = `import { SPContext } from 'spfx-toolkit/utilities/context';
+import { createBatchBuilder } from 'spfx-toolkit/utilities/batchBuilder';
 
 // Batch update multiple items efficiently
 export const batchUpdateProjects = async (updates: Array<{ id: number; status: string }>): Promise<void> => {
-  const batch = createBatchBuilder();
+  const batch = createBatchBuilder(SPContext.sp).list('Projects');
 
   updates.forEach(update => {
-    batch.addUpdate({
-      listTitle: 'Projects',
-      itemId: update.id,
-      data: { Status: update.status },
-    });
+    batch.update(update.id, { Status: update.status });
   });
 
-  await SPContext.ExecuteBatch(batch);
+  await batch.execute();
 };`;
 
-  const userPersonaExample = `import { UserPersona } from 'spfx-toolkit/lib/components';
+  const userPersonaExample = `import { UserPersona } from 'spfx-toolkit/components/UserPersona';
 
 export const MyComponent: React.FC = () => {
   return (
     <div>
       <UserPersona
-        userId="john.doe@contoso.com"
-        size="small"
+        userIdentifier="john.doe@contoso.com"
+        size={32}
+        displayMode="avatarAndName"
         showSecondaryText
-        presence="online"
       />
 
       <UserPersona
-        userId="jane.smith@contoso.com"
-        size="large"
+        userIdentifier="jane.smith@contoso.com"
+        size={48}
+        displayMode="avatarAndName"
         showSecondaryText
-        hidePersonaDetails={false}
       />
     </div>
   );
@@ -364,33 +349,38 @@ export const MyComponent: React.FC = () => {
   const importPatterns = [
     {
       category: 'Forms',
-      import: "import { FormProvider, FormContainer, FormItem } from 'spfx-toolkit/lib/components/spForm';",
+      import: "import { FormProvider, FormContainer, FormItem } from 'spfx-toolkit/components/spForm';",
       description: 'Form layout and structure components',
     },
     {
       category: 'Fields',
-      import: "import { SPTextField, SPUserField, SPDateField } from 'spfx-toolkit/lib/components/spFields';",
+      import: "import { SPTextField, SPUserField, SPDateField } from 'spfx-toolkit/components/spFields';",
       description: 'SharePoint field input components',
     },
     {
       category: 'Cards',
-      import: "import { Card, CardHeader, CardContent } from 'spfx-toolkit/lib/components';",
+      import: "import { Card, Header, Content, Footer } from 'spfx-toolkit/components/Card';",
       description: 'Card layout components',
     },
     {
       category: 'Services',
-      import: "import { SPContext } from 'spfx-toolkit';",
+      import: "import { SPContext } from 'spfx-toolkit/utilities/context';",
       description: 'SharePoint context and API service',
     },
     {
       category: 'Utilities',
-      import: "import { createSPExtractor, createSPUpdater, createBatchBuilder } from 'spfx-toolkit';",
+      import: "import { createSPExtractor, createSPUpdater } from 'spfx-toolkit/utilities/listItemHelper';",
       description: 'Data transformation utilities',
     },
     {
       category: 'Components',
-      import: "import { UserPersona } from 'spfx-toolkit/lib/components';",
+      import: "import { UserPersona } from 'spfx-toolkit/components/UserPersona';",
       description: 'Reusable UI components',
+    },
+    {
+      category: 'Batching',
+      import: "import { createBatchBuilder } from 'spfx-toolkit/utilities/batchBuilder';",
+      description: 'Fluent batch operations over SPContext.sp',
     },
   ];
 
@@ -459,7 +449,7 @@ export const MyComponent: React.FC = () => {
             Development Mode (Recommended for local development)
           </h4>
           <p style={{ margin: '0 0 12px 0', fontSize: '13px', color: '#605e5c' }}>
-            Uses only the context. Best for workbench testing.
+            Best for local workbench and verbose diagnostics.
           </p>
           <CodeBlock
             code={spContextInitDev}
@@ -472,7 +462,7 @@ export const MyComponent: React.FC = () => {
             Production Mode (Recommended for production)
           </h4>
           <p style={{ margin: '0 0 12px 0', fontSize: '13px', color: '#605e5c' }}>
-            Includes site URL for better performance and reliability in production.
+            Uses the production preset for cleaner logging and production-oriented defaults.
           </p>
           <CodeBlock
             code={spContextInitProd}
@@ -485,7 +475,7 @@ export const MyComponent: React.FC = () => {
             Smart Mode (Best practice - Auto-detect)
           </h4>
           <p style={{ margin: '0 0 12px 0', fontSize: '13px', color: '#605e5c' }}>
-            Automatically chooses the right mode based on environment.
+            Recommended default. Lets the toolkit choose the best preset for the current environment.
           </p>
           <CodeBlock
             code={spContextInitSmart}
@@ -598,7 +588,7 @@ export const MyComponent: React.FC = () => {
       <Section title="Card Components" icon="CreditCardPerson" defaultExpanded={true}>
         <div style={{ marginBottom: '16px' }}>
           <p style={{ margin: '0 0 16px 0', fontSize: '14px', color: '#323130' }}>
-            Create consistent card layouts with Card, CardHeader, CardContent, and CardFooter:
+            Create consistent card layouts with the public Card subpath:
           </p>
           <CodeBlock
             code={cardExample}
@@ -613,8 +603,8 @@ export const MyComponent: React.FC = () => {
       <Section title="CRUD Operations" icon="Database" defaultExpanded={true}>
         <div style={{ marginBottom: '16px' }}>
           <p style={{ margin: '0 0 16px 0', fontSize: '14px', color: '#323130' }}>
-            Use <code>createSPExtractor</code> and <code>createSPUpdater</code> for type-safe
-            SharePoint operations:
+            Use <code>createSPExtractor</code> and <code>createSPUpdater</code> from{' '}
+            <code>spfx-toolkit/utilities/listItemHelper</code> for cleaner SharePoint item mapping:
           </p>
           <CodeBlock
             code={crudExample}
@@ -723,10 +713,13 @@ export const MyComponent: React.FC = () => {
           </h4>
           <ul style={{ margin: '0 0 16px 0', paddingLeft: '20px', fontSize: '14px', color: '#323130' }}>
             <li style={{ marginBottom: '8px' }}>
-              Always initialize SPContext in onInit() before using any SP operations
+              Always await <code>SPContext.smart()</code>, <code>development()</code>, or <code>production()</code> in onInit() before using SP APIs
             </li>
             <li style={{ marginBottom: '8px' }}>
-              Use createSPExtractor/createSPUpdater for type safety
+              Prefer public toolkit subpaths over legacy <code>lib</code> imports
+            </li>
+            <li style={{ marginBottom: '8px' }}>
+              Use createSPExtractor/createSPUpdater for safer list item mapping
             </li>
             <li style={{ marginBottom: '8px' }}>
               Leverage batch operations for multiple updates
@@ -744,16 +737,19 @@ export const MyComponent: React.FC = () => {
           </h4>
           <ul style={{ margin: '0', paddingLeft: '20px', fontSize: '14px', color: '#323130' }}>
             <li style={{ marginBottom: '8px' }}>
-              Don't use SPContext without initialization
+              Don&apos;t use SPContext without initialization
             </li>
             <li style={{ marginBottom: '8px' }}>
-              Don't make individual API calls when batch operations are possible
+              Don&apos;t keep stale <code>spfx-toolkit/lib/...</code> examples when a public subpath exists
             </li>
             <li style={{ marginBottom: '8px' }}>
-              Don't bypass form validation - always use Zod schemas
+              Don&apos;t make individual API calls when batch operations are possible
             </li>
             <li style={{ marginBottom: '8px' }}>
-              Don't hardcode field internal names - use constants
+              Don&apos;t bypass form validation - always use Zod schemas
+            </li>
+            <li style={{ marginBottom: '8px' }}>
+              Don&apos;t hardcode field internal names - use constants
             </li>
           </ul>
         </div>

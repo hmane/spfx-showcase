@@ -1,7 +1,7 @@
 import * as React from 'react';
-import { Card, Header, Content } from 'spfx-toolkit/lib/components/Card';
 import { PrimaryButton, DefaultButton, MessageBar, MessageBarType, Spinner, SpinnerSize } from '@fluentui/react';
-import SPContext from 'spfx-toolkit/lib/utilities/context';
+import { Card, Header, Content } from 'spfx-toolkit/components/Card';
+import SPContext from 'spfx-toolkit/utilities/context';
 // Import centralized PnP type augmentations
 
 export interface ITestListCreatorProps {
@@ -34,6 +34,27 @@ export const TestListCreator: React.FC<ITestListCreatorProps> = ({
 
     try {
       const sp = SPContext.sp;
+      const webUrl = SPContext.webAbsoluteUrl;
+
+      try {
+        const existingList = await sp.web.lists.getByTitle(listTitle).select('Id', 'RootFolder/ServerRelativeUrl').expand('RootFolder')();
+        const existingListUrl = webUrl
+          ? `${webUrl}${existingList.RootFolder.ServerRelativeUrl.replace(SPContext.webServerRelativeUrl, '')}`
+          : existingList.RootFolder.ServerRelativeUrl;
+
+        setListUrl(existingListUrl);
+        setMessage({
+          type: MessageBarType.info,
+          text: `Test list "${listTitle}" already exists. Reusing the existing list for this demo.`,
+        });
+
+        if (onListCreated) {
+          onListCreated(existingListUrl, existingList.Id);
+        }
+        return;
+      } catch {
+        // List does not exist yet.
+      }
 
       // Create the list
       const listResult = await sp.web.lists.add(listTitle, description);
@@ -73,7 +94,6 @@ export const TestListCreator: React.FC<ITestListCreatorProps> = ({
         }
       }
 
-      const webUrl = SPContext.webAbsoluteUrl;
       const createdListUrl = `${webUrl}/Lists/${listTitle.replace(/\s+/g, '')}`;
 
       setListUrl(createdListUrl);
@@ -86,10 +106,11 @@ export const TestListCreator: React.FC<ITestListCreatorProps> = ({
         onListCreated(createdListUrl, listResult.data.Id);
       }
     } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
       console.error('Error creating test list:', error);
       setMessage({
         type: MessageBarType.error,
-        text: `Failed to create test list: ${error.message || 'Unknown error'}`
+        text: `Failed to create test list: ${message}`
       });
     } finally {
       setIsCreating(false);

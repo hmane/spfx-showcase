@@ -54,7 +54,7 @@ const { control, handleSubmit } = useForm({
  * Card usage template
  */
 export const CARD_USAGE_TEMPLATE = `
-import { Card, Header, Content, Footer } from 'spfx-toolkit/lib/components/Card';
+import { Card, Header, Content, Footer } from 'spfx-toolkit/components/Card';
 
 <Card id="example-card" elevation={2}>
   <Header variant="primary">Card Title</Header>
@@ -109,7 +109,7 @@ import { ${fieldType} } from 'spfx-toolkit/lib/components/SPFields';
  * SPDynamicForm usage template
  */
 export const SP_DYNAMIC_FORM_TEMPLATE = `
-import { SPDynamicForm } from 'spfx-toolkit/lib/components/SPDynamicForm';
+import { SPDynamicForm } from 'spfx-toolkit/components/SPDynamicForm';
 
 <SPDynamicForm
   context={context}
@@ -127,7 +127,7 @@ import { SPDynamicForm } from 'spfx-toolkit/lib/components/SPDynamicForm';
  * ErrorBoundary usage template
  */
 export const ERROR_BOUNDARY_TEMPLATE = `
-import { ErrorBoundary } from 'spfx-toolkit/lib/components/ErrorBoundary';
+import { ErrorBoundary } from 'spfx-toolkit/components/ErrorBoundary';
 
 <ErrorBoundary
   fallback={(error, errorInfo, retry) => (
@@ -145,7 +145,7 @@ import { ErrorBoundary } from 'spfx-toolkit/lib/components/ErrorBoundary';
  * Custom hook usage template
  */
 export const CUSTOM_HOOK_TEMPLATE = (hookName: string, example: string) => `
-import { ${hookName} } from 'spfx-toolkit/lib/hooks';
+import { ${hookName} } from 'spfx-toolkit/hooks';
 
 ${example}
 `.trim();
@@ -154,7 +154,7 @@ ${example}
  * useLocalStorage hook template
  */
 export const USE_LOCAL_STORAGE_TEMPLATE = `
-import { useLocalStorage } from 'spfx-toolkit/lib/hooks';
+import { useLocalStorage } from 'spfx-toolkit/hooks';
 
 const [value, setValue] = useLocalStorage('key', 'defaultValue');
 
@@ -169,7 +169,7 @@ setValue('newValue');
  * useViewport hook template
  */
 export const USE_VIEWPORT_TEMPLATE = `
-import { useViewport } from 'spfx-toolkit/lib/hooks';
+import { useViewport } from 'spfx-toolkit/hooks';
 
 const { width, height, isMobile, isTablet, isDesktop } = useViewport();
 
@@ -181,7 +181,7 @@ console.log('Is Mobile:', isMobile);
  * WorkflowStepper usage template
  */
 export const WORKFLOW_STEPPER_TEMPLATE = `
-import { WorkflowStepper, StepData } from 'spfx-toolkit/lib/components/WorkflowStepper';
+import { WorkflowStepper, StepData } from 'spfx-toolkit/components/WorkflowStepper';
 
 const steps: StepData[] = [
   { id: 'step1', title: 'Step 1', status: 'completed' },
@@ -214,7 +214,7 @@ import { GroupUserPicker } from 'spfx-toolkit/lib/components/GroupUserPicker';
  * DocumentLink usage template
  */
 export const DOCUMENT_LINK_TEMPLATE = `
-import { DocumentLink } from 'spfx-toolkit/lib/components/DocumentLink';
+import { DocumentLink } from 'spfx-toolkit/components/DocumentLink';
 
 <DocumentLink
   context={context}
@@ -229,7 +229,7 @@ import { DocumentLink } from 'spfx-toolkit/lib/components/DocumentLink';
  * ManageAccess usage template
  */
 export const MANAGE_ACCESS_TEMPLATE = `
-import { ManageAccessComponent } from 'spfx-toolkit/lib/components/ManageAccess';
+import { ManageAccessComponent } from 'spfx-toolkit/components/ManageAccess';
 
 <ManageAccessComponent
   context={context}
@@ -243,7 +243,7 @@ import { ManageAccessComponent } from 'spfx-toolkit/lib/components/ManageAccess'
  * VersionHistory usage template
  */
 export const VERSION_HISTORY_TEMPLATE = `
-import { VersionHistory } from 'spfx-toolkit/lib/components/VersionHistory';
+import { VersionHistory } from 'spfx-toolkit/components/VersionHistory';
 
 <VersionHistory
   context={context}

@@ -9,7 +9,7 @@ import {
   useForm,
   useWatch,
 } from 'react-hook-form';
-import { Card, Content, Header } from 'spfx-toolkit/lib/components/Card';
+import { Card, Content, Header } from 'spfx-toolkit/components/Card';
 import {
   FormContainer,
   FormDescription,
@@ -19,10 +19,10 @@ import {
   FormValue,
   DevExtremeTextBox,
   DevExtremeTextArea,
-} from 'spfx-toolkit/lib/components/spForm';
-import { GroupUsersPicker } from 'spfx-toolkit/lib/components/GroupUsersPicker';
-import type { IGroupUser } from 'spfx-toolkit/lib/components/GroupUsersPicker/GroupUsersPicker.types';
-import { SPContext } from 'spfx-toolkit/lib/utilities/context';
+} from 'spfx-toolkit/components/spForm';
+import { GroupUsersPicker } from 'spfx-toolkit/components/GroupUsersPicker';
+import type { IGroupUser } from 'spfx-toolkit/components/GroupUsersPicker';
+import { SPContext } from 'spfx-toolkit/utilities/context';
 import { z } from 'zod';
 import { ShowcaseCodeSample } from '../shared/ShowcaseCodeSample';
 import { ShowcaseHero } from '../shared/ShowcaseHero';
@@ -66,9 +66,9 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Dropdown, IDropdownOption } from '@fluentui/react';
 import {
   FormContainer, FormItem, FormLabel, FormValue, FormError,
-} from 'spfx-toolkit/lib/components/spForm';
-import { GroupUsersPicker } from 'spfx-toolkit/lib/components/GroupUsersPicker';
-import { SPContext } from 'spfx-toolkit/lib/utilities/context';
+} from 'spfx-toolkit/components/spForm';
+import { GroupUsersPicker } from 'spfx-toolkit/components/GroupUsersPicker';
+import { SPContext } from 'spfx-toolkit/utilities/context';
 
 const groupUserSchema = z.object({
   id: z.union([z.string(), z.number()]),

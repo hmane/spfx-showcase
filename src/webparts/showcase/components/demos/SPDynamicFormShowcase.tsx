@@ -2,14 +2,14 @@ import { MessageBar, MessageBarType, PrimaryButton, DefaultButton, TextField, Ch
 import { WebPartContext } from '@microsoft/sp-webpart-base';
 import * as React from 'react';
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { Card, Content, Header } from 'spfx-toolkit/lib/components/Card';
-import type { IFormSubmitResult, ISectionConfig, IFieldOverride } from 'spfx-toolkit/lib/components/SPDynamicForm';
-import { SPDynamicForm } from 'spfx-toolkit/lib/components/SPDynamicForm';
+import { Card, Content, Header } from 'spfx-toolkit/components/Card';
+import type { IFormSubmitResult, ISectionConfig, IFieldOverride } from 'spfx-toolkit/components/SPDynamicForm';
+import { SPDynamicForm } from 'spfx-toolkit/components/SPDynamicForm';
 import { ShowcaseCodeSample } from '../shared/ShowcaseCodeSample';
 import { ShowcaseHero } from '../shared/ShowcaseHero';
 import type { ShowcaseFeature } from '../shared/ShowcaseKeyFeatures';
 import { ShowcaseKeyFeatures } from '../shared/ShowcaseKeyFeatures';
-import SPContext from 'spfx-toolkit/lib/utilities/context';
+import SPContext from 'spfx-toolkit/utilities/context';
 import { FieldUserSelectionMode } from '@pnp/sp/fields';
 
 const features: ShowcaseFeature[] = [
@@ -81,7 +81,7 @@ const DynamicFormWrapper: React.FC<IDynamicFormWrapperProps> = React.memo(({
     <SPDynamicForm
       listId={listId}
       mode={mode}
-      
+      itemId={itemId}
       sections={sections}
       fieldOrder={fieldOrder}
       excludeFields={excludeFields}
@@ -100,7 +100,9 @@ export const SPDynamicFormShowcase: React.FC<ISPDynamicFormShowcaseProps> = ({ c
   const [submitResult, setSubmitResult] = useState<string | null>(null);
   const [formMode, setFormMode] = useState<'new' | 'edit' | 'view'>('new');
   const [itemId, setItemId] = useState<string>('');
+  const [sampleItemId, setSampleItemId] = useState<number | null>(null);
   const [isCreatingList, setIsCreatingList] = useState(false);
+  const [isPreparingSampleItem, setIsPreparingSampleItem] = useState(false);
   const [listExists, setListExists] = useState<boolean | null>(null);
   const [showConfigPanel, setShowConfigPanel] = useState(false);
 
@@ -114,6 +116,54 @@ export const SPDynamicFormShowcase: React.FC<ISPDynamicFormShowcaseProps> = ({ c
   const [excludeFieldsInput, setExcludeFieldsInput] = useState('');
 
   const LIST_TITLE = 'SPDynamicFormTest';
+
+  const ensureSampleItem = useCallback(async (): Promise<number> => {
+    const sp = SPContext.sp;
+    const list = sp.web.lists.getByTitle(LIST_TITLE);
+    const existingItems = await list.items.select('Id').orderBy('Id', false).top(1)();
+
+    if (existingItems.length > 0) {
+      const existingId = existingItems[0].Id;
+      setSampleItemId(existingId);
+      return existingId;
+    }
+
+    const currentUser = await sp.web.currentUser.select('Id', 'Title')();
+    const dueDate = new Date();
+    dueDate.setDate(dueDate.getDate() + 14);
+
+    const createdItem = await list.items.add({
+      Title: 'Sample onboarding task',
+      Description: 'Seed item created by the showcase so edit and view modes are testable immediately.',
+      Status: 'In Progress',
+      Priority: ['High', 'Medium'],
+      AssignedToId: currentUser.Id,
+      DueDate: dueDate.toISOString(),
+      StartDate: new Date().toISOString(),
+      EstimatedHours: 12,
+      Budget: 2500,
+      IsActive: true,
+    });
+
+    const createdId = createdItem.data.Id as number;
+    setSampleItemId(createdId);
+    return createdId;
+  }, [LIST_TITLE]);
+
+  const hydrateExistingListState = useCallback(async (): Promise<void> => {
+    const sp = SPContext.sp;
+
+    await sp.web.lists.getByTitle(LIST_TITLE)();
+    setListExists(true);
+
+    try {
+      const existingId = await ensureSampleItem();
+      setItemId(current => current || String(existingId));
+    } catch (error) {
+      console.warn('Failed to prepare a sample SPDynamicForm item:', error);
+      setSampleItemId(null);
+    }
+  }, [LIST_TITLE, ensureSampleItem]);
 
   // Ensure test list creation
   const ensureTestList = useCallback(async () => {
@@ -134,9 +184,12 @@ export const SPDynamicFormShowcase: React.FC<ISPDynamicFormShowcaseProps> = ({ c
 
       // Check if list exists
       try {
-        await sp.web.lists.getByTitle(LIST_TITLE)();
-        setSubmitResult(`List '${LIST_TITLE}' already exists with required fields.`);
+        const existingSampleItemId = await ensureSampleItem();
         setListExists(true);
+        setItemId(current => current || String(existingSampleItemId));
+        setSubmitResult(
+          `List '${LIST_TITLE}' already exists and sample item ${existingSampleItemId} is ready for edit/view testing.`
+        );
         return;
       } catch {
         // List doesn't exist, create it
@@ -282,8 +335,11 @@ export const SPDynamicFormShowcase: React.FC<ISPDynamicFormShowcaseProps> = ({ c
         }
       }
 
+      const createdSampleItemId = await ensureSampleItem();
+      setItemId(String(createdSampleItemId));
+
       setSubmitResult(
-        `Test list created successfully! '${LIST_TITLE}' with 18 fields and '${categoryListTitle}' with sample data.`
+        `Test list created successfully. '${LIST_TITLE}' is ready, and sample item ${createdSampleItemId} can be used for edit/view mode.`
       );
       setListExists(true);
     } catch (error) {
@@ -301,22 +357,34 @@ export const SPDynamicFormShowcase: React.FC<ISPDynamicFormShowcaseProps> = ({ c
 
     (async () => {
       try {
-        const sp = SPContext.sp;
-
-        // Check if SPContext is initialized
-        if (!sp || !sp.web) {
+        if (!SPContext.sp || !SPContext.sp.web) {
           console.warn('SPContext not yet initialized, will retry...');
           setListExists(null);
           return;
         }
 
-        await sp.web.lists.getByTitle(LIST_TITLE)();
-        setListExists(true);
+        await hydrateExistingListState();
       } catch {
+        setSampleItemId(null);
         setListExists(false);
       }
     })().catch(() => undefined);
-  }, [context]);
+  }, [context, hydrateExistingListState]);
+
+  const useSampleItem = useCallback(async (): Promise<void> => {
+    setIsPreparingSampleItem(true);
+    try {
+      const ensuredItemId = await ensureSampleItem();
+      setFormMode(currentMode => (currentMode === 'new' ? 'edit' : currentMode));
+      setItemId(String(ensuredItemId));
+      setSubmitResult(`Sample item ${ensuredItemId} loaded. You can now test edit or view mode.`);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      setSubmitResult(`Failed to prepare a sample item: ${message}`);
+    } finally {
+      setIsPreparingSampleItem(false);
+    }
+  }, [ensureSampleItem]);
 
   const handleSubmit = useCallback(async (result: IFormSubmitResult): Promise<void> => {
     try {
@@ -558,6 +626,15 @@ export const SPDynamicFormShowcase: React.FC<ISPDynamicFormShowcaseProps> = ({ c
 
                 <div style={{ display: 'flex', alignItems: 'flex-end' }}>
                   <DefaultButton
+                    text={isPreparingSampleItem ? 'Preparing sample item...' : 'Use Sample Item'}
+                    iconProps={{ iconName: 'TestBeaker' }}
+                    onClick={() => {
+                      useSampleItem().catch(() => undefined);
+                    }}
+                    disabled={isPreparingSampleItem}
+                    style={{ marginRight: '8px' }}
+                  />
+                  <DefaultButton
                     text="Configuration Panel"
                     iconProps={{ iconName: 'Settings' }}
                     onClick={() => setShowConfigPanel(true)}
@@ -566,6 +643,11 @@ export const SPDynamicFormShowcase: React.FC<ISPDynamicFormShowcaseProps> = ({ c
               </Stack>
 
               {/* Demo Form */}
+              {sampleItemId && (
+                <MessageBar messageBarType={MessageBarType.info} styles={{ root: { marginBottom: '16px' } }}>
+                  Sample item <strong>{sampleItemId}</strong> is available for edit/view testing.
+                </MessageBar>
+              )}
               <div style={{
                 padding: '24px',
                 border: '1px solid #dee2e6',
@@ -712,7 +794,7 @@ export const SPDynamicFormShowcase: React.FC<ISPDynamicFormShowcaseProps> = ({ c
         id="basic-usage"
         title="Basic Usage"
         description="Simplest way to create a form - just provide a list ID and mode"
-        code={`import { SPDynamicForm } from 'spfx-toolkit/lib/components/SPDynamicForm';
+        code={`import { SPDynamicForm } from 'spfx-toolkit/components/SPDynamicForm';
 
 <SPDynamicForm
   listId="${LIST_TITLE}"

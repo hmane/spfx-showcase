@@ -379,7 +379,7 @@ function renderUsageInstructions(format: ExportFormat): JSX.Element {
         <div>
           <h4 style={{ margin: '0 0 12px 0' }}>Using PnP Template (JSON)</h4>
           <MessageBar messageBarType={MessageBarType.info}>
-            Requires PnP.PowerShell module
+            Requires PnP.PowerShell module. Best option when you need list-level unique permissions from Schema Explorer.
           </MessageBar>
           <div style={{ marginTop: '12px' }}>
             <strong>Apply template:</strong>
@@ -405,7 +405,7 @@ Invoke-PnPSiteTemplate -Path "./template.json"`}
         <div>
           <h4 style={{ margin: '0 0 12px 0' }}>Using PnP Template (XML)</h4>
           <MessageBar messageBarType={MessageBarType.info}>
-            Legacy format - use JSON for new projects
+            Legacy format - use JSON for new projects. List-level unique permissions are not emitted here.
           </MessageBar>
           <div style={{ marginTop: '12px' }}>
             <strong>Apply template:</strong>
@@ -457,7 +457,7 @@ Add-PnPSiteScript -Title "My Script" -Content $script`}
         <div>
           <h4 style={{ margin: '0 0 12px 0' }}>Using PnP PowerShell</h4>
           <MessageBar messageBarType={MessageBarType.info}>
-            Requires PnP.PowerShell module installed
+            Requires PnP.PowerShell module installed. Includes cleaner list provisioning and list-level unique permission commands when detected.
           </MessageBar>
           <div style={{ marginTop: '12px' }}>
             <strong>Run the script:</strong>
@@ -486,7 +486,7 @@ Install-Module PnP.PowerShell -Scope CurrentUser
         <div>
           <h4 style={{ margin: '0 0 12px 0' }}>Using CLI for Microsoft 365</h4>
           <MessageBar messageBarType={MessageBarType.info}>
-            Cross-platform CLI for Microsoft 365
+            Cross-platform CLI for Microsoft 365. Use when command portability matters more than full fidelity for security customization.
           </MessageBar>
           <div style={{ marginTop: '12px' }}>
             <strong>Install and run:</strong>

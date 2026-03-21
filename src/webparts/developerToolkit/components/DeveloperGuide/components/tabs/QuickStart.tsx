@@ -36,8 +36,8 @@ export const QuickStart: React.FC<ITabComponentProps> = ({ onNavigate }) => {
       timeEstimate: '5 min',
     },
     {
-      id: 'azure-artifacts',
-      label: 'Configure Azure Artifacts authentication for spfx-toolkit',
+      id: 'toolkit-source',
+      label: 'Verify how this repo resolves spfx-toolkit',
       completed: false,
       timeEstimate: '5 min',
     },
@@ -132,83 +132,91 @@ export const QuickStart: React.FC<ITabComponentProps> = ({ onNavigate }) => {
         </div>
       </Section>
 
-      {/* Azure Artifacts Authentication */}
-      <Section title="Azure Artifacts Authentication" icon="Package" defaultExpanded={true}>
+      {/* Toolkit dependency setup */}
+      <Section title="spfx-toolkit Dependency Source" icon="Package" defaultExpanded={true}>
         <div style={{ marginBottom: '16px' }}>
           <p style={{ margin: '0 0 16px 0', fontSize: '14px', color: '#323130' }}>
-            The <strong>spfx-toolkit</strong> package is hosted in Azure Artifacts. You must authenticate
-            before running npm install.
+            This solution currently consumes <strong>spfx-toolkit</strong> from a local file
+            dependency (<code>file:../spfx-toolkit</code>). Before running <code>npm install</code>,
+            make sure the sibling toolkit repo exists and is built.
           </p>
 
           <h4 style={{ margin: '0 0 12px 0', fontSize: '14px', fontWeight: 600 }}>
-            Step 1: Create .npmrc file
+            Step 1: Verify the linked toolkit repo
           </h4>
           <p style={{ margin: '0 0 12px 0', fontSize: '14px', color: '#323130' }}>
-            In your project root directory, create a <code>.npmrc</code> file with the following content:
+            Confirm the local dependency target exists next to this repo:
           </p>
           <CodeBlock
-            code={`registry=https://registry.npmjs.org/
-@your-org:registry=https://pkgs.dev.azure.com/your-org/_packaging/your-feed/npm/registry/
-always-auth=true`}
+            code={`../spfx-toolkit/
+  package.json
+  lib/
+  dist/`}
             language="bash"
-            filename=".npmrc"
+            filename="Expected sibling repo"
             showLineNumbers={false}
             maxHeight={250}
           />
 
           <MessageBar messageBarType={MessageBarType.info} styles={{ root: { marginTop: '12px', marginBottom: '16px' } }}>
-            <strong>Note:</strong> Replace <code>your-org</code> and <code>your-feed</code> with your actual
-            Azure DevOps organization and feed name. Contact your team lead for the correct values.
+            <strong>Note:</strong> If toolkit entrypoints or exports changed recently, rebuild the
+            sibling <code>spfx-toolkit</code> repo before reinstalling this solution.
           </MessageBar>
 
           <h4 style={{ margin: '16px 0 12px 0', fontSize: '14px', fontWeight: 600 }}>
-            Step 2: Authenticate with Azure Artifacts
+            Step 2: Build the toolkit and install dependencies
           </h4>
           <p style={{ margin: '0 0 12px 0', fontSize: '14px', color: '#323130' }}>
-            Run the following command to generate an authentication token:
+            Use the local toolkit build, then install dependencies for this repo:
           </p>
           <CodeBlock
-            code={`# Install vsts-npm-auth globally (one-time setup)
-npm install -g vsts-npm-auth
+            code={`cd ../spfx-toolkit
+npm install
+npm run build
 
-# Authenticate and generate token
-vsts-npm-auth -config .npmrc`}
+cd ../spfx-showcase
+npm install`}
             language="bash"
             showLineNumbers={false}
             maxHeight={250}
           />
 
           <p style={{ margin: '16px 0 12px 0', fontSize: '14px', color: '#323130' }}>
-            This command will:
+            This ensures:
           </p>
           <ul style={{ margin: '0 0 16px 0', paddingLeft: '20px', fontSize: '14px', color: '#323130' }}>
-            <li style={{ marginBottom: '8px' }}>Open a browser window for Azure DevOps authentication</li>
-            <li style={{ marginBottom: '8px' }}>Generate a Personal Access Token (PAT)</li>
             <li style={{ marginBottom: '8px' }}>
-              Automatically add the token to your <code>.npmrc</code> file
+              Public entrypoints like <code>spfx-toolkit/components/...</code> resolve correctly
+            </li>
+            <li style={{ marginBottom: '8px' }}>
+              The linked package includes current <code>lib/</code> output and compatibility proxies
+            </li>
+            <li style={{ marginBottom: '8px' }}>
+              This solution installs against the same toolkit version you are actively changing
             </li>
           </ul>
 
           <MessageBar messageBarType={MessageBarType.severeWarning} styles={{ root: { marginTop: '12px' } }}>
-            <strong>CRITICAL: Do NOT commit .npmrc to Git!</strong>
+            <strong>Important:</strong> If <code>npm install</code> fails with missing exports or
+            stale paths, rebuild <code>../spfx-toolkit</code> first and reinstall in this repo.
             <br />
-            The .npmrc file contains your authentication token and must NEVER be committed to source control.
-            Verify that .npmrc is listed in .gitignore before making any commits.
+            The app assumes the linked toolkit repo is already present locally.
           </MessageBar>
 
           <h4 style={{ margin: '16px 0 12px 0', fontSize: '14px', fontWeight: 600 }}>
-            Step 3: Verify .gitignore
+            Optional: Azure Artifacts fallback
           </h4>
           <p style={{ margin: '0 0 12px 0', fontSize: '14px', color: '#323130' }}>
-            Ensure your <code>.gitignore</code> file contains:
+            If you are consuming a published internal package instead of the linked repo, use your
+            team’s Azure Artifacts feed and authentication process before <code>npm install</code>.
           </p>
           <CodeBlock
-            code={`.npmrc
-.env
-.env.local
-*.local`}
+            code={`# Example only - replace with your team's real feed values
+registry=https://registry.npmjs.org/
+@your-org:registry=https://pkgs.dev.azure.com/your-org/_packaging/your-feed/npm/registry/
+always-auth=true`}
             language="bash"
-            filename=".gitignore (excerpt)"
+            filename=".npmrc"
             showLineNumbers={false}
             maxHeight={250}
           />
@@ -218,13 +226,13 @@ vsts-npm-auth -config .npmrc`}
           </h4>
           <ul style={{ margin: '0', paddingLeft: '20px', fontSize: '14px', color: '#323130' }}>
             <li style={{ marginBottom: '8px' }}>
-              <strong>401 Unauthorized:</strong> Token expired. Re-run <code>vsts-npm-auth -config .npmrc</code>
+              <strong>Module not found:</strong> Rebuild <code>../spfx-toolkit</code> and rerun <code>npm install</code>
             </li>
             <li style={{ marginBottom: '8px' }}>
-              <strong>404 Not Found:</strong> Check registry URL in .npmrc matches your Azure DevOps organization
+              <strong>Stale imports:</strong> Check that examples use public paths like <code>spfx-toolkit/components/Card</code>
             </li>
             <li style={{ marginBottom: '8px' }}>
-              <strong>Access Denied:</strong> Request access to the Azure Artifacts feed from your team lead
+              <strong>401 Unauthorized:</strong> If you are using the package-feed fallback, refresh your Azure Artifacts auth token
             </li>
           </ul>
         </div>

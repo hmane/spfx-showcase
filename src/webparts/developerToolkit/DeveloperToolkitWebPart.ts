@@ -8,7 +8,7 @@ import * as React from 'react';
 import * as ReactDom from 'react-dom';
 
 import * as strings from 'DeveloperToolkitWebPartStrings';
-import { SPContext } from 'spfx-toolkit/lib/utilities/context';
+import { SPContext } from 'spfx-toolkit/utilities/context';
 import '../pnpImports';
 import DeveloperToolkit from './components/DeveloperToolkit';
 

@@ -41,14 +41,14 @@ ${component}`;
 
     // Check if UserPersona is needed (for view mode)
     if (includedFields.some(f => f.TypeAsString === 'User' || f.TypeAsString === 'UserMulti')) {
-      imports.push("import { UserPersona } from 'spfx-toolkit/lib/components/UserPersona';");
+      imports.push("import { UserPersona } from 'spfx-toolkit/components/UserPersona';");
     }
 
     // Add SP field imports
     if (components.size > 0) {
       imports.push(`import {
   ${Array.from(components).join(',\n  ')}
-} from 'spfx-toolkit/lib/components/spFields';`);
+} from 'spfx-toolkit/components/spFields';`);
     }
 
     // Add form imports
@@ -60,7 +60,7 @@ ${component}`;
   FormValue,
   FormError,
   FormErrorSummary
-} from 'spfx-toolkit/lib/components/spForm';`);
+} from 'spfx-toolkit/components/spForm';`);
 
     // Add store and types imports
     imports.push("import { use${interfaceName}Store } from './${interfaceName.toLowerCase()}Store';");

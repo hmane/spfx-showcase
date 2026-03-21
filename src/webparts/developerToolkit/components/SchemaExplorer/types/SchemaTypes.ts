@@ -112,6 +112,8 @@ export interface IListSchema extends ISchemaItem {
   enableAttachments: boolean;
   enableFolderCreation: boolean;
   contentTypesEnabled: boolean;
+  hasUniqueRoleAssignments: boolean;
+  roleAssignments: IRoleAssignmentSchema[];
   fields: IListFieldSchema[];
   views: IViewSchema[];
   contentTypes: string[];

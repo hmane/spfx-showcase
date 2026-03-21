@@ -12,7 +12,7 @@ import {
 } from '@fluentui/react';
 import * as React from 'react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Card, CardAction, Content, Header } from 'spfx-toolkit/lib/components/Card';
+import { Card, CardAction, Content, Header } from 'spfx-toolkit/components/Card';
 import { useUtilityService } from '../context/UtilityContext';
 import { useClipboard } from '../hooks/useClipboard';
 import { useDebounce } from '../hooks/useDebounce';

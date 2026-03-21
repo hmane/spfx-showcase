@@ -8,97 +8,64 @@ import { Section } from '../shared/Section';
  * Copilot Instructions tab - GitHub Copilot configuration
  */
 export const CopilotInstructions: React.FC<ITabComponentProps> = () => {
-  const copilotInstructionsMd = `# Copilot Instructions for \`spfx-toolkit\`
+  const copilotInstructionsMd = `# Copilot Instructions for \`spfx-showcase\`
 
-This repository contains a **library**, not an SPFx solution. Every suggestion from Copilot must respect the rules below so consuming SPFx projects stay lean and stable.
+This repository is an SPFx solution that demonstrates how to use \`spfx-toolkit\` in real SharePoint pages. Suggestions should favor clear, testable demos over clever abstractions.
 
-## 1. Project Context
-- SharePoint Framework ≥ **1.21.1** compatibility.
-- **React 17**, **TypeScript strict**, **Fluent UI 8**.
-- Tree-shakable exports under \`lib/components\`, \`lib/hooks\`, \`lib/utilities\`.
-- **Zero runtime dependencies**. Only peer dependencies listed in \`package.json\` may be referenced.
-- All code lives under \`src/\` and uses **relative imports** (no path aliases).
+## Project Context
+- SPFx **1.21.1**
+- **React 17**, **TypeScript**, **Fluent UI 8**
+- \`spfx-toolkit\` is linked locally with \`file:../spfx-toolkit\`
+- Main areas:
+  - \`src/webparts/showcase\` for toolkit demos
+  - \`src/webparts/developerToolkit\` for generators, utilities, and developer guidance
 
-## 2. Pre-Drafting Checklist
-1. Confirm the feature belongs in the toolkit (reusable across SPFx projects).
-2. Open/scan an adjacent file (Copilot relies on nearby context).
-3. Add interfaces/types first; mention tree-shakable import expectations in comments.
-4. Keep bundle size in mind: prefer native utilities over pulling in dependencies.
-5. Run \`npm run lint\` or \`npm run build\` to ensure the project is clean before requesting large completions.
+## Toolkit Usage Rules
+- Prefer public package entrypoints such as:
+  - \`spfx-toolkit/components/Card\`
+  - \`spfx-toolkit/components/UserPersona\`
+  - \`spfx-toolkit/components/spForm\`
+  - \`spfx-toolkit/components/spFields\`
+  - \`spfx-toolkit/hooks\`
+  - \`spfx-toolkit/utilities/context\`
+  - \`spfx-toolkit/utilities/listItemHelper\`
+  - \`spfx-toolkit/utilities/batchBuilder\`
+- Use \`spfx-toolkit/lib/...\` only when the package does not expose a public subpath for that type or implementation detail.
+- Never import UI components from the package root.
+- Load PnP bundles once through \`src/webparts/pnpImports.ts\`.
+- Initialize \`SPContext\` once per web part in \`onInit()\` using \`SPContext.development(...)\`, \`SPContext.production(...)\`, or \`SPContext.smart(...)\`.
 
-## 3. Coding Standards
-- **Functional React components only**. No class components.
-- Type every prop, state, and handler explicitly.
-- Follow file structure: component + \`.module.scss\` (if styles are needed) + \`.types.ts\`.
-- Use existing abstractions (\`SPContext\`, \`createSPExtractor\`, form primitives) instead of re‑implementing logic.
-- Prefer composition over inheritance; keep components focused.
-- Every new helper/util exports from the relevant \`index.ts\` barrel.
+## Demo Solution Expectations
+- Keep showcase examples easy to verify in a SharePoint site.
+- Prefer guided flows, seeded sample data, and obvious success or error messages.
+- When a demo depends on SharePoint artifacts, provide setup helpers or fallback instructions in the UI.
+- Avoid overly complex sample code when a simpler scenario demonstrates the same capability.
+- Code samples shown in the UI must match the current package import guidance.
 
-### Relative Imports (Mandatory)
-\`\`\`ts
-// ✅ Allowed
-import { Header } from '../Header';
-import { formatFieldValue } from '../../utilities/listItemHelper';
+## Developer Utilities Expectations
+- Utilities should be deterministic, copy-friendly, and safe for browser-only execution.
+- Prefer small pure helpers for parsing, formatting, and generation logic.
+- Preserve user input on validation errors whenever possible.
+- When clipboard APIs fail, provide graceful fallback behavior.
+- Do not add dependencies for simple formatting or conversion tasks.
 
-// ❌ Forbidden (Copilot must NOT propose these)
-import { Header } from '@components/Header';
-import '@/utilities/listItemHelper';
-\`\`\`
+## Editing Rules
+- Follow existing repo structure and naming.
+- Use functional React components and explicit types.
+- Reuse shared showcase building blocks before adding new layout patterns.
+- Do not edit generated SharePoint package output or release bundles by hand.
 
-### Tree-Shakable Exports
-\`\`\`ts
-// ✅ Re-export in index files
-export * from './Card';
+## Validation Workflow
+- Run \`npx tsc --noEmit\` for quick validation after TypeScript changes.
+- Run \`npm run test:utilities\` when changing parsing, formatting, or generator helpers.
+- Run \`npm run build\` before considering the task complete.
+- If behavior changes, update related guidance in \`README.md\`, \`SPFX-Toolkit-Usage-Guide.md\`, and the developer guide tabs.
 
-// ✅ Consumers will import like:
-// import { Card } from 'spfx-toolkit/lib/components/Card';
-\`\`\`
-
-## 4. PnP & SP Context Rules
-- Toolkit modules may import PnP packages, but only through the existing bundles under \`src/utilities/context/pnpImports/*\`.
-- Keep \`src/types/pnp-augmentations.d.ts\` in sync when adding new PnP capabilities.
-- \`SPContext\` (under \`utilities/context\`) is responsible for initializing PnP—never add per-component PnP setup.
-
-## 5. Build & Validation Workflow
-| Command | Purpose |
-| ------- | ------- |
-| \`npm run build\` | Clean + compile + validate output |
-| \`npm run watch\` | Watch mode for local development |
-| \`npm run validate\` | Ensures required lib files exist |
-
-Before opening a PR:
-1. \`npm run build\`
-2. \`npm run lint\` (if needed)
-3. Verify \`lib/\` output or run \`npm run build:full\` when publishing
-
-## 6. Documentation & Samples
-- Document every component/hook in \`SPFX-Toolkit-Usage-Guide.md\`.
-- Update \`README.md\` feature tables when adding new modules.
-- Provide sample usage (preferably in markdown) showcasing props and expected patterns.
-
-## 7. Testing & QA
-- Add unit tests or story-like examples when practical.
-- Ensure accessible markup (ARIA roles, labels, keyboard navigation).
-- Run bundle-size sanity checks if a component pulls in large sub-dependencies (DevExtreme, etc.).
-
-## 8. Versioning & Releases
-- This repo follows semver but releases are manual. When changing public APIs, update the changelog section in \`SPFX-Toolkit-Usage-Guide.md\`.
-- Do **not** bump versions automatically; maintainers handle publishing.
-
-## 9. PR / Commit Guidance
-- Use Conventional Commits (\`feat(card): add footer actions\`).
-- Include bullet summaries describing behavior, bundle impact, and testing.
-- Point reviewers to docs updates and usage samples.
-
-## 10. Absolute “No-Go” Rules
-- ❌ No new npm dependencies (runtime or dev) without explicit maintainer approval.
-- ❌ No direct DOM manipulation; always go through React.
-- ❌ No copying code from consumer solutions into the toolkit.
-- ❌ No hard-coded tenant/site URLs.
-- ❌ No \`any\` – use \`unknown\` + type guards when unavoidable.
-- ❌ No \`console.log\` — use the toolkit logger utilities or remove before commit.
-
-Keep the toolkit lean, tree-shakable, and consumer-friendly. EOF
+## Avoid
+- No hard-coded tenant-specific URLs.
+- No \`any\` unless unavoidable and justified.
+- No stale \`spfx-toolkit/lib/...\` examples when a public subpath exists.
+- No extra demo complexity without a testing or learning benefit.
 `;
 
   return (
@@ -106,8 +73,8 @@ Keep the toolkit lean, tree-shakable, and consumer-friendly. EOF
       {/* Header */}
       <MessageBar messageBarType={MessageBarType.success}>
         <strong>GitHub Copilot</strong> can dramatically accelerate your development when properly
-        configured. Add this file to your project root to give Copilot context about our standards
-        and practices.
+        configured. Keep these instructions in <code>.github/copilot-instructions.md</code> so
+        Copilot has repository-specific context for this SPFx demo solution.
       </MessageBar>
 
       {/* Instructions */}
@@ -118,16 +85,17 @@ Keep the toolkit lean, tree-shakable, and consumer-friendly. EOF
           </h4>
           <ol style={{ margin: '0 0 16px 0', paddingLeft: '20px', fontSize: '14px', color: '#323130' }}>
             <li style={{ marginBottom: '8px' }}>
-              Create a file named <code>copilot-instructions.md</code> in your project root
+              Keep <code>.github/copilot-instructions.md</code> as the canonical Copilot guidance file
             </li>
             <li style={{ marginBottom: '8px' }}>
-              Copy the template below into this file
+              Update the template below whenever toolkit imports, testing workflow, or repo structure changes
             </li>
             <li style={{ marginBottom: '8px' }}>
-              Customize it for your specific project needs
+              Keep the content aligned with <code>SPFX-Toolkit-Usage-Guide.md</code> and the actual codebase
             </li>
             <li style={{ marginBottom: '8px' }}>
-              Commit the file to your repository
+              Keep the root <code>copilot-instructions.md</code> as a lightweight pointer only if
+              you still need backwards compatibility
             </li>
             <li style={{ marginBottom: '8px' }}>
               GitHub Copilot will automatically use these instructions for context
@@ -135,15 +103,15 @@ Keep the toolkit lean, tree-shakable, and consumer-friendly. EOF
           </ol>
 
           <MessageBar messageBarType={MessageBarType.info}>
-            <strong>Note:</strong> Copilot reads this file automatically. No additional
-            configuration needed in VS Code!
+            <strong>Note:</strong> This repository already includes the file under <code>.github/</code>.
+            Treat the template below as the source of truth for future edits.
           </MessageBar>
         </div>
       </Section>
 
       {/* Template */}
       <Section
-        title="copilot-instructions.md Template"
+        title=".github/copilot-instructions.md Template"
         icon="PageCode"
         defaultExpanded={true}
       >
@@ -154,7 +122,7 @@ Keep the toolkit lean, tree-shakable, and consumer-friendly. EOF
           <CodeBlock
             code={copilotInstructionsMd}
             language="markdown"
-            filename="copilot-instructions.md"
+            filename=".github/copilot-instructions.md"
             showLineNumbers={true}
             maxHeight={500}
           />
@@ -381,8 +349,8 @@ Keep the toolkit lean, tree-shakable, and consumer-friendly. EOF
           </ul>
 
           <MessageBar messageBarType={MessageBarType.warning}>
-            <strong>Keep it updated:</strong> Review and update copilot-instructions.md as your
-            project evolves and standards change.
+            <strong>Keep it updated:</strong> Review and update <code>.github/copilot-instructions.md</code>
+            as toolkit entrypoints, testing scripts, and demo patterns evolve.
           </MessageBar>
         </div>
       </Section>

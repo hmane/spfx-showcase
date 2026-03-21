@@ -11,8 +11,8 @@ import {
 } from '@fluentui/react';
 import * as React from 'react';
 import { useCallback, useState } from 'react';
-import { DocumentLink, IDocumentInfo, DocumentLinkLayout, SizePosition, ClickAction, PreviewMode, PreviewTarget, IDocumentLinkProps } from 'spfx-toolkit/lib/components/DocumentLink';
-import { SPContext } from 'spfx-toolkit/lib/utilities/context';
+import { DocumentLink, IDocumentInfo, DocumentLinkLayout, SizePosition, ClickAction, PreviewMode, PreviewTarget, IDocumentLinkProps } from 'spfx-toolkit/components/DocumentLink';
+import { SPContext } from 'spfx-toolkit/utilities/context';
 // Import centralized PnP type augmentations
 import { ListPicker } from '@pnp/spfx-controls-react/lib/ListPicker';
 import { ListItemPicker } from '@pnp/spfx-controls-react/lib/ListItemPicker';
@@ -22,10 +22,10 @@ import { ShowcaseFeature, ShowcaseKeyFeatures } from '../shared/ShowcaseKeyFeatu
 
 const DOCUMENT_LINK_SAMPLE = `import * as React from 'react';
 import { useState } from 'react';
-import { DocumentLink } from 'spfx-toolkit/lib/components/DocumentLink';
+import { DocumentLink } from 'spfx-toolkit/components/DocumentLink';
 import { ListPicker } from '@pnp/spfx-controls-react/lib/ListPicker';
 import { ListItemPicker } from '@pnp/spfx-controls-react/lib/ListItemPicker';
-import { SPContext } from 'spfx-toolkit/lib/utilities/context';
+import { SPContext } from 'spfx-toolkit/utilities/context';
 
 export const DocumentLinkExample: React.FC = () => {
   const [selectedLibraryId, setSelectedLibraryId] = useState<string>('');

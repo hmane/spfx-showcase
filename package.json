@@ -10,6 +10,7 @@
     "build": "gulp bundle",
     "clean": "gulp clean",
     "test": "gulp test",
+    "test:utilities": "tsc -p tsconfig.tests.json && node --test temp/test-build/tests/**/*.test.js",
     "debug": "npm run clean && gulp bundle --ship=false && gulp package-solution --ship=false",
     "release": "npm run clean && gulp bundle --ship && gulp package-solution --ship",
     "serve": "fast-serve",

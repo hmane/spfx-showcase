@@ -10,7 +10,7 @@ import {
   useWatch,
 } from 'react-hook-form';
 import { create } from 'zustand';
-import { Card, Content, Header } from 'spfx-toolkit/lib/components/Card';
+import { Card, Content, Header } from 'spfx-toolkit/components/Card';
 import {
   DevExtremeCheckBox,
   DevExtremeDateBox,
@@ -31,8 +31,8 @@ import {
   PnPPeoplePicker,
   useScrollToError,
   useZustandFormSync,
-} from 'spfx-toolkit/lib/components/spForm';
-import { SPContext } from 'spfx-toolkit/lib/utilities/context';
+} from 'spfx-toolkit/components/spForm';
+import { SPContext } from 'spfx-toolkit/utilities/context';
 import { z } from 'zod';
 import { ShowcaseCodeSample } from '../shared/ShowcaseCodeSample';
 import { ShowcaseHero } from '../shared/ShowcaseHero';
@@ -115,7 +115,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import {
   FormContainer, FormItem, FormLabel, FormValue, FormError,
   DevExtremeTextBox, DevExtremeSelectBox, PrimaryButton,
-} from 'spfx-toolkit/lib/components/spForm';
+} from 'spfx-toolkit/components/spForm';
 
 const schema = z.object({
   projectName: z.string().min(1, 'Project name is required'),
@@ -203,7 +203,7 @@ export const SimpleProjectForm: React.FC = () => {
   );
 };`;
 
-const FORM_ERROR_SUMMARY_SAMPLE = `import { FormProvider, FormErrorSummary, FormError, useScrollToError } from 'spfx-toolkit/lib/components/spForm';
+const FORM_ERROR_SUMMARY_SAMPLE = `import { FormProvider, FormErrorSummary, FormError, useScrollToError } from 'spfx-toolkit/components/spForm';
 
 export const FormWithErrorHandling: React.FC = () => {
   const { control, handleSubmit, formState } = useForm({
@@ -256,7 +256,7 @@ export const FormWithErrorHandling: React.FC = () => {
 };`;
 
 const AUTO_SAVE_SAMPLE = `import { create } from 'zustand';
-import { useZustandFormSync } from 'spfx-toolkit/lib/components/spForm';
+import { useZustandFormSync } from 'spfx-toolkit/components/spForm';
 
 // Create Zustand store for draft saving
 const useFormDraftStore = create((set) => ({

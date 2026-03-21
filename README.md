@@ -241,15 +241,15 @@ PnPjs is loaded once per web part and its typings are registered globally. Keep 
 ```typescript
 // src/webparts/pnpImports.ts
 // Runtime side effects loaded once at each web part entry point
-import 'spfx-toolkit/lib/utilities/context/pnpImports/core';
-import 'spfx-toolkit/lib/utilities/context/pnpImports/lists';
-import 'spfx-toolkit/lib/utilities/context/pnpImports/content';
+import 'spfx-toolkit/utilities/context/pnpImports/core';
+import 'spfx-toolkit/utilities/context/pnpImports/lists';
+import 'spfx-toolkit/utilities/context/pnpImports/content';
 
 // Optional bundles – add only what you need
-// import 'spfx-toolkit/lib/utilities/context/pnpImports/files';
-// import 'spfx-toolkit/lib/utilities/context/pnpImports/search';
-// import 'spfx-toolkit/lib/utilities/context/pnpImports/taxonomy';
-// import 'spfx-toolkit/lib/utilities/context/pnpImports/security';
+// import 'spfx-toolkit/utilities/context/pnpImports/files';
+// import 'spfx-toolkit/utilities/context/pnpImports/search';
+// import 'spfx-toolkit/utilities/context/pnpImports/taxonomy';
+// import 'spfx-toolkit/utilities/context/pnpImports/security';
 ```
 
 ```typescript

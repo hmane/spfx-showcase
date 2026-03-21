@@ -31,6 +31,10 @@ export const useClipboard = (autoHideDuration: number = 3000): UseClipboardRetur
   }, []);
 
   const clearMessage = useCallback(() => {
+    if (timeoutCleanupRef.current) {
+      timeoutCleanupRef.current();
+      timeoutCleanupRef.current = null;
+    }
     setShowMessage(false);
     setCopyMessage('');
   }, []);
@@ -54,7 +58,9 @@ export const useClipboard = (autoHideDuration: number = 3000): UseClipboardRetur
         // Only update state if still mounted
         if (isMountedRef.current) {
           setShowMessage(false);
+          setCopyMessage('');
         }
+        timeoutCleanupRef.current = null;
       }, autoHideDuration);
     },
     [utilityService, autoHideDuration]

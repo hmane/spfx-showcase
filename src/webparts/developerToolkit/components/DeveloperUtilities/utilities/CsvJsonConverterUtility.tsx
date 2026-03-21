@@ -14,13 +14,17 @@ import {
 } from '@fluentui/react';
 import * as React from 'react';
 import { useCallback, useMemo, useState } from 'react';
-import { Card, CardAction, Content, Header } from 'spfx-toolkit/lib/components/Card';
+import { Card, CardAction, Content, Header } from 'spfx-toolkit/components/Card';
+import {
+  convertCsvToJson,
+  convertJsonToCsv,
+  JsonOutputFormat,
+} from '../helpers/csvJsonUtils';
 import { useUtilityService } from '../context/UtilityContext';
 import { useClipboard } from '../hooks/useClipboard';
 import { BaseUtilityProps } from '../types/UtilityTypes';
 
 type ConversionDirection = 'csvToJson' | 'jsonToCsv';
-type JsonOutputFormat = 'objects' | 'arrays';
 
 export const CsvJsonConverterUtility: React.FC<BaseUtilityProps> = ({
   id,
@@ -37,6 +41,7 @@ export const CsvJsonConverterUtility: React.FC<BaseUtilityProps> = ({
   const [prettyPrint, setPrettyPrint] = useState<boolean>(true);
   const [jsonFormat, setJsonFormat] = useState<JsonOutputFormat>('objects');
   const [errorMessage, setErrorMessage] = useState<string>('');
+  const [warningMessage, setWarningMessage] = useState<string>('');
 
   // Load sample data
   const loadSampleData = useCallback((): void => {
@@ -75,130 +80,19 @@ Alice Williams,alice.williams@contoso.com,IT,Designer`;
   // Parse CSV to JSON
   const csvToJson = useCallback(
     (csv: string, delim: string, hasHeaders: boolean, outputFormat: JsonOutputFormat): string => {
-      if (!csv.trim()) return '';
-
-      const lines = csv.trim().split(/\r?\n/);
-      if (lines.length === 0) return '[]';
-
-      const result: Array<Record<string, string> | string[]> = [];
-      let headers: string[] = [];
-
-      // Parse CSV line considering quoted values
-      const parseLine = (line: string): string[] => {
-        const values: string[] = [];
-        let current = '';
-        let inQuotes = false;
-
-        for (let i = 0; i < line.length; i++) {
-          const char = line[i];
-          const nextChar = line[i + 1];
-
-          if (char === '"') {
-            if (inQuotes && nextChar === '"') {
-              current += '"';
-              i++; // Skip next quote
-            } else {
-              inQuotes = !inQuotes;
-            }
-          } else if (char === delim && !inQuotes) {
-            values.push(current.trim());
-            current = '';
-          } else {
-            current += char;
-          }
-        }
-        values.push(current.trim());
-        return values;
-      };
-
-      // Get headers
-      if (hasHeaders) {
-        headers = parseLine(lines[0]);
-        lines.shift();
-      }
-
-      // Process each line
-      lines.forEach(line => {
-        if (!line.trim()) return;
-
-        const values = parseLine(line);
-
-        if (outputFormat === 'objects' && hasHeaders) {
-          const obj: Record<string, string> = {};
-          headers.forEach((header, index) => {
-            obj[header] = values[index] || '';
-          });
-          result.push(obj);
-        } else {
-          result.push(values);
-        }
-      });
-
-      return prettyPrint ? JSON.stringify(result, null, 2) : JSON.stringify(result);
+      const result = convertCsvToJson(csv, delim, hasHeaders, outputFormat, prettyPrint);
+      setWarningMessage(result.warning || '');
+      return result.output;
     },
     [prettyPrint]
   );
 
   // Parse JSON to CSV
   const jsonToCsv = useCallback((json: string, delim: string, includeHeader: boolean): string => {
-    if (!json.trim()) return '';
-
     try {
-      const data = JSON.parse(json);
-
-      if (!Array.isArray(data)) {
-        throw new Error('JSON must be an array of objects or arrays');
-      }
-
-      if (data.length === 0) return '';
-
-      const lines: string[] = [];
-
-      // Escape CSV value
-      const escapeValue = (value: unknown): string => {
-        const str = value === null || value === undefined ? '' : String(value);
-        if (str.includes(delim) || str.includes('"') || str.includes('\n')) {
-          return `"${str.replace(/"/g, '""')}"`;
-        }
-        return str;
-      };
-
-      // Check if array of objects or array of arrays
-      const isArrayOfObjects = typeof data[0] === 'object' && !Array.isArray(data[0]);
-
-      if (isArrayOfObjects) {
-        // Get all unique keys from all objects
-        const allKeys = new Set<string>();
-        data.forEach(item => {
-          if (typeof item === 'object' && item !== null) {
-            Object.keys(item).forEach(key => allKeys.add(key));
-          }
-        });
-        const keys = Array.from(allKeys);
-
-        // Add header row
-        if (includeHeader) {
-          lines.push(keys.map(escapeValue).join(delim));
-        }
-
-        // Add data rows
-        data.forEach(item => {
-          if (typeof item === 'object' && item !== null) {
-            const values = keys.map(key => escapeValue(item[key]));
-            lines.push(values.join(delim));
-          }
-        });
-      } else {
-        // Array of arrays
-        data.forEach((row: unknown) => {
-          if (Array.isArray(row)) {
-            const values = row.map(escapeValue);
-            lines.push(values.join(delim));
-          }
-        });
-      }
-
-      return lines.join('\n');
+      const result = convertJsonToCsv(json, delim, includeHeader);
+      setWarningMessage(result.warning || '');
+      return result.output;
     } catch (error) {
       throw new Error(`Invalid JSON: ${(error as Error).message}`);
     }
@@ -209,10 +103,14 @@ Alice Williams,alice.williams@contoso.com,IT,Designer`;
     if (!inputText.trim()) {
       setOutputText('');
       setErrorMessage('');
+      setWarningMessage('');
       return;
     }
 
     try {
+      if (!delimiter) {
+        throw new Error('Delimiter is required');
+      }
       let result: string;
       if (direction === 'csvToJson') {
         result = csvToJson(inputText, delimiter, includeHeaders, jsonFormat);
@@ -223,6 +121,7 @@ Alice Williams,alice.williams@contoso.com,IT,Designer`;
       setErrorMessage('');
     } catch (error) {
       setErrorMessage((error as Error).message);
+      setWarningMessage('');
       setOutputText('');
     }
   }, [inputText, direction, delimiter, includeHeaders, jsonFormat, csvToJson, jsonToCsv]);
@@ -234,6 +133,7 @@ Alice Williams,alice.williams@contoso.com,IT,Designer`;
     } else {
       setOutputText('');
       setErrorMessage('');
+      setWarningMessage('');
     }
   }, [inputText, direction, delimiter, includeHeaders, prettyPrint, jsonFormat, convert]);
 
@@ -275,6 +175,7 @@ Alice Williams,alice.williams@contoso.com,IT,Designer`;
     setInputText('');
     setOutputText('');
     setErrorMessage('');
+    setWarningMessage('');
   }, []);
 
   // Download output
@@ -496,6 +397,12 @@ Alice Williams,alice.williams@contoso.com,IT,Designer`;
             </div>
           )}
 
+          {warningMessage && !errorMessage && (
+            <MessageBar messageBarType={MessageBarType.warning} isMultiline={false}>
+              {warningMessage}
+            </MessageBar>
+          )}
+
           {/* Output */}
           <div>
             <Label>{direction === 'csvToJson' ? 'JSON Output' : 'CSV Output'}</Label>
@@ -530,6 +437,7 @@ Alice Williams,alice.williams@contoso.com,IT,Designer`;
               }}
             >
               <strong>Stats:</strong> {stats.rows} rows, {stats.columns} columns
+              {warningMessage ? ` • ${warningMessage}` : ''}
             </div>
           )}
 

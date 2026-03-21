@@ -1,9 +1,9 @@
 import * as React from 'react';
-import { Card, Content, Header } from 'spfx-toolkit/lib/components/Card';
+import { Card, Content, Header } from 'spfx-toolkit/components/Card';
 import { ShowcaseHero } from '../shared/ShowcaseHero';
 import { ShowcaseKeyFeatures, ShowcaseFeature } from '../shared/ShowcaseKeyFeatures';
 import { ShowcaseCodeSample } from '../shared/ShowcaseCodeSample';
-import { useLocalStorage, useViewport } from 'spfx-toolkit/lib/hooks';
+import { useLocalStorage, useViewport } from 'spfx-toolkit/hooks';
 import { TextField, DefaultButton, Toggle, MessageBar, MessageBarType } from '@fluentui/react';
 
 const FEATURES: ShowcaseFeature[] = [
@@ -45,7 +45,7 @@ const FEATURES: ShowcaseFeature[] = [
   }
 ];
 
-const LOCAL_STORAGE_EXAMPLE = `import { useLocalStorage } from 'spfx-toolkit/lib/hooks';
+const LOCAL_STORAGE_EXAMPLE = `import { useLocalStorage } from 'spfx-toolkit/hooks';
 
 function MyComponent() {
   // Simple usage - works like useState but persists to localStorage
@@ -69,7 +69,7 @@ function MyComponent() {
   );
 }`;
 
-const VIEWPORT_EXAMPLE = `import { useViewport } from 'spfx-toolkit/lib/hooks';
+const VIEWPORT_EXAMPLE = `import { useViewport } from 'spfx-toolkit/hooks';
 
 function ResponsiveComponent() {
   const {
@@ -96,7 +96,7 @@ function ResponsiveComponent() {
   );
 }`;
 
-const ADVANCED_LOCALSTORAGE = `import { useLocalStorage } from 'spfx-toolkit/lib/hooks';
+const ADVANCED_LOCALSTORAGE = `import { useLocalStorage } from 'spfx-toolkit/hooks';
 
 function AdvancedExample() {
   // Store complex objects
@@ -143,7 +143,7 @@ function AdvancedExample() {
   );
 }`;
 
-const RESPONSIVE_DESIGN = `import { useViewport } from 'spfx-toolkit/lib/hooks';
+const RESPONSIVE_DESIGN = `import { useViewport } from 'spfx-toolkit/hooks';
 
 function ResponsiveGrid() {
   const { breakpoint, isMobile } = useViewport();

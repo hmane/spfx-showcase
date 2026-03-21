@@ -16,7 +16,7 @@ import {
 } from '@fluentui/react';
 import * as React from 'react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Card, CardAction, Content, Header } from 'spfx-toolkit/lib/components/Card';
+import { Card, CardAction, Content, Header } from 'spfx-toolkit/components/Card';
 import { useClipboard } from '../hooks/useClipboard';
 import { BaseUtilityProps } from '../types/UtilityTypes';
 
@@ -142,6 +142,51 @@ export const PnpFieldSchemaUtility: React.FC<BaseUtilityProps> = ({
     sspId: '',
     anchorId: '',
   });
+
+  const validationIssues = useMemo(() => {
+    const errors: string[] = [];
+    const warnings: string[] = [];
+    const guidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+    if (!fieldProps.internalName.trim()) {
+      errors.push('Internal Name is required.');
+    } else {
+      if (fieldProps.internalName.includes(' ')) {
+        warnings.push('Internal Name contains spaces. Prefer a SharePoint-safe internal name without spaces.');
+      }
+      if (fieldProps.internalName.length > 32) {
+        warnings.push('Internal Name exceeds the common 32 character SharePoint limit.');
+      }
+    }
+
+    if (!fieldProps.displayName.trim()) {
+      errors.push('Display Name is required.');
+    }
+
+    if (!fieldProps.id.trim()) {
+      errors.push('Field ID (GUID) is required.');
+    } else if (!guidPattern.test(fieldProps.id.trim())) {
+      errors.push('Field ID must be a valid GUID without braces.');
+    }
+
+    if ((fieldProps.fieldType === 'Choice' || fieldProps.fieldType === 'MultiChoice') && !fieldProps.choices.trim()) {
+      errors.push('Choice fields require at least one choice value.');
+    }
+
+    if (fieldProps.fieldType === 'Lookup' && !fieldProps.list.trim()) {
+      errors.push('Lookup fields require a target list GUID or token.');
+    }
+
+    if (fieldProps.fieldType === 'TaxonomyFieldType' && !fieldProps.termSetId.trim()) {
+      errors.push('Managed metadata fields require a Term Set ID.');
+    }
+
+    if (fieldProps.fieldType === 'Calculated' && !fieldProps.formula.trim()) {
+      errors.push('Calculated fields require a formula.');
+    }
+
+    return { errors, warnings };
+  }, [fieldProps]);
 
   // OOB Fields library
   const oobFields: OOBField[] = useMemo(
@@ -629,7 +674,7 @@ export const PnpFieldSchemaUtility: React.FC<BaseUtilityProps> = ({
 
   // Generate schema based on output format
   useEffect(() => {
-    if (!fieldProps.internalName) {
+    if (!fieldProps.internalName || validationIssues.errors.length > 0) {
       setGeneratedSchema('');
       return;
     }
@@ -659,6 +704,7 @@ export const PnpFieldSchemaUtility: React.FC<BaseUtilityProps> = ({
     generateFieldRefXml,
     generatePowerShell,
     generateJsonTemplate,
+    validationIssues.errors.length,
   ]);
 
   // Copy output
@@ -895,6 +941,18 @@ export const PnpFieldSchemaUtility: React.FC<BaseUtilityProps> = ({
               />
             </Stack>
           </div>
+
+          {validationIssues.errors.length > 0 && (
+            <MessageBar messageBarType={MessageBarType.error}>
+              {validationIssues.errors.join(' ')}
+            </MessageBar>
+          )}
+
+          {validationIssues.warnings.length > 0 && validationIssues.errors.length === 0 && (
+            <MessageBar messageBarType={MessageBarType.warning}>
+              {validationIssues.warnings.join(' ')}
+            </MessageBar>
+          )}
 
           {/* Type-Specific Properties */}
           {fieldProps.fieldType === 'Text' && (
